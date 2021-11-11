@@ -1,0 +1,17 @@
+.DS_Store
+*.swp
+.editorconfig
+lib/
+node_modules/
+cache/
+.vscode/
+*-debug.log
+*-error.log
+/.nyc_output
+/out
+/dist
+/lib
+/tmp
+tags
+notes.txt
+

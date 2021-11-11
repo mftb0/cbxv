@@ -1,0 +1,8 @@
+github.com/gen2brain/go-unarr v0.1.2 h1:17kYZ2WMCVFrnmU4A+7BeFXblIOyE8weqggjay+kVIU=
+github.com/gen2brain/go-unarr v0.1.2/go.mod h1:P05CsEe8jVEXhxqXqp9mFKUKFV0BKpFmtgNWf8Mcoos=
+github.com/gotk3/gotk3 v0.6.1 h1:GJ400a0ecEEWrzjBvzBzH+pB/esEMIGdB9zPSmBdoeo=
+github.com/gotk3/gotk3 v0.6.1/go.mod h1:/hqFpkNa9T3JgNAE2fLvCdov7c5bw//FHNZrZ3Uv9/Q=
+golang.org/x/image v0.0.0-20211028202545-6944b10bf410 h1:hTftEOvwiOq2+O8k2D5/Q7COC7k5Qcrgc2TFURJYnvQ=
+golang.org/x/image v0.0.0-20211028202545-6944b10bf410/go.mod h1:023OzeP/+EPmXeapQh35lcL3II3LrY8Ic+EFFKVhULM=
+golang.org/x/text v0.3.6/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
+golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
