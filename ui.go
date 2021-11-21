@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	_ "image/color"
 	"math"
 	_ "path/filepath"
@@ -33,10 +34,14 @@ func NewNavControl() {
 
 func NewHUD(ui *UI, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
-	b, _ := gtk.LabelNew("0")
-	b.SetHAlign(gtk.ALIGN_END)
-	b.SetVAlign(gtk.ALIGN_END)
-	o.AddOverlay(b)
+
+	pn, err := gtk.LabelNew("0")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+	pn.SetHAlign(gtk.ALIGN_END)
+	pn.SetVAlign(gtk.ALIGN_END)
+	o.AddOverlay(pn)
 
     return o
 }
@@ -326,11 +331,24 @@ func InitUI(model *Model, ui *UI) {
     gtk.Init(nil)
     ui.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
     ui.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
-    ui.mainWindow.SetTitle("cbxs")
+    ui.mainWindow.SetTitle("cbxv")
     ui.mainWindow.Connect("destroy", func() {
         gtk.MainQuit()
     })
     ui.mainWindow.SetSizeRequest(1024, 768)
+
+	css, err := gtk.CssProviderNew()
+    err = css.LoadFromPath("./assets/index.css")
+	if err != nil {
+		fmt.Printf("css error %s\n", err)
+	}
+
+	s, err := gdk.ScreenGetDefault()
+	if err != nil {
+		fmt.Printf("css error %s\n", err)
+	}
+
+    gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     ui.hud = NewHUD(ui, "")
 	ui.mainWindow.Add(ui.hud)

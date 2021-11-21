@@ -1,0 +1,22 @@
+.body {
+    background-color: #00ff00;
+    margin: 0px;
+    padding :0px;
+    border: 0px;
+}
+
+.image {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.bordered {
+    border: solid 1px #00ff00;
+}
+
+label {
+    color: #00ff00;
+    padding: 4px 20px 4px 20px;
+}
+
