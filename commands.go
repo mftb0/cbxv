@@ -4,8 +4,6 @@ import (
 	"math"
     "path/filepath"
     "time"
-
-	"github.com/gotk3/gotk3/gtk"
 )
 
 type Command struct {
@@ -275,7 +273,7 @@ func NewCommands(model *Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         cmds.Commands["closeFile"]("")
-        gtk.MainQuit()
+        quit()
     }
 
     return cmds

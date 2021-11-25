@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	_ "image/jpeg"
+    "image"
 	"math"
-	"runtime"
 	"sort"
 )
 
@@ -162,12 +161,15 @@ type Page struct {
     Height int
     Orientation int
     Loaded bool
-    Image *cbxImage
+    Image *image.Image
 }
 
 func (p *Page) Load() {
-    f, _ := loadImageFile(p.filePath)
-    p.Image = f
+    f, err := loadImageFile(p.filePath)
+    if err != nil {
+        fmt.Printf("Error loading file %s\n", err)
+    }
+    p.Image = &f
     b := f.Bounds()
     p.Width = b.Dx()
     p.Height = b.Dy()
@@ -312,7 +314,6 @@ func RefreshPages(model *Model) {
                 leaf := model.leaves[j]
                 for i := range leaf.pages {
                     if leaf.pages[i].Loaded {
-                        leaf.pages[i].Image.pixbuf = nil
                         leaf.pages[i].Image = nil
                         leaf.pages[i].Loaded = false
                     }
@@ -324,18 +325,13 @@ func RefreshPages(model *Model) {
         for x := range model.pages {
             if !model.pages[x].Loaded {
                 if model.pages[x].Image != nil {
-                    if model.pages[x].Image.pixbuf != nil {
-                        fmt.Printf("Page %d shouldn't be loaded\n", x)
-                        model.pages[x].Image.pixbuf = nil
-                    }
+                    fmt.Printf("Page %d shouldn't be loaded\n", x)
+                    model.pages[x].Image = nil
                 }
             } else {
                 c++
             }
         }
-        fmt.Printf("Pages loaded %d\n", c)
-        runtime.GC()
-        fmt.Printf("gc\n")
     } else {
         // load all pages
         for i := range model.pages {

@@ -13,6 +13,7 @@ import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+	gotk3extra "github.com/jamesrr39/go-gtk-extra/gotk3-extra"
 )
 
 const (
@@ -234,7 +235,7 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
 }
 
 func renderOnePageLayout(layout *OnePageLayout) error {
-    p := layout.page.Image.pixbuf
+	p, _ := gotk3extra.PixBufFromImage(*layout.page.Image)
     cW := layout.canvas.GetAllocatedWidth()
     cH := layout.canvas.GetAllocatedHeight()
 
@@ -251,7 +252,7 @@ func renderOnePageLayout(layout *OnePageLayout) error {
 
 func renderTwoPageLayout(layout *TwoPageLayout) error {
     var err error
-	lp := layout.leftPage.Image.pixbuf
+	lp, _ := gotk3extra.PixBufFromImage(*layout.leftPage.Image)
 
 	//put the left pg on the left, right-aligned unless 
 	//there is no right page, then center the left page
@@ -276,7 +277,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
     renderPixbuf(layout.cr, lp, x, y)
 
     if layout.rightPage != nil {
-		rp := layout.rightPage.Image.pixbuf
+		rp, _ := gotk3extra.PixBufFromImage(*layout.rightPage.Image)
 
         rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
         if err != nil {
@@ -316,7 +317,6 @@ func InitRenderer(model *Model, ui *UI) {
 func InitCanvas(model *Model, ui *UI) {
     if ui.canvas != nil {
         ui.hud.Remove(ui.canvas)
-        ui.canvas.Unref()
         ui.canvas.Destroy()
         ui.canvas = nil
     }

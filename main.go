@@ -2,40 +2,31 @@ package main
 
 import (
 	"fmt"
-    "image"
+	"image"
+    _"image/jpeg"
 	"os"
 	"runtime"
 	"time"
 
 	_ "github.com/gotk3/gotk3/cairo"
-	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
 
 // Simple cbx application with a gui provided by gtk
 
-type cbxImage struct {
-    pixbuf *gdk.Pixbuf
-}
-
-func (i cbxImage) Bounds() image.Rectangle {
-    return image.Rect(0, 0, i.pixbuf.GetWidth(), i.pixbuf.GetHeight())
-}
-
 // Utility for pages to load images
-func loadImageFile(filePath string) (*cbxImage, error) {
+func loadImageFile(filePath string) (image.Image, error) {
     f, err := os.Open(filePath)
     if err != nil {
         return nil, err
     }
     defer f.Close()
 
-    var i = &cbxImage{}
-    i.pixbuf, err = gdk.PixbufNewFromFile(filePath)
+    img, _, err := image.Decode(f)
     if err != nil {
         return nil, err
     }
-    return i, nil
+    return img, nil
 }
 
 
@@ -105,6 +96,10 @@ func loadHash(model *Model) {
 func loadBookmarks(model *Model) {
     model.bookmarks = NewBookmarkList(model.filePath)
     model.bookmarks.Load(model.hash)
+}
+
+func quit() {
+    gtk.MainQuit()
 }
 
 // Stuff to handle messages from the ui
