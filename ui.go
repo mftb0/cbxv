@@ -172,8 +172,8 @@ type TwoPageLayout struct {
     rightPage *Page
 }
 
-func NewTwoPageLayout(model *Model, canvas *gtk.DrawingArea, cr *cairo.Context,
-    leaf *Leaf) *TwoPageLayout {
+// Create a two pg layout accounting for readmode
+func NewTwoPageLayout(model *Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *TwoPageLayout {
 
     lo := &TwoPageLayout{}
     lo.canvas = canvas
@@ -297,15 +297,15 @@ func renderOnePageLayout(layout *OnePageLayout) error {
     return nil
 }
 
+// readmode (rtl or ltr) has already been accounted for
+// so left and right here are literal
 func renderTwoPageLayout(layout *TwoPageLayout) error {
     var err error
 	lp, _ := gotk3extra.PixBufFromImage(*layout.leftPage.Image)
 
-	//put the left pg on the left, right-aligned unless 
-	//there is no right page, then center the left page
 	var x, y, cW, cH int
     if layout.rightPage != nil {
-        fmt.Printf("0")
+	    //put the left pg on the left, right-aligned
 		cW = layout.canvas.GetAllocatedWidth() / 2
 		cH = layout.canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
@@ -313,8 +313,18 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
 			return err
 		}
         x, y = positionPixbuf(layout.canvas, lp, RIGHT_ALIGN)
+        renderPixbuf(layout.cr, lp, x, y)
+
+	    //put the right pg on the right, left-aligned
+		rp, _ := gotk3extra.PixBufFromImage(*layout.rightPage.Image)
+        rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
+        if err != nil {
+            return err
+        }
+        x, y = positionPixbuf(layout.canvas, rp, LEFT_ALIGN)
+        renderPixbuf(layout.cr, rp, x, y)
     } else {
-        fmt.Printf("1")
+	    //there is no right page, then center the left page
 		cW = layout.canvas.GetAllocatedWidth()
 		cH = layout.canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
@@ -322,21 +332,9 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
 			return err
 		}
 		x, y = positionPixbuf(layout.canvas, lp, CENTER)
+        renderPixbuf(layout.cr, lp, x, y)
     }
-    renderPixbuf(layout.cr, lp, x, y)
 
-    if layout.rightPage != nil {
-        fmt.Printf("2")
-		rp, _ := gotk3extra.PixBufFromImage(*layout.rightPage.Image)
-
-        rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
-        if err != nil {
-            return err
-        }
-
-        x, y = positionPixbuf(layout.canvas, rp, LEFT_ALIGN)
-        renderPixbuf(layout.cr, rp, x, y)
-    }
     return nil
 }
 
