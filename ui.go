@@ -6,7 +6,7 @@ import (
 	"math"
 	_ "path/filepath"
 	_ "strings"
-	"time"
+	_"time"
 
 	_ "golang.org/x/image/colornames"
 
@@ -52,9 +52,11 @@ type UI struct {
     hud *gtk.Overlay
     spread int
     canvas *gtk.DrawingArea
+    scrollbars *gtk.ScrolledWindow
     view int
     headerControl int
     navControl int
+    longStripRender []*gdk.Pixbuf
 }
 
 func InitKBHandler(model *Model, ui *UI) {
@@ -80,9 +82,11 @@ func InitKBHandler(model *Model, ui *UI) {
             m := &Message{typeName: "selectPage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_1 {
+            InitCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeOnePage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_2 {
+            InitCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeTwoPage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_3 {
@@ -134,7 +138,7 @@ func InitKBHandler(model *Model, ui *UI) {
             sendMessage(*m)
         }
         //reset the hud hiding
-        hudTicker.Reset(time.Second * 5)
+//        hudTicker.Reset(time.Second * 5)
 //        if ui.hud.Hidden {
 //            ui.hud.Show()
 //        }
@@ -191,6 +195,21 @@ func NewTwoPageLayout(model *Model, canvas *gtk.DrawingArea, cr *cairo.Context,
     return lo
 }
 
+type LongStripLayout struct {
+    canvas *gtk.DrawingArea
+    cr *cairo.Context
+    pages []*Page
+}
+
+func NewLongStripLayout(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *LongStripLayout {
+
+    lo := &LongStripLayout{}
+    lo.canvas = canvas
+    lo.cr = cr
+    lo.pages = leaf.pages
+    return lo
+}
+
 func scalePixbufToFit(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int, h int) (*gdk.Pixbuf, error) {
     cW := float64(w)
     cH := float64(h)
@@ -203,12 +222,33 @@ func scalePixbufToFit(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int, h int) (*gd
         if err != nil {
             return nil, err
         }
+    } else {
+        scale := math.Min(cW/pW, cH/pH)
+        p, err = p.ScaleSimple(int(pW * scale), int(pH * scale), gdk.INTERP_BILINEAR)
+        if err != nil {
+            return nil, err
+        }
+    }
+    return p, nil
+}
+
+func scalePixbufToWidth(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
+    cW := float64(w)
+    pW := float64(p.GetWidth())
+    pH := float64(p.GetHeight())
+    var err error
+    if pW > cW {
+        scale := cW/pW
+        p, err = p.ScaleSimple(int(pW * scale), int(pH * scale), gdk.INTERP_BILINEAR)
+        if err != nil {
+            return nil, err
+        }
     }
     return p, nil
 }
 
 func positionPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf, pos PagePosition) (x, y int) {
-    var cW int 
+    var cW int
     if pos != CENTER {
         cW = canvas.GetAllocatedWidth() / 2
     } else {
@@ -227,6 +267,13 @@ func positionPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf, pos PagePosition) (x
     }
     y = (cH - pH) / 2
     return x, y
+}
+
+func positionLongStripPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf) (x int) {
+    cW := canvas.GetAllocatedWidth()
+    pW := p.GetWidth()
+    x = (cW - pW) / 2
+    return x
 }
 
 func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
@@ -258,6 +305,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
 	//there is no right page, then center the left page
 	var x, y, cW, cH int
     if layout.rightPage != nil {
+        fmt.Printf("0")
 		cW = layout.canvas.GetAllocatedWidth() / 2
 		cH = layout.canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
@@ -266,6 +314,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
 		}
         x, y = positionPixbuf(layout.canvas, lp, RIGHT_ALIGN)
     } else {
+        fmt.Printf("1")
 		cW = layout.canvas.GetAllocatedWidth()
 		cH = layout.canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
@@ -277,6 +326,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
     renderPixbuf(layout.cr, lp, x, y)
 
     if layout.rightPage != nil {
+        fmt.Printf("2")
 		rp, _ := gotk3extra.PixBufFromImage(*layout.rightPage.Image)
 
         rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
@@ -290,7 +340,38 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
     return nil
 }
 
+func renderLongStripLayout(model *Model, ui *UI, layout *LongStripLayout) error {
+    var x, y int
+    if ui.longStripRender == nil {
+        cW := layout.canvas.GetAllocatedWidth()
+
+        for i := range layout.pages {
+            page := layout.pages[i]
+	        p, _ := gotk3extra.PixBufFromImage(*page.Image)
+            p, err := scalePixbufToWidth(layout.canvas, p, cW)
+            if err != nil {
+                return err
+            }
+            x = positionLongStripPixbuf(layout.canvas, p)
+            renderPixbuf(layout.cr, p, x, y)
+            y += p.GetHeight()
+            ui.longStripRender = append(ui.longStripRender, p)
+        }
+    } else {
+        for i := range ui.longStripRender {
+            p := ui.longStripRender[i]
+            x = positionLongStripPixbuf(layout.canvas, p)
+            renderPixbuf(layout.cr, p, x, y)
+            y += p.GetHeight()
+        }
+    }
+    layout.canvas.SetSizeRequest(x, y)
+
+    return nil
+}
+
 func InitRenderer(model *Model, ui *UI) {
+    ui.longStripRender = nil
     ui.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
         cr.SetSourceRGB(0,0,0)
         cr.Rectangle(0,0,float64(ui.canvas.GetAllocatedWidth()), float64(ui.canvas.GetAllocatedHeight()))
@@ -303,11 +384,12 @@ func InitRenderer(model *Model, ui *UI) {
         if(model.leafMode == TWO_PAGE) {
             lo := NewTwoPageLayout(model, canvas, cr, leaf)
             renderTwoPageLayout(lo)
-            lo.cr = nil
         } else if model.leafMode == ONE_PAGE {
             lo := NewOnePageLayout(canvas, cr, leaf.pages[0])
             renderOnePageLayout(lo)
         } else {
+            lo := NewLongStripLayout(canvas, cr, leaf)
+            renderLongStripLayout(model, ui, lo)
         }
 
         renderHeaderControl(model, ui)
@@ -351,7 +433,9 @@ func InitUI(model *Model, ui *UI) {
     gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     ui.hud = NewHUD(ui, "")
-	ui.mainWindow.Add(ui.hud)
+    ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
+    ui.scrollbars.Add(ui.hud)
+	ui.mainWindow.Add(ui.scrollbars)
 
     InitKBHandler(model, ui)
 

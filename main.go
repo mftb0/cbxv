@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image"
     _"image/jpeg"
+    _"image/png"
+    _"image/gif"
 	"os"
 	"runtime"
 	"time"
@@ -160,17 +162,17 @@ func main() {
 
     InitUI(model, ui)
 
-    hudTicker = time.NewTicker(time.Second * 1)
-    defer hudTicker.Stop()
-    hudChan = make(chan bool)
-    go func() {
-        for {
-            time.Sleep(time.Second * 5)
+//    hudTicker = time.NewTicker(time.Second * 1)
+//    defer hudTicker.Stop()
+//    hudChan = make(chan bool)
+//    go func() {
+//        for {
+//            time.Sleep(time.Second * 5)
 //            if !ui.hud.Hidden {
 //                hudChan <- true
 //            }
-        }
-    }()
+//        }
+//    }()
 
     go update(model, ui, commands)
     go hudHandler(model, ui)
