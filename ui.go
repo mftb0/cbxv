@@ -407,18 +407,18 @@ func InitCanvas(model *Model, ui *UI) {
     ui.mainWindow.ShowAll()
 }
 
-func InitUI(model *Model, ui *UI) {
-    gtk.Init(nil)
-    ui.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-    ui.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
-    ui.mainWindow.SetTitle("cbxv")
-    ui.mainWindow.Connect("destroy", func() {
-        gtk.MainQuit()
-    })
-    ui.mainWindow.SetSizeRequest(1024, 768)
-
+func InitCss() {
 	css, err := gtk.CssProviderNew()
-    err = css.LoadFromPath("./assets/index.css")
+    if err != nil {
+		fmt.Printf("css error %s\n", err)
+	}
+
+    data, err := loadTextFile("assets/index.css")
+    if err != nil {
+		fmt.Printf("error loading file%s\n", err)
+	}
+
+    err = css.LoadFromData(*data)
 	if err != nil {
 		fmt.Printf("css error %s\n", err)
 	}
@@ -429,6 +429,19 @@ func InitUI(model *Model, ui *UI) {
 	}
 
     gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+}
+
+func InitUI(model *Model, ui *UI) {
+    gtk.Init(nil)
+    ui.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+    ui.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
+    ui.mainWindow.SetTitle("cbxv")
+    ui.mainWindow.Connect("destroy", func() {
+        gtk.MainQuit()
+    })
+    ui.mainWindow.SetSizeRequest(1024, 768)
+
+    InitCss()
 
     ui.hud = NewHUD(ui, "")
     ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)

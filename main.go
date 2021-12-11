@@ -1,11 +1,13 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"image"
     _"image/jpeg"
     _"image/png"
     _"image/gif"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"time"
@@ -15,6 +17,19 @@ import (
 )
 
 // Simple cbx application with a gui provided by gtk
+
+//go:embed assets
+var static embed.FS
+
+func loadTextFile(filePath string) (*string, error) {
+    b, err := ioutil.ReadFile(filePath)
+    if(err != nil) {
+        return nil, err
+    }
+
+    s := string(b)
+    return &s, nil
+}
 
 // Utility for pages to load images
 func loadImageFile(filePath string) (image.Image, error) {
