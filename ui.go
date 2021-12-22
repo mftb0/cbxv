@@ -30,19 +30,77 @@ func NewHeaderControl(ui *UI, title string)  {
 func NewNavBar(model *Model)  {
 }
 
-func NewNavControl() {
+func NewNavControl(ui *UI) *gtk.Box {
+    return nil
 }
 
 func NewHUD(ui *UI, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
-	pn, err := gtk.LabelNew("0")
+	lpn, err := gtk.LabelNew("0")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-	pn.SetHAlign(gtk.ALIGN_END)
-	pn.SetVAlign(gtk.ALIGN_END)
-	o.AddOverlay(pn)
+    lpn.SetHAlign(gtk.ALIGN_START)
+	lpn.SetVAlign(gtk.ALIGN_END)
+	css, _ := lpn.GetStyleContext()
+	css.AddClass("nav-ctrl")
+	css.AddClass("page-num")
+
+	rc, err := gtk.LabelNew("reflow")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    rc.SetHAlign(gtk.ALIGN_CENTER)
+	rc.SetVAlign(gtk.ALIGN_END)
+	css, _ = rc.GetStyleContext()
+	css.AddClass("nav-ctrl")
+
+	rmc, err := gtk.LabelNew("readmode")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    rmc.SetHAlign(gtk.ALIGN_CENTER)
+	rmc.SetVAlign(gtk.ALIGN_END)
+	css, _ = rmc.GetStyleContext()
+	css.AddClass("nav-ctrl")
+
+	dmc, err := gtk.LabelNew("displaymode")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    dmc.SetHAlign(gtk.ALIGN_CENTER)
+	dmc.SetVAlign(gtk.ALIGN_END)
+	css, _ = dmc.GetStyleContext()
+	css.AddClass("nav-ctrl")
+
+    fsc, err := gtk.LabelNew("fullscreen")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    fsc.SetHAlign(gtk.ALIGN_CENTER)
+	fsc.SetVAlign(gtk.ALIGN_END)
+	css, _ = fsc.GetStyleContext()
+	css.AddClass("nav-ctrl")
+
+   	rpn, err := gtk.LabelNew("1")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    rpn.SetHAlign(gtk.ALIGN_END)
+	rpn.SetVAlign(gtk.ALIGN_END)
+	css, _ = rpn.GetStyleContext()
+	css.AddClass("nav-ctrl")
+	css.AddClass("page-num")
+
+	o.AddOverlay(lpn)
+
+	o.AddOverlay(rc)
+	o.AddOverlay(rmc)
+	o.AddOverlay(dmc)
+	o.AddOverlay(fsc)
+
+	o.AddOverlay(rpn)
 
     return o
 }
@@ -55,7 +113,7 @@ type UI struct {
     scrollbars *gtk.ScrolledWindow
     view int
     headerControl int
-    navControl int
+    navControl *gtk.Box
     longStripRender []*gdk.Pixbuf
 }
 
@@ -447,6 +505,8 @@ func InitUI(model *Model, ui *UI) {
     ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
     ui.scrollbars.Add(ui.hud)
 	ui.mainWindow.Add(ui.scrollbars)
+
+    ui.navControl = NewNavControl(ui)
 
     InitKBHandler(model, ui)
 

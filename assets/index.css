@@ -16,7 +16,20 @@
 }
 
 label {
-    color: #00ff00;
-    padding: 4px 20px 4px 20px;
 }
 
+.nav-ctrl {
+    color: #00ff00;
+    padding: 4px 20px 4px 20px;
+    border: solid 1px lime;
+    font-weight: bold;
+}
+
+.page-num {
+    margin-left:8px;
+    margin-right:8px;
+}
+
+box { 
+    padding: 4px;
+}
