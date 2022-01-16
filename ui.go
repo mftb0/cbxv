@@ -27,80 +27,102 @@ type PagePosition int
 func NewHeaderControl(ui *UI, title string)  {
 }
 
-func NewNavBar(model *Model)  {
+type NavControl struct {
+    container *gtk.Grid
+    navBar *gtk.ProgressBar
+    rightPageNum *gtk.Label
+    reflowControl *gtk.Label
+    readModeControl *gtk.Label
+    displayModeControl *gtk.Label
+    fullscreenControl *gtk.Label
+    leftPageNum *gtk.Label
 }
 
-func NewNavControl(ui *UI) *gtk.Box {
-    return nil
-}
+func NewNavControl() *NavControl {
+    nc := &NavControl{}
 
-func NewHUD(ui *UI, title string) *gtk.Overlay {
-	o, _ := gtk.OverlayNew()
+	nbc, err := gtk.ProgressBarNew()
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    nbc.SetHExpand(true)
+	css, _ := nbc.GetStyleContext()
+	css.AddClass("nav-bar")
 
 	lpn, err := gtk.LabelNew("0")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
     lpn.SetHAlign(gtk.ALIGN_START)
-	lpn.SetVAlign(gtk.ALIGN_END)
-	css, _ := lpn.GetStyleContext()
-	css.AddClass("nav-ctrl")
+    lpn.SetHExpand(true)
+	css, _ = lpn.GetStyleContext()
+	css.AddClass("nav-btn")
 	css.AddClass("page-num")
 
-	rc, err := gtk.LabelNew("reflow")
+   	rc, err := gtk.LabelNew("reflow")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    rc.SetHAlign(gtk.ALIGN_CENTER)
-	rc.SetVAlign(gtk.ALIGN_END)
 	css, _ = rc.GetStyleContext()
-	css.AddClass("nav-ctrl")
+	css.AddClass("nav-btn")
 
 	rmc, err := gtk.LabelNew("readmode")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    rmc.SetHAlign(gtk.ALIGN_CENTER)
-	rmc.SetVAlign(gtk.ALIGN_END)
 	css, _ = rmc.GetStyleContext()
-	css.AddClass("nav-ctrl")
+	css.AddClass("nav-btn")
 
 	dmc, err := gtk.LabelNew("displaymode")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    dmc.SetHAlign(gtk.ALIGN_CENTER)
-	dmc.SetVAlign(gtk.ALIGN_END)
 	css, _ = dmc.GetStyleContext()
-	css.AddClass("nav-ctrl")
+	css.AddClass("nav-btn")
 
     fsc, err := gtk.LabelNew("fullscreen")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    fsc.SetHAlign(gtk.ALIGN_CENTER)
-	fsc.SetVAlign(gtk.ALIGN_END)
 	css, _ = fsc.GetStyleContext()
-	css.AddClass("nav-ctrl")
+	css.AddClass("nav-btn")
 
-   	rpn, err := gtk.LabelNew("1")
+	rpn, err := gtk.LabelNew("1")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    rpn.SetHAlign(gtk.ALIGN_END)
-	rpn.SetVAlign(gtk.ALIGN_END)
 	css, _ = rpn.GetStyleContext()
-	css.AddClass("nav-ctrl")
+	css.AddClass("nav-btn")
 	css.AddClass("page-num")
 
-	o.AddOverlay(lpn)
+    container, err := gtk.GridNew()
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    container.SetHAlign(gtk.ALIGN_CENTER)
+	container.SetVAlign(gtk.ALIGN_END)
+    container.SetHExpand(true)
+	css, _ = container.GetStyleContext()
+	css.AddClass("nav-ctrl")
 
-	o.AddOverlay(rc)
-	o.AddOverlay(rmc)
-	o.AddOverlay(dmc)
-	o.AddOverlay(fsc)
+    container.Attach(nbc, 0, 0, 7, 1)
+    container.Attach(lpn, 1, 1, 1, 1)
+    container.Attach(rc, 2, 1, 1, 1)
+    container.Attach(rmc, 3, 1, 1, 1)
+    container.Attach(dmc, 4, 1, 1, 1)
+    container.Attach(fsc, 5, 1, 1, 1)
+    container.Attach(rpn, 6, 1, 1, 1)
+	container.SetSizeRequest(1000, 8)
+    nc.container = container
 
-	o.AddOverlay(rpn)
+    return nc
+}
+
+func NewHUD(ui *UI, title string) *gtk.Overlay {
+	o, _ := gtk.OverlayNew()
+
+    ui.navControl = NewNavControl()
+	o.AddOverlay(ui.navControl.container)
 
     return o
 }
@@ -113,7 +135,7 @@ type UI struct {
     scrollbars *gtk.ScrolledWindow
     view int
     headerControl int
-    navControl *gtk.Box
+    navControl *NavControl
     longStripRender []*gdk.Pixbuf
 }
 
@@ -210,6 +232,14 @@ func renderBookmark(model *Model, ui *UI, pageIndex int, pos PagePosition) {
 }
 
 func renderHeaderControl(model *Model, ui *UI) {
+}
+
+func renderHud(model *Model, ui *UI) {
+    w := ui.mainWindow.GetAllocatedWidth() - 20
+    ui.navControl.container.SetSizeRequest(w, 8)
+
+	renderHeaderControl(model, ui)
+	renderNavControl(model, ui)
 }
 
 type OnePageLayout struct {
@@ -448,7 +478,7 @@ func InitRenderer(model *Model, ui *UI) {
             renderLongStripLayout(model, ui, lo)
         }
 
-        renderHeaderControl(model, ui)
+		renderHud(model, ui)
     })
 }
 
@@ -499,14 +529,17 @@ func InitUI(model *Model, ui *UI) {
     })
     ui.mainWindow.SetSizeRequest(1024, 768)
 
+    ui.mainWindow.Connect("configure-event", func() {
+        w := ui.mainWindow.GetAllocatedWidth() - 20
+        ui.navControl.container.SetSizeRequest(w, 8)
+    })
+
     InitCss()
 
     ui.hud = NewHUD(ui, "")
     ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
     ui.scrollbars.Add(ui.hud)
 	ui.mainWindow.Add(ui.scrollbars)
-
-    ui.navControl = NewNavControl(ui)
 
     InitKBHandler(model, ui)
 

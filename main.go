@@ -4,10 +4,9 @@ import (
 	"embed"
 	"fmt"
 	"image"
-    _"image/jpeg"
-    _"image/png"
-    _"image/gif"
-	"io/ioutil"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"runtime"
 	"time"
@@ -19,10 +18,10 @@ import (
 // Simple cbx application with a gui provided by gtk
 
 //go:embed assets
-var static embed.FS
+var assets embed.FS
 
 func loadTextFile(filePath string) (*string, error) {
-    b, err := ioutil.ReadFile(filePath)
+    b, err := assets.ReadFile(filePath)
     if(err != nil) {
         return nil, err
     }
@@ -45,7 +44,6 @@ func loadImageFile(filePath string) (image.Image, error) {
     }
     return img, nil
 }
-
 
 // Some data loading utils
 func loadCbxFile(model *Model) error {

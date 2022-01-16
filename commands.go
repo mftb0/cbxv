@@ -160,7 +160,6 @@ func NewCommands(model *Model) *CommandList {
         DisplayName: "Toggle Fullscreen",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        // Toggle the read mode
         if model.fullscreen == true {
             model.fullscreen = false
         } else {
