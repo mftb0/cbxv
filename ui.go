@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+    "image"
 	_ "image/color"
 	"math"
 	_ "path/filepath"
@@ -13,7 +14,6 @@ import (
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
-	gotk3extra "github.com/jamesrr39/go-gtk-extra/gotk3-extra"
 )
 
 const (
@@ -369,8 +369,46 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
     cr.Paint()
 }
 
+func ImageToPixbuf(picture image.Image) (*gdk.Pixbuf, error) {
+	w := picture.Bounds().Max.X
+	h := picture.Bounds().Max.Y
+	pixbuf, err := gdk.PixbufNew(gdk.COLORSPACE_RGB, true, 8, w, h)
+	if nil != err {
+		return nil, err
+	}
+	pixels := pixbuf.GetPixels()
+
+	const bytesPerPixel = 4
+	i := 0
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			colour := picture.At(x, y)
+			r, g, b, a := colour.RGBA()
+
+			pixels[i] = componentToByte(r)
+			pixels[i+1] = componentToByte(g)
+			pixels[i+2] = componentToByte(b)
+			pixels[i+3] = componentToByte(a)
+
+			i += bytesPerPixel
+		}
+	}
+
+	return pixbuf, nil
+}
+
+func componentToByte(component uint32) byte {
+    //256/65536
+    const ratio = 0.00390625
+	byteValue := ratio * float64(component)
+	if byteValue > 255 {
+		return byte(255)
+	}
+	return byte(byteValue)
+}
+
 func renderOnePageLayout(layout *OnePageLayout) error {
-	p, _ := gotk3extra.PixBufFromImage(*layout.page.Image)
+	p, _ := ImageToPixbuf(*layout.page.Image)
     cW := layout.canvas.GetAllocatedWidth()
     cH := layout.canvas.GetAllocatedHeight()
 
@@ -389,7 +427,7 @@ func renderOnePageLayout(layout *OnePageLayout) error {
 // so left and right here are literal
 func renderTwoPageLayout(layout *TwoPageLayout) error {
     var err error
-	lp, _ := gotk3extra.PixBufFromImage(*layout.leftPage.Image)
+	lp, _ := ImageToPixbuf(*layout.leftPage.Image)
 
 	var x, y, cW, cH int
     if layout.rightPage != nil {
@@ -404,7 +442,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
         renderPixbuf(layout.cr, lp, x, y)
 
 	    //put the right pg on the right, left-aligned
-		rp, _ := gotk3extra.PixBufFromImage(*layout.rightPage.Image)
+		rp, _ := ImageToPixbuf(*layout.rightPage.Image)
         rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
         if err != nil {
             return err
@@ -433,7 +471,7 @@ func renderLongStripLayout(model *Model, ui *UI, layout *LongStripLayout) error 
 
         for i := range layout.pages {
             page := layout.pages[i]
-	        p, _ := gotk3extra.PixBufFromImage(*page.Image)
+	        p, _ := ImageToPixbuf(*page.Image)
             p, err := scalePixbufToWidth(layout.canvas, p, cW)
             if err != nil {
                 return err
