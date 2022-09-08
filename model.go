@@ -47,7 +47,7 @@ const (
 // Currently confusing because at init the units are pages
 // Later it's leaves (so frequently double the number of pagesj
 const (
-    MAX_LOAD = 4
+    MAX_LOAD = 8
 )
 
 // Mark a place in the model by keeping track of an index in the pages slice

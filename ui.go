@@ -5,13 +5,14 @@ import (
     "image"
 	_ "image/color"
 	"math"
-	_ "path/filepath"
-	_ "strings"
+	"path/filepath"
+	 "strings"
 	_"time"
 
 	_ "golang.org/x/image/colornames"
 
 	"github.com/gotk3/gotk3/cairo"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -24,7 +25,37 @@ const (
 
 type PagePosition int
 
-func NewHeaderControl(ui *UI, title string)  {
+type HdrControl struct {
+    container *gtk.Grid
+    title *gtk.Label
+}
+
+func NewHdrControl() *HdrControl {
+    c := &HdrControl{}
+
+	t, err := gtk.LabelNew("0")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    t.SetHAlign(gtk.ALIGN_START)
+    t.SetHExpand(true)
+    css, _ := t.GetStyleContext()
+	css.AddClass("nav-btn")
+	css.AddClass("hdr-title")
+
+    container, err := gtk.GridNew()
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    container.SetHAlign(gtk.ALIGN_END)
+	container.SetVAlign(gtk.ALIGN_START)
+    container.SetHExpand(true)
+	css, _ = container.GetStyleContext()
+	css.AddClass("hdr-ctrl")
+    container.Attach(t, 0, 0, 1, 1)
+    c.title = t
+    c.container = container
+    return c
 }
 
 type NavControl struct {
@@ -97,7 +128,7 @@ func NewNavControl() *NavControl {
 
     container, err := gtk.GridNew()
 	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
+		fmt.Printf("Error creating grid %s\n", err)
 	}
     container.SetHAlign(gtk.ALIGN_CENTER)
 	container.SetVAlign(gtk.ALIGN_END)
@@ -114,6 +145,13 @@ func NewNavControl() *NavControl {
     container.Attach(rpn, 6, 1, 1, 1)
 	container.SetSizeRequest(1000, 8)
     nc.container = container
+    nc.navBar = nbc
+    nc.reflowControl = rc
+    nc.readModeControl = rmc
+    nc.leftPageNum = lpn
+    nc.rightPageNum = rpn
+    nc.fullscreenControl = fsc
+    nc.displayModeControl = dmc
 
     return nc
 }
@@ -121,7 +159,9 @@ func NewNavControl() *NavControl {
 func NewHUD(ui *UI, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
+    ui.hdrControl = NewHdrControl()
     ui.navControl = NewNavControl()
+	o.AddOverlay(ui.hdrControl.container)
 	o.AddOverlay(ui.navControl.container)
 
     return o
@@ -134,7 +174,7 @@ type UI struct {
     canvas *gtk.DrawingArea
     scrollbars *gtk.ScrolledWindow
     view int
-    headerControl int
+    hdrControl *HdrControl
     navControl *NavControl
     longStripRender []*gdk.Pixbuf
 }
@@ -226,20 +266,120 @@ func InitKBHandler(model *Model, ui *UI) {
 }
 
 func renderNavControl(model *Model, ui *UI) {
+    if len(model.leaves) < 1 {
+        ui.navControl.navBar.SetFraction(0)
+        ui.navControl.leftPageNum.SetText("")
+        ui.navControl.reflowControl.SetText("")
+        if model.readMode == RTL {
+            ui.navControl.readModeControl.SetText("<")
+        } else {
+            ui.navControl.readModeControl.SetText(">")
+        }
+
+        if model.leafMode == ONE_PAGE {
+            ui.navControl.displayModeControl.SetText("1-Page")
+        } else if model.leafMode == TWO_PAGE {
+            ui.navControl.displayModeControl.SetText("2-Page")
+        } else {
+            ui.navControl.displayModeControl.SetText("Strip")
+        }
+
+        if model.fullscreen {
+            ui.navControl.fullscreenControl.SetText("fullscreen")
+        } else {
+            ui.navControl.fullscreenControl.SetText("")
+        }
+
+        ui.navControl.rightPageNum.SetText("")
+
+        return 
+    } else {
+        leaf := model.leaves[model.currentLeaf]
+        vpn := calcVersoPage(model)
+        np := len(model.imgPaths)
+
+        if model.readMode == RTL {
+            if np > 0 {
+                ui.navControl.navBar.SetInverted(true)
+                ui.navControl.navBar.SetFraction((float64(vpn)+float64(len(leaf.pages)))/float64(np))
+            }
+
+            if len(leaf.pages) > 1 {
+                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
+                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn+1))
+            } else {
+                ui.navControl.rightPageNum.SetText("")
+                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
+            }
+            ui.navControl.readModeControl.SetText("<")
+        } else {
+            if np > 0 {
+                ui.navControl.navBar.SetInverted(false)
+                ui.navControl.navBar.SetFraction((float64(vpn)+float64(len(leaf.pages)))/float64(np))
+            }
+
+            if len(leaf.pages) > 1 {
+                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
+                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn+1))
+            } else {
+                ui.navControl.leftPageNum.SetText("")
+                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
+            }
+            ui.navControl.readModeControl.SetText(">")
+        }
+
+        if model.leafMode == ONE_PAGE {
+            ui.navControl.displayModeControl.SetText("1-Page")
+        } else if model.leafMode == TWO_PAGE {
+            ui.navControl.displayModeControl.SetText("2-Page")
+        } else {
+            ui.navControl.displayModeControl.SetText("Strip")
+        }
+
+        if model.fullscreen {
+            ui.navControl.fullscreenControl.SetText("fullscreen")
+        } else {
+            ui.navControl.fullscreenControl.SetText("")
+        }
+
+        if leaf.pages[0].Orientation == LANDSCAPE {
+            ui.navControl.reflowControl.SetText("-")
+        } else {
+            ui.navControl.reflowControl.SetText("|")
+            if len(leaf.pages) > 1 {
+                ui.navControl.reflowControl.SetText("||")
+            }
+        }
+    }
 }
 
 func renderBookmark(model *Model, ui *UI, pageIndex int, pos PagePosition) {
 }
 
-func renderHeaderControl(model *Model, ui *UI) {
+func renderHdrControl(model *Model, ui *UI) {
+    if len(model.leaves) < 1 {
+        ui.hdrControl.title.SetText("")
+        return 
+    } else {
+        title := strings.TrimSuffix(filepath.Base(model.filePath), filepath.Ext(model.filePath))
+        if model.readMode == RTL {
+            ui.hdrControl.title.SetText(title)
+        } else {
+            ui.hdrControl.title.SetText(title)
+        }
+    }
 }
 
 func renderHud(model *Model, ui *UI) {
-    w := ui.mainWindow.GetAllocatedWidth() - 20
-    ui.navControl.container.SetSizeRequest(w, 8)
-
-	renderHeaderControl(model, ui)
+	renderHdrControl(model, ui)
 	renderNavControl(model, ui)
+}
+
+func render(model *Model, ui *UI) {
+    glib.IdleAdd(func(){
+        renderHud(model, ui)
+        ui.mainWindow.QueueDraw()
+    })
 }
 
 type OnePageLayout struct {
@@ -515,8 +655,8 @@ func InitRenderer(model *Model, ui *UI) {
             lo := NewLongStripLayout(canvas, cr, leaf)
             renderLongStripLayout(model, ui, lo)
         }
-
-		renderHud(model, ui)
+        w := ui.mainWindow.GetAllocatedWidth() - 40
+        ui.navControl.container.SetSizeRequest(w, 8)
     })
 }
 
@@ -568,7 +708,7 @@ func InitUI(model *Model, ui *UI) {
     ui.mainWindow.SetSizeRequest(1024, 768)
 
     ui.mainWindow.Connect("configure-event", func() {
-        w := ui.mainWindow.GetAllocatedWidth() - 20
+        w := ui.mainWindow.GetAllocatedWidth() - 40
         ui.navControl.container.SetSizeRequest(w, 8)
     })
 

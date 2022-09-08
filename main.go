@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/gotk3/gotk3/cairo"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
 
@@ -140,8 +141,10 @@ func update(model *Model, ui *UI, commands *CommandList) {
             continue
         }
         if cmd != nil {
-            cmd(m.data)
-            ui.mainWindow.QueueDraw()
+            glib.IdleAdd(func(){
+                cmd(m.data)
+                render(model, ui)
+            })
         }
     }
 }
