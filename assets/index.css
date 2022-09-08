@@ -19,9 +19,10 @@ label {
 }
 
 .nav-btn {
+    background-color:#000000;
     color: #00ff00;
-    padding: 4px 20px 4px 20px;
-    border: solid 1px lime;
+    padding: 2px 18px 2px 18px;
+    border: solid 1px black;
     font-weight: bold;
 }
 
@@ -29,8 +30,14 @@ label {
     padding-bottom: 8px;
 }
 
+progressbar trough progress {
+    background-color: #00ff00;
+    color: #ffffff;
+    border: solid 1px #00ff00;
+}
+
 .nav-ctrl {
-    margin-bottom: 8px;
+    padding-bottom: 8px;
 }
 
 .page-num {

@@ -41,7 +41,6 @@ func NewHdrControl() *HdrControl {
     t.SetHExpand(true)
     css, _ := t.GetStyleContext()
 	css.AddClass("nav-btn")
-	css.AddClass("hdr-title")
 
     container, err := gtk.GridNew()
 	if err != nil {
