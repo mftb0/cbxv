@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"os"
 	"sort"
 )
 
@@ -30,6 +31,7 @@ type Model struct {
 
 func NewModel() *Model {
     m := &Model{}
+    m.browseDirectory, _ = os.Getwd()
     return m
 }
 

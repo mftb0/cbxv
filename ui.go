@@ -227,8 +227,7 @@ func InitKBHandler(model *Model, ui *UI) {
             dlg.SetCurrentFolder(model.browseDirectory)
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-                d := dlg
-                f := d.GetFilename()
+                f := dlg.GetFilename()
                 m := &Message{typeName: "openFile", data: f}
                 sendMessage(*m)
             } else {
@@ -242,8 +241,17 @@ func InitKBHandler(model *Model, ui *UI) {
             m := &Message{typeName: "reflow"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_e {
-            m := &Message{typeName: "exportFile"}
-            sendMessage(*m)
+            dlg, _ := gtk.FileChooserNativeDialogNew("Save", ui.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+            base := filepath.Base(model.pages[model.selectedPage].filePath)
+            dlg.SetCurrentFolder(model.browseDirectory)
+            dlg.SetCurrentName(base)
+            output := dlg.NativeDialog.Run()
+            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
+                f := dlg.GetFilename()
+                m := &Message{typeName: "exportFile", data: f}
+                sendMessage(*m)
+            } else {
+            }
         } else if keyVal == gdk.KEY_n {
             InitCanvas(model, ui)
             m := &Message{typeName: "nextFile"}
