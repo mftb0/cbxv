@@ -296,6 +296,12 @@ func renderNavControl(model *Model, ui *UI) {
         leaf := model.leaves[model.currentLeaf]
         vpn := calcVersoPage(model)
         np := len(model.imgPaths)
+        lpncss, _ := ui.navControl.leftPageNum.GetStyleContext()
+        rpncss, _ := ui.navControl.rightPageNum.GetStyleContext()
+        lpncss.RemoveClass("bordered")
+        rpncss.RemoveClass("bordered")
+        ui.navControl.leftPageNum.Show()
+        ui.navControl.rightPageNum.Show()
 
         if model.readMode == RTL {
             if np > 0 {
@@ -306,9 +312,15 @@ func renderNavControl(model *Model, ui *UI) {
             if len(leaf.pages) > 1 {
                 ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
                 ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn+1))
+                if model.selectedPage == vpn {
+                    rpncss.AddClass("bordered")
+                } else if model.selectedPage == vpn+1 {
+                    lpncss.AddClass("bordered")
+                }
             } else {
                 ui.navControl.rightPageNum.SetText("")
                 ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
+                lpncss.AddClass("bordered")
             }
             ui.navControl.readModeControl.SetText("<")
         } else {
@@ -320,9 +332,15 @@ func renderNavControl(model *Model, ui *UI) {
             if len(leaf.pages) > 1 {
                 ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
                 ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn+1))
+                if model.selectedPage == vpn {
+                    lpncss.AddClass("bordered")
+                } else if model.selectedPage == vpn+1 {
+                    rpncss.AddClass("bordered")
+                }
             } else {
                 ui.navControl.leftPageNum.SetText("")
                 ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
+                rpncss.AddClass("bordered")
             }
             ui.navControl.readModeControl.SetText(">")
         }
