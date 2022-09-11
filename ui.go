@@ -7,7 +7,6 @@ import (
 	"math"
 	"path/filepath"
 	 "strings"
-	_"time"
 
 	_ "golang.org/x/image/colornames"
 
@@ -183,6 +182,7 @@ func NewHUD(ui *UI, title string) *gtk.Overlay {
     ui.navControl = NewNavControl()
 	o.AddOverlay(ui.hdrControl.container)
 	o.AddOverlay(ui.navControl.container)
+    ui.hudHidden = false
 
     return o
 }
@@ -190,6 +190,7 @@ func NewHUD(ui *UI, title string) *gtk.Overlay {
 type UI struct {
     mainWindow *gtk.Window
     hud *gtk.Overlay
+    hudHidden bool
     spread int
     canvas *gtk.DrawingArea
     scrollbars *gtk.ScrolledWindow
@@ -285,11 +286,13 @@ func InitKBHandler(model *Model, ui *UI) {
             m := &Message{typeName: "toggleBookmark"}
             sendMessage(*m)
         }
+
         //reset the hud hiding
-//        hudTicker.Reset(time.Second * 5)
-//        if ui.hud.Hidden {
-//            ui.hud.Show()
-//        }
+        hudChan <-true
+        if ui.hudHidden {
+            ui.hud.ShowAll()
+            ui.hudHidden = false
+        }
      })
 }
 

@@ -8,7 +8,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"os"
-	"runtime"
 	"time"
 
 	_ "github.com/gotk3/gotk3/cairo"
@@ -149,22 +148,32 @@ func update(model *Model, ui *UI, commands *CommandList) {
     }
 }
 
-// Ticker to hide the HUD
-var hudTicker *time.Ticker
-var hudChan chan bool
-
-func hudHandler(model *Model, ui *UI) {
+func hudHandler(ui *UI) {
     for {
-        time.Sleep(time.Millisecond * 250)
         select {
-        case <- hudChan:
-            //ui.hud.Hide()
-            fmt.Printf("gcd\n")
-            ui.mainWindow.QueueDraw()
-            runtime.GC()
+        case <-hudTicker.C:
+            if !ui.hudHidden {
+                glib.IdleAdd(func(){
+                    ui.hdrControl.container.Hide()
+                    ui.navControl.container.Hide()
+                    ui.mainWindow.QueueDraw()
+                })
+                ui.hudHidden = true;
+            }
+        case r := <-hudChan:
+            if r == true {
+                hudTicker = time.NewTicker(time.Second * 10)
+                ui.hudHidden = false
+            } else {
+                return
+            }
         }
     }
 }
+
+// Ticker to hide the HUD
+var hudTicker *time.Ticker
+var hudChan chan bool
 
 // Setup the model
 // Setup the ui
@@ -178,20 +187,12 @@ func main() {
 
     InitUI(model, ui)
 
-//    hudTicker = time.NewTicker(time.Second * 1)
-//    defer hudTicker.Stop()
-//    hudChan = make(chan bool)
-//    go func() {
-//        for {
-//            time.Sleep(time.Second * 5)
-//            if !ui.hud.Hidden {
-//                hudChan <- true
-//            }
-//        }
-//    }()
+    hudChan = make(chan bool)
+    hudTicker = time.NewTicker(time.Second * 15)
+    defer hudTicker.Stop()
 
+    go hudHandler(ui)
     go update(model, ui, commands)
-    go hudHandler(model, ui)
 
     ui.mainWindow.ShowAll()
 
@@ -200,5 +201,6 @@ func main() {
     }
 
     gtk.Main()
+    hudChan <-false
 }
 
