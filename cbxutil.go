@@ -19,9 +19,9 @@ import (
 )
 
 const RENDERERSTATE_FN string = "rendererstate.json"
-const CBXS_DN string = "cbxs"
+const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
-const TMP_CBXS_PREFIX string = "cbxs-"
+const TMP_CBXS_PREFIX string = "cbxv-"
 
 func tmpPath() (string) {
     return os.TempDir();
