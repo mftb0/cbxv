@@ -105,7 +105,6 @@ func loadHash(model *Model) {
         fmt.Printf("Unable to compute file hash %s\n", err)
     }
     model.hash = hash
-    loadBookmarks(model)
 }
 
 func loadBookmarks(model *Model) {

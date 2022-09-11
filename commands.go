@@ -175,9 +175,11 @@ func NewCommands(model *Model) *CommandList {
         model.filePath = data
         model.browseDirectory = filepath.Dir(data)
 
-        go loadHash(model)
-        go loadCbxFile(model)
-        go loadSeriesList(model)
+        loadHash(model)
+        loadBookmarks(model)
+        loadCbxFile(model)
+        loadSeriesList(model)
+
         model.selectedPage = calcVersoPage(model)
     }
 
