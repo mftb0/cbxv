@@ -418,7 +418,8 @@ func renderHdrControl(model *Model, ui *UI) {
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
     ui.hdrControl.title.SetText("")
-    if len(model.leaves) < 1 {
+    if len(model.leaves) < 1 || model.bookmarks == nil {
+        ui.hdrControl.title.SetText("Loading...")
         return 
     } else {
         lbkmkcss, _ := ui.hdrControl.leftBookmark.GetStyleContext()

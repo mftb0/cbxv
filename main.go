@@ -105,11 +105,14 @@ func loadHash(model *Model) {
         fmt.Printf("Unable to compute file hash %s\n", err)
     }
     model.hash = hash
+    loadBookmarks(model)
 }
 
 func loadBookmarks(model *Model) {
     model.bookmarks = NewBookmarkList(model.filePath)
     model.bookmarks.Load(model.hash)
+    m := &Message{typeName: "render"}
+    sendMessage(*m)
 }
 
 func quit() {
