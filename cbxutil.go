@@ -301,12 +301,12 @@ func WriteBookmarkList(hash string, data string) error {
     if err != nil {
         return err
     }
-    if err := os.MkdirAll(bPath, os.ModeDir); err != nil {
+    if err := os.MkdirAll(bPath, 0777); err != nil {
         return err
     }
 
     storePath := filepath.Join(bPath, fmt.Sprintf("%s.json", hash))
-    os.WriteFile(storePath, []byte(data), 0666)
+    os.WriteFile(storePath, []byte(data), 0777)
     return nil
 }
 

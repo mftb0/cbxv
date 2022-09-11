@@ -27,32 +27,53 @@ type PagePosition int
 
 type HdrControl struct {
     container *gtk.Grid
+    leftBookmark *gtk.Label
     title *gtk.Label
+    rightBookmark *gtk.Label
 }
 
 func NewHdrControl() *HdrControl {
     c := &HdrControl{}
 
-	t, err := gtk.LabelNew("0")
+    lbkmk, err := gtk.LabelNew("")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    t.SetHAlign(gtk.ALIGN_START)
-    t.SetHExpand(true)
-    css, _ := t.GetStyleContext()
+    lbkmk.SetHAlign(gtk.ALIGN_START)
+    lbkmk.SetHExpand(true)
+    css, _ := lbkmk.GetStyleContext()
+	css.AddClass("bkmk-btn")
+
+	t, err := gtk.LabelNew("")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    css, _ = t.GetStyleContext()
 	css.AddClass("nav-btn")
+
+	rbkmk, err := gtk.LabelNew("")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    css, _ = rbkmk.GetStyleContext()
+	css.AddClass("bkmk-btn")
 
     container, err := gtk.GridNew()
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    container.SetHAlign(gtk.ALIGN_END)
+    container.SetHAlign(gtk.ALIGN_CENTER)
 	container.SetVAlign(gtk.ALIGN_START)
     container.SetHExpand(true)
 	css, _ = container.GetStyleContext()
 	css.AddClass("hdr-ctrl")
-    container.Attach(t, 0, 0, 1, 1)
+    container.Attach(lbkmk, 0, 0, 1, 1)
+    container.Attach(t, 1, 0, 1, 1)
+    container.Attach(rbkmk, 2, 0, 1, 1)
+	container.SetSizeRequest(1000, 8)
+    c.leftBookmark = lbkmk
     c.title = t
+    c.rightBookmark = rbkmk
     c.container = container
     return c
 }
@@ -260,7 +281,7 @@ func InitKBHandler(model *Model, ui *UI) {
             m := &Message{typeName: "previousFile"}
             sendMessage(*m)
             InitCanvas(model, ui)
-        } else if keyVal == gdk.KEY_e {
+        } else if keyVal == gdk.KEY_space {
             m := &Message{typeName: "toggleBookmark"}
             sendMessage(*m)
         }
@@ -304,10 +325,14 @@ func renderNavControl(model *Model, ui *UI) {
         leaf := model.leaves[model.currentLeaf]
         vpn := calcVersoPage(model)
         np := len(model.imgPaths)
+        ui.navControl.leftPageNum.SetText("")
+        ui.navControl.rightPageNum.SetText("")
         lpncss, _ := ui.navControl.leftPageNum.GetStyleContext()
         rpncss, _ := ui.navControl.rightPageNum.GetStyleContext()
         lpncss.RemoveClass("bordered")
         rpncss.RemoveClass("bordered")
+        lpncss.RemoveClass("transparent")
+        rpncss.RemoveClass("transparent")
         ui.navControl.leftPageNum.Show()
         ui.navControl.rightPageNum.Show()
 
@@ -326,7 +351,7 @@ func renderNavControl(model *Model, ui *UI) {
                     lpncss.AddClass("bordered")
                 }
             } else {
-                ui.navControl.rightPageNum.SetText("")
+                rpncss.AddClass("transparent")
                 ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
                 lpncss.AddClass("bordered")
             }
@@ -346,7 +371,7 @@ func renderNavControl(model *Model, ui *UI) {
                     rpncss.AddClass("bordered")
                 }
             } else {
-                ui.navControl.leftPageNum.SetText("")
+                lpncss.AddClass("transparent")
                 ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
                 rpncss.AddClass("bordered")
             }
@@ -382,16 +407,58 @@ func renderBookmark(model *Model, ui *UI, pageIndex int, pos PagePosition) {
 }
 
 func renderHdrControl(model *Model, ui *UI) {
+    vpn := calcVersoPage(model)
+    css, _ := ui.hdrControl.leftBookmark.GetStyleContext()
+    css.RemoveClass("marked")
+    css.RemoveClass("transparent")
+    css, _ = ui.hdrControl.rightBookmark.GetStyleContext()
+    css.RemoveClass("marked")
+    css.RemoveClass("transparent")
+    ui.hdrControl.title.SetText("")
     if len(model.leaves) < 1 {
-        ui.hdrControl.title.SetText("")
         return 
     } else {
+        lbkmkcss, _ := ui.hdrControl.leftBookmark.GetStyleContext()
+        rbkmkcss, _ := ui.hdrControl.rightBookmark.GetStyleContext()
+        leaf := model.leaves[model.currentLeaf]
         title := strings.TrimSuffix(filepath.Base(model.filePath), filepath.Ext(model.filePath))
+
         if model.readMode == RTL {
-            ui.hdrControl.title.SetText(title)
+            b := model.bookmarks.Find(vpn)
+            if b != nil {
+                if len(leaf.pages) > 1 {
+                    rbkmkcss.AddClass("marked")
+                } else {
+                    rbkmkcss.AddClass("transparent")
+                    lbkmkcss.AddClass("marked")
+                }
+            } 
+
+            if len(leaf.pages) > 1 {
+                b = model.bookmarks.Find(vpn+1)
+                if b != nil {
+                    lbkmkcss.AddClass("marked")
+                }
+            }
         } else {
-            ui.hdrControl.title.SetText(title)
+            b := model.bookmarks.Find(vpn)
+            if b != nil {
+                if len(leaf.pages) > 1 {
+                    lbkmkcss.AddClass("marked")
+                } else {
+                    lbkmkcss.AddClass("transparent")
+                    rbkmkcss.AddClass("marked")
+                }
+            } 
+
+            if len(leaf.pages) > 1 {
+                b = model.bookmarks.Find(vpn+1)
+                if b != nil {
+                    rbkmkcss.AddClass("marked")
+                }
+            }
         }
+        ui.hdrControl.title.SetText(title)
     }
 }
 
@@ -681,6 +748,7 @@ func InitRenderer(model *Model, ui *UI) {
             renderLongStripLayout(model, ui, lo)
         }
         w := ui.mainWindow.GetAllocatedWidth() - 40
+        ui.hdrControl.container.SetSizeRequest(w, 8)
         ui.navControl.container.SetSizeRequest(w, 8)
     })
 }
@@ -734,6 +802,7 @@ func InitUI(model *Model, ui *UI) {
 
     ui.mainWindow.Connect("configure-event", func() {
         w := ui.mainWindow.GetAllocatedWidth() - 40
+        ui.hdrControl.container.SetSizeRequest(w, 8)
         ui.navControl.container.SetSizeRequest(w, 8)
     })
 

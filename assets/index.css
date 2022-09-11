@@ -44,6 +44,20 @@ progressbar trough progress {
     margin-right: 8px;
 }
 
+.bkmk-btn {
+    padding: 3px 19px 3px 19px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.marked {
+    background-color: #00ff00;
+}
+
+.transparent {
+    background-color: transparent;
+}
+
 box { 
     padding: 4px;
 }

@@ -172,7 +172,7 @@ func hudHandler(model *Model, ui *UI) {
 // Start the update message handler
 // Open the main window, when it closes program exits
 func main() {
-    var model = &Model{}
+    var model = NewModel()
     var ui = &UI{}
     commands := NewCommands(model)
 
