@@ -7,6 +7,7 @@ import (
 	"math"
 	"path/filepath"
 	 "strings"
+	"time"
 
 	_ "golang.org/x/image/colornames"
 
@@ -21,6 +22,33 @@ const (
    RIGHT_ALIGN
    CENTER
 )
+
+func hudHandler(ui *UI) {
+    for {
+        select {
+        case <-hudTicker.C:
+            if !ui.hudHidden {
+                glib.IdleAdd(func(){
+                    ui.hdrControl.container.Hide()
+                    ui.navControl.container.Hide()
+                    ui.mainWindow.QueueDraw()
+                })
+                ui.hudHidden = true;
+            }
+        case r := <-hudChan:
+            if r == true {
+                hudTicker = time.NewTicker(time.Second * 10)
+                ui.hudHidden = false
+            } else {
+                return
+            }
+        }
+    }
+}
+
+// Ticker to hide the HUD
+var hudTicker *time.Ticker
+var hudChan chan bool
 
 type PagePosition int
 
@@ -88,7 +116,7 @@ type NavControl struct {
     leftPageNum *gtk.Label
 }
 
-func NewNavControl() *NavControl {
+func newNavControl() *NavControl {
     nc := &NavControl{}
 
 	nbc, err := gtk.ProgressBarNew()
@@ -175,11 +203,11 @@ func NewNavControl() *NavControl {
     return nc
 }
 
-func NewHUD(ui *UI, title string) *gtk.Overlay {
+func newHUD(ui *UI, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
     ui.hdrControl = NewHdrControl()
-    ui.navControl = NewNavControl()
+    ui.navControl = newNavControl()
 	o.AddOverlay(ui.hdrControl.container)
 	o.AddOverlay(ui.navControl.container)
     ui.hudHidden = false
@@ -191,16 +219,14 @@ type UI struct {
     mainWindow *gtk.Window
     hud *gtk.Overlay
     hudHidden bool
-    spread int
     canvas *gtk.DrawingArea
     scrollbars *gtk.ScrolledWindow
-    view int
     hdrControl *HdrControl
     navControl *NavControl
     longStripRender []*gdk.Pixbuf
 }
 
-func InitKBHandler(model *Model, ui *UI) {
+func initKBHandler(model *Model, ui *UI) {
     ui.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
         keyEvent := gdk.EventKeyNewFromEvent(event)
         keyVal := keyEvent.KeyVal()
@@ -223,11 +249,11 @@ func InitKBHandler(model *Model, ui *UI) {
             m := &Message{typeName: "selectPage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_1 {
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeOnePage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_2 {
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeTwoPage"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_3 {
@@ -254,11 +280,11 @@ func InitKBHandler(model *Model, ui *UI) {
                 sendMessage(*m)
             } else {
             }
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
         } else if keyVal == gdk.KEY_c {
             m := &Message{typeName: "closeFile"}
             sendMessage(*m)
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
         } else if keyVal == gdk.KEY_r {
             m := &Message{typeName: "reflow"}
             sendMessage(*m)
@@ -275,13 +301,13 @@ func InitKBHandler(model *Model, ui *UI) {
             } else {
             }
         } else if keyVal == gdk.KEY_n {
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
             m := &Message{typeName: "nextFile"}
             sendMessage(*m)
         } else if keyVal == gdk.KEY_p {
             m := &Message{typeName: "previousFile"}
             sendMessage(*m)
-            InitCanvas(model, ui)
+            initCanvas(model, ui)
         } else if keyVal == gdk.KEY_space {
             m := &Message{typeName: "toggleBookmark"}
             sendMessage(*m)
@@ -406,9 +432,6 @@ func renderNavControl(model *Model, ui *UI) {
     }
 }
 
-func renderBookmark(model *Model, ui *UI, pageIndex int, pos PagePosition) {
-}
-
 func renderHdrControl(model *Model, ui *UI) {
     vpn := calcVersoPage(model)
     css, _ := ui.hdrControl.leftBookmark.GetStyleContext()
@@ -471,7 +494,7 @@ func renderHud(model *Model, ui *UI) {
 	renderNavControl(model, ui)
 }
 
-func render(model *Model, ui *UI) {
+func Render(model *Model, ui *UI) {
     glib.IdleAdd(func(){
         renderHud(model, ui)
         ui.mainWindow.QueueDraw()
@@ -484,7 +507,7 @@ type OnePageLayout struct {
     page *Page
 }
 
-func NewOnePageLayout(canvas *gtk.DrawingArea, cr *cairo.Context,
+func newOnePageLayout(canvas *gtk.DrawingArea, cr *cairo.Context,
     page *Page) *OnePageLayout {
     return &OnePageLayout{canvas, cr, page}
 }
@@ -497,7 +520,7 @@ type TwoPageLayout struct {
 }
 
 // Create a two pg layout accounting for readmode
-func NewTwoPageLayout(model *Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *TwoPageLayout {
+func newTwoPageLayout(model *Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *TwoPageLayout {
 
     lo := &TwoPageLayout{}
     lo.canvas = canvas
@@ -525,7 +548,7 @@ type LongStripLayout struct {
     pages []*Page
 }
 
-func NewLongStripLayout(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *LongStripLayout {
+func newLongStripLayout(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *Leaf) *LongStripLayout {
 
     lo := &LongStripLayout{}
     lo.canvas = canvas
@@ -605,7 +628,7 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
     cr.Paint()
 }
 
-func ImageToPixbuf(picture image.Image) (*gdk.Pixbuf, error) {
+func imageToPixbuf(picture image.Image) (*gdk.Pixbuf, error) {
 	w := picture.Bounds().Max.X
 	h := picture.Bounds().Max.Y
 	pixbuf, err := gdk.PixbufNew(gdk.COLORSPACE_RGB, true, 8, w, h)
@@ -644,7 +667,7 @@ func componentToByte(component uint32) byte {
 }
 
 func renderOnePageLayout(layout *OnePageLayout) error {
-	p, _ := ImageToPixbuf(*layout.page.Image)
+	p, _ := imageToPixbuf(*layout.page.Image)
     cW := layout.canvas.GetAllocatedWidth()
     cH := layout.canvas.GetAllocatedHeight()
 
@@ -663,7 +686,7 @@ func renderOnePageLayout(layout *OnePageLayout) error {
 // so left and right here are literal
 func renderTwoPageLayout(layout *TwoPageLayout) error {
     var err error
-	lp, _ := ImageToPixbuf(*layout.leftPage.Image)
+	lp, _ := imageToPixbuf(*layout.leftPage.Image)
 
 	var x, y, cW, cH int
     if layout.rightPage != nil {
@@ -678,7 +701,7 @@ func renderTwoPageLayout(layout *TwoPageLayout) error {
         renderPixbuf(layout.cr, lp, x, y)
 
 	    //put the right pg on the right, left-aligned
-		rp, _ := ImageToPixbuf(*layout.rightPage.Image)
+		rp, _ := imageToPixbuf(*layout.rightPage.Image)
         rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
         if err != nil {
             return err
@@ -707,7 +730,7 @@ func renderLongStripLayout(model *Model, ui *UI, layout *LongStripLayout) error 
 
         for i := range layout.pages {
             page := layout.pages[i]
-	        p, _ := ImageToPixbuf(*page.Image)
+	        p, _ := imageToPixbuf(*page.Image)
             p, err := scalePixbufToWidth(layout.canvas, p, cW)
             if err != nil {
                 return err
@@ -730,7 +753,7 @@ func renderLongStripLayout(model *Model, ui *UI, layout *LongStripLayout) error 
     return nil
 }
 
-func InitRenderer(model *Model, ui *UI) {
+func initRenderer(model *Model, ui *UI) {
     ui.longStripRender = nil
     ui.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
         cr.SetSourceRGB(0,0,0)
@@ -742,13 +765,13 @@ func InitRenderer(model *Model, ui *UI) {
 
         leaf := model.leaves[model.currentLeaf]
         if(model.leafMode == TWO_PAGE) {
-            lo := NewTwoPageLayout(model, canvas, cr, leaf)
+            lo := newTwoPageLayout(model, canvas, cr, leaf)
             renderTwoPageLayout(lo)
         } else if model.leafMode == ONE_PAGE {
-            lo := NewOnePageLayout(canvas, cr, leaf.pages[0])
+            lo := newOnePageLayout(canvas, cr, leaf.pages[0])
             renderOnePageLayout(lo)
         } else {
-            lo := NewLongStripLayout(canvas, cr, leaf)
+            lo := newLongStripLayout(canvas, cr, leaf)
             renderLongStripLayout(model, ui, lo)
         }
         w := ui.mainWindow.GetAllocatedWidth() - 40
@@ -757,7 +780,7 @@ func InitRenderer(model *Model, ui *UI) {
     })
 }
 
-func InitCanvas(model *Model, ui *UI) {
+func initCanvas(model *Model, ui *UI) {
     if ui.canvas != nil {
         ui.hud.Remove(ui.canvas)
         ui.canvas.Destroy()
@@ -766,11 +789,11 @@ func InitCanvas(model *Model, ui *UI) {
 
     ui.canvas, _ = gtk.DrawingAreaNew()
 	ui.hud.Add(ui.canvas)
-    InitRenderer(model, ui)
+    initRenderer(model, ui)
     ui.mainWindow.ShowAll()
 }
 
-func InitCss() {
+func initCss() {
 	css, err := gtk.CssProviderNew()
     if err != nil {
 		fmt.Printf("css error %s\n", err)
@@ -810,15 +833,25 @@ func InitUI(model *Model, ui *UI) {
         ui.navControl.container.SetSizeRequest(w, 8)
     })
 
-    InitCss()
+    initCss()
 
-    ui.hud = NewHUD(ui, "")
+    ui.hud = newHUD(ui, "")
     ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
     ui.scrollbars.Add(ui.hud)
 	ui.mainWindow.Add(ui.scrollbars)
 
-    InitKBHandler(model, ui)
+    initKBHandler(model, ui)
 
-    InitCanvas(model, ui)
+    initCanvas(model, ui)
+
+    hudChan = make(chan bool)
+    hudTicker = time.NewTicker(time.Second * 10)
+    defer hudTicker.Stop()
+
+    go hudHandler(ui)
+}
+
+func StopUI(model *Model, ui *UI) {
+    hudChan <-false
 }
 

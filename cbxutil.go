@@ -4,6 +4,10 @@ import (
 	"archive/zip"
 	"crypto/md5"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -418,5 +422,30 @@ func ReadDirList(filePath string) ([]DirListItem, error) {
         list = append(list, item)
     }
     return list, nil
+}
+
+func loadTextFile(filePath string) (*string, error) {
+    b, err := assets.ReadFile(filePath)
+    if(err != nil) {
+        return nil, err
+    }
+
+    s := string(b)
+    return &s, nil
+}
+
+// Utility for pages to load images
+func loadImageFile(filePath string) (image.Image, error) {
+    f, err := os.Open(filePath)
+    if err != nil {
+        return nil, err
+    }
+    defer f.Close()
+
+    img, _, err := image.Decode(f)
+    if err != nil {
+        return nil, err
+    }
+    return img, nil
 }
 
