@@ -12,6 +12,7 @@ import (
 // Data model of a cbx application
 // Composed of a handful of sub-models, collections and other standard types
 type Model struct {
+    sendMessage Messenger
     filePath string
     tmpDir string
     hash string
@@ -29,8 +30,9 @@ type Model struct {
     fullscreen bool
 }
 
-func NewModel() *Model {
+func NewModel(messenger Messenger) *Model {
     m := &Model{}
+    m.sendMessage = messenger
     m.browseDirectory, _ = os.Getwd()
     return m
 }
@@ -167,7 +169,7 @@ type Page struct {
 }
 
 func (p *Page) Load() {
-    f, err := loadImageFile(p.filePath)
+    f, err := LoadImageFile(p.filePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
     }
@@ -358,5 +360,21 @@ func calcVersoPage(model *Model) int {
         r = model.currentLeaf
     }
     return r
+}
+
+func loadHash(model *Model) {
+    hash, err := HashFile(model.filePath)
+    if err != nil {
+        fmt.Printf("Unable to compute file hash %s\n", err)
+    }
+    model.hash = hash
+    loadBookmarks(model)
+}
+
+func loadBookmarks(model *Model) {
+    model.bookmarks = NewBookmarkList(model.filePath)
+    model.bookmarks.Load(model.hash)
+    m := &Message{typeName: "render"}
+    model.sendMessage(*m)
 }
 

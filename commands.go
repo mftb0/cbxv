@@ -176,7 +176,7 @@ func NewCommands(model *Model) *CommandList {
         model.browseDirectory = filepath.Dir(data)
 
         go loadHash(model)
-        go loadCbxFile(model)
+        go loadCbxFile(model, model.sendMessage)
         go loadSeriesList(model)
 
         model.selectedPage = calcVersoPage(model)

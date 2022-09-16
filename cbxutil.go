@@ -27,6 +27,14 @@ const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
 const TMP_CBXS_PREFIX string = "cbxv-"
 
+// Stuff to handle messages - model -> app <- ui
+type Message struct {
+    typeName string
+    data string
+}
+
+type Messenger func (m Message)
+
 func tmpPath() (string) {
     return os.TempDir();
 }
@@ -424,7 +432,7 @@ func ReadDirList(filePath string) ([]DirListItem, error) {
     return list, nil
 }
 
-func loadTextFile(filePath string) (*string, error) {
+func LoadTextFile(filePath string) (*string, error) {
     b, err := assets.ReadFile(filePath)
     if(err != nil) {
         return nil, err
@@ -435,7 +443,7 @@ func loadTextFile(filePath string) (*string, error) {
 }
 
 // Utility for pages to load images
-func loadImageFile(filePath string) (image.Image, error) {
+func LoadImageFile(filePath string) (image.Image, error) {
     f, err := os.Open(filePath)
     if err != nil {
         return nil, err

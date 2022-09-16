@@ -216,6 +216,7 @@ func newHUD(ui *UI, title string) *gtk.Overlay {
 }
 
 type UI struct {
+    sendMessage Messenger
     mainWindow *gtk.Window
     hud *gtk.Overlay
     hudHidden bool
@@ -232,36 +233,36 @@ func initKBHandler(model *Model, ui *UI) {
         keyVal := keyEvent.KeyVal()
         if keyVal == gdk.KEY_q {
             m := &Message{typeName: "quit"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_d {
             m := &Message{typeName: "nextPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_a {
             m := &Message{typeName: "previousPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_w {
             m := &Message{typeName: "firstPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_s {
             m := &Message{typeName: "lastPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_Tab {
             m := &Message{typeName: "selectPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_1 {
             initCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeOnePage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_2 {
             initCanvas(model, ui)
             m := &Message{typeName: "setDisplayModeTwoPage"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_3 {
             m := &Message{typeName: "setDisplayModeLongStrip"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_grave {
             m := &Message{typeName: "toggleReadMode"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_f {
             if model.fullscreen {
                 ui.mainWindow.Unfullscreen()
@@ -269,7 +270,7 @@ func initKBHandler(model *Model, ui *UI) {
                 ui.mainWindow.Fullscreen()
             }
             m := &Message{typeName: "toggleFullscreen"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_o {
             dlg, _ := gtk.FileChooserNativeDialogNew("Open", ui.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
             dlg.SetCurrentFolder(model.browseDirectory)
@@ -277,17 +278,17 @@ func initKBHandler(model *Model, ui *UI) {
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
                 m := &Message{typeName: "openFile", data: f}
-                sendMessage(*m)
+                ui.sendMessage(*m)
             } else {
             }
             initCanvas(model, ui)
         } else if keyVal == gdk.KEY_c {
             m := &Message{typeName: "closeFile"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
             initCanvas(model, ui)
         } else if keyVal == gdk.KEY_r {
             m := &Message{typeName: "reflow"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_e {
             dlg, _ := gtk.FileChooserNativeDialogNew("Save", ui.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
             base := filepath.Base(model.pages[model.selectedPage].filePath)
@@ -297,20 +298,20 @@ func initKBHandler(model *Model, ui *UI) {
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
                 m := &Message{typeName: "exportFile", data: f}
-                sendMessage(*m)
+                ui.sendMessage(*m)
             } else {
             }
         } else if keyVal == gdk.KEY_n {
             initCanvas(model, ui)
             m := &Message{typeName: "nextFile"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         } else if keyVal == gdk.KEY_p {
             m := &Message{typeName: "previousFile"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
             initCanvas(model, ui)
         } else if keyVal == gdk.KEY_space {
             m := &Message{typeName: "toggleBookmark"}
-            sendMessage(*m)
+            ui.sendMessage(*m)
         }
 
         //reset the hud hiding
@@ -799,7 +800,7 @@ func initCss() {
 		fmt.Printf("css error %s\n", err)
 	}
 
-    data, err := loadTextFile("assets/index.css")
+    data, err := LoadTextFile("assets/index.css")
     if err != nil {
 		fmt.Printf("error loading file%s\n", err)
 	}
@@ -817,8 +818,9 @@ func initCss() {
     gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }
 
-func InitUI(model *Model, ui *UI) {
+func InitUI(model *Model, ui *UI, messenger Messenger) {
     gtk.Init(nil)
+    ui.sendMessage = messenger
     ui.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
     ui.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
     ui.mainWindow.SetTitle("cbxv")

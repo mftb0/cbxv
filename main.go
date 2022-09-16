@@ -16,8 +16,7 @@ import (
 var assets embed.FS
 
 // Some data loading utils
-func loadCbxFile(model *Model) error {
-
+func loadCbxFile(model *Model, sendMessage Messenger) error {
     td, err := CreateTmpDir()
     if err != nil {
         return err
@@ -42,7 +41,6 @@ func loadCbxFile(model *Model) error {
 }
 
 func closeCbxFile(model *Model) {
-
     os.RemoveAll(model.tmpDir)
     model.imgPaths = nil
     model.pages = nil
@@ -69,41 +67,13 @@ func loadSeriesList(model *Model) {
     model.selectedPage = calcVersoPage(model)
 }
 
-func loadHash(model *Model) {
-    hash, err := HashFile(model.filePath)
-    if err != nil {
-        fmt.Printf("Unable to compute file hash %s\n", err)
-    }
-    model.hash = hash
-    loadBookmarks(model)
-}
-
-func loadBookmarks(model *Model) {
-    model.bookmarks = NewBookmarkList(model.filePath)
-    model.bookmarks.Load(model.hash)
-    m := &Message{typeName: "render"}
-    sendMessage(*m)
-}
-
 func quit() {
     gtk.MainQuit()
 }
 
-// Stuff to handle messages from the ui
-type Message struct {
-    typeName string
-    data string
-}
-
-func sendMessage(m Message) {
-    msgChan <- m
-}
-
-var msgChan = make(chan Message)
-
 // Update listens for message on the message channel and
 // handles messages by invoking commands which update the model
-func update(model *Model, ui *UI, commands *CommandList) {
+func update(model *Model, ui *UI, msgChan chan Message, commands *CommandList) {
     for m := range msgChan {
         cmd := commands.Commands[m.typeName]
         if model.leaves == nil && (
@@ -128,13 +98,15 @@ func update(model *Model, ui *UI, commands *CommandList) {
 // Shutdown UI threads
 // Exit
 func main() {
-    var model = NewModel()
-    var ui = &UI{}
+    msgChan := make(chan Message)
+    messenger := func (m Message) { msgChan <- m }
+    model := NewModel(messenger)
+    ui := &UI{}
     commands := NewCommands(model)
 
-    InitUI(model, ui)
+    InitUI(model, ui, messenger)
 
-    go update(model, ui, commands)
+    go update(model, ui, msgChan, commands)
 
     ui.mainWindow.ShowAll()
 
