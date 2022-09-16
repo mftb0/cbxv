@@ -1,8 +1,9 @@
-package main
+package util
 
 import (
 	"archive/zip"
 	"crypto/md5"
+	"embed"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -27,10 +28,13 @@ const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
 const TMP_CBXS_PREFIX string = "cbxv-"
 
+//go:embed assets
+var assets embed.FS
+
 // Stuff to handle messages - model -> app <- ui
 type Message struct {
-    typeName string
-    data string
+    TypeName string
+    Data string
 }
 
 type Messenger func (m Message)

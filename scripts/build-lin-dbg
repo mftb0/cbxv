@@ -1,0 +1,4 @@
+#!/bin/sh
+
+go build -o out/cbxv cmd/cbxv/*.go
+
