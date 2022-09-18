@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/gotk3/gotk3/cairo"
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
-
     "example.com/cbxv-gotk3/internal/model"
     "example.com/cbxv-gotk3/internal/ui"
     "example.com/cbxv-gotk3/internal/util"
@@ -67,23 +63,24 @@ func loadSeriesList(m *model.Model) {
 }
 
 func quit() {
-    gtk.MainQuit()
+    //noop currently called in case app ever wants to take
+    //action before ui shutsdown
 }
 
 // Update listens for message on the message channel and
 // handles messages by invoking commands which update the model
-func update(model *model.Model, u *ui.UI, msgChan chan util.Message, commands *CommandList) {
-    for m := range msgChan {
-        cmd := commands.Commands[m.TypeName]
-        if model.Leaves == nil && (
-            m.TypeName != "quit" &&
-            m.TypeName != "openFile") {
+func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *CommandList) {
+    for msg := range msgChan {
+        cmd := commands.Commands[msg.TypeName]
+        if m.Leaves == nil && (
+            msg.TypeName != "quit" &&
+            msg.TypeName != "openFile") {
             continue
         }
         if cmd != nil {
-            glib.IdleAdd(func(){
-                cmd(m.Data)
-                ui.Render(model, u)
+            u.RunFunc(func(){
+                cmd(msg.Data)
+                u.Render(m)
             })
         }
     }
@@ -99,21 +96,18 @@ func update(model *model.Model, u *ui.UI, msgChan chan util.Message, commands *C
 func main() {
     msgChan := make(chan util.Message)
     messenger := func (m util.Message) { msgChan <- m }
-    model := model.NewModel(messenger)
-    u := &ui.UI{}
-    commands := NewCommands(model)
+    m := model.NewModel(messenger)
+    commands := NewCommands(m)
 
-    ui.InitUI(model, u, messenger)
+    u := ui.NewUI(m, messenger)
 
-    go update(model, u, msgChan, commands)
-
-//    u.MainWindow.ShowAll()
+    go update(m, u, msgChan, commands)
 
     if len(os.Args) > 1 {
         commands.Commands["openFile"](os.Args[1])
     }
 
-    gtk.Main()
-    ui.StopUI(model, u)
+    u.Run()
+    u.Dispose()
 }
 

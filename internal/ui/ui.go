@@ -6,7 +6,6 @@ import (
 	_ "image/color"
 	"math"
 	"path/filepath"
-	 "strings"
 	"time"
 
 	_ "golang.org/x/image/colornames"
@@ -25,6 +24,219 @@ const (
    RIGHT_ALIGN
    CENTER
 )
+
+type UI struct {
+    sendMessage util.Messenger
+    mainWindow *gtk.Window
+    hud *gtk.Overlay
+    hudHidden bool
+    canvas *gtk.DrawingArea
+    scrollbars *gtk.ScrolledWindow
+    hdrControl *HdrControl
+    navControl *NavControl
+    longStripRender []*gdk.Pixbuf
+}
+
+func NewUI(m *model.Model, messenger util.Messenger) *UI {
+    gtk.Init(nil)
+    u := &UI{}
+    u.sendMessage = messenger
+    u.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+    u.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
+    u.mainWindow.SetTitle("cbxv")
+    u.mainWindow.Connect("destroy", func() {
+        gtk.MainQuit()
+    })
+    u.mainWindow.SetSizeRequest(1024, 768)
+
+    u.mainWindow.Connect("configure-event", func() {
+        w := u.mainWindow.GetAllocatedWidth() - 40
+        u.hdrControl.container.SetSizeRequest(w, 8)
+        u.navControl.container.SetSizeRequest(w, 8)
+    })
+
+    initCss()
+
+    u.hud = u.newHUD("")
+    u.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
+    u.scrollbars.Add(u.hud)
+	u.mainWindow.Add(u.scrollbars)
+
+    u.initKBHandler(m)
+
+    u.initCanvas(m)
+
+    hudChan = make(chan bool)
+    hudTicker = time.NewTicker(time.Second * 10)
+    defer hudTicker.Stop()
+
+    go hudHandler(u)
+
+    u.mainWindow.ShowAll()
+
+    return u
+}
+
+func (u *UI) Run() {
+    gtk.Main()
+}
+
+func (u *UI) Quit() {
+    gtk.MainQuit()
+}
+
+func (u *UI) Dispose() {
+    hudChan <-false
+}
+
+func (u *UI) RunFunc(f interface{}) {
+    glib.IdleAdd(f)
+}
+
+func (u *UI) Render(m *model.Model) {
+    glib.IdleAdd(func(){
+        u.renderHud(m)
+        u.mainWindow.QueueDraw()
+    })
+}
+
+func (u *UI) newHUD(title string) *gtk.Overlay {
+	o, _ := gtk.OverlayNew()
+
+    u.hdrControl = NewHdrControl()
+    u.navControl = NewNavControl()
+	o.AddOverlay(u.hdrControl.container)
+	o.AddOverlay(u.navControl.container)
+    u.hudHidden = false
+
+    return o
+}
+
+func (u *UI) renderHud(m *model.Model) {
+	u.hdrControl.Render(m)
+	u.navControl.Render(m)
+}
+
+func (u *UI) initKBHandler(model *model.Model) {
+    u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+        keyEvent := gdk.EventKeyNewFromEvent(event)
+        keyVal := keyEvent.KeyVal()
+        if keyVal == gdk.KEY_q {
+            u.sendMessage(util.Message{TypeName: "quit"})
+            u.Quit()
+        } else if keyVal == gdk.KEY_d {
+            u.sendMessage(util.Message{TypeName: "nextPage"})
+        } else if keyVal == gdk.KEY_a {
+            u.sendMessage(util.Message{TypeName: "previousPage"})
+        } else if keyVal == gdk.KEY_w {
+            u.sendMessage(util.Message{TypeName: "firstPage"})
+        } else if keyVal == gdk.KEY_s {
+            u.sendMessage(util.Message{TypeName: "lastPage"})
+        } else if keyVal == gdk.KEY_Tab {
+            u.sendMessage(util.Message{TypeName: "selectPage"})
+        } else if keyVal == gdk.KEY_1 {
+            u.initCanvas(model)
+            u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
+        } else if keyVal == gdk.KEY_2 {
+            u.initCanvas(model)
+            u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
+        } else if keyVal == gdk.KEY_3 {
+            u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
+        } else if keyVal == gdk.KEY_grave {
+            u.sendMessage(util.Message{TypeName: "toggleReadMode"})
+        } else if keyVal == gdk.KEY_f {
+            if model.Fullscreen {
+                u.mainWindow.Unfullscreen()
+            } else {
+                u.mainWindow.Fullscreen()
+            }
+            u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
+        } else if keyVal == gdk.KEY_o {
+            dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+            dlg.SetCurrentFolder(model.BrowseDirectory)
+            output := dlg.NativeDialog.Run()
+            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
+                f := dlg.GetFilename()
+                m := &util.Message{TypeName: "openFile", Data: f}
+                u.sendMessage(*m)
+            } else {
+            }
+            u.initCanvas(model)
+        } else if keyVal == gdk.KEY_c {
+            u.sendMessage(util.Message{TypeName: "closeFile"})
+            u.initCanvas(model)
+        } else if keyVal == gdk.KEY_r {
+            u.sendMessage(util.Message{TypeName: "reflow"})
+        } else if keyVal == gdk.KEY_e {
+            dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+            base := filepath.Base(model.Pages[model.SelectedPage].FilePath)
+            dlg.SetCurrentFolder(model.BrowseDirectory)
+            dlg.SetCurrentName(base)
+            output := dlg.NativeDialog.Run()
+            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
+                f := dlg.GetFilename()
+                m := &util.Message{TypeName: "exportFile", Data: f}
+                u.sendMessage(*m)
+            } else {
+            }
+        } else if keyVal == gdk.KEY_n {
+            u.initCanvas(model)
+            u.sendMessage(util.Message{TypeName: "nextFile"})
+        } else if keyVal == gdk.KEY_p {
+            u.sendMessage(util.Message{TypeName: "previousFile"})
+            u.initCanvas(model)
+        } else if keyVal == gdk.KEY_space {
+            u.sendMessage(util.Message{TypeName: "toggleBookmark"})
+        }
+
+        //reset the hud hiding
+        hudChan <-true
+        if u.hudHidden {
+            u.hud.ShowAll()
+            u.hudHidden = false
+        }
+     })
+}
+
+func (u *UI) initRenderer(m *model.Model) {
+    u.longStripRender = nil
+    u.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
+        cr.SetSourceRGB(0,0,0)
+        cr.Rectangle(0,0,float64(u.canvas.GetAllocatedWidth()), float64(u.canvas.GetAllocatedHeight()))
+        cr.Fill()
+        if m.Leaves == nil {
+            return
+        }
+
+        leaf := m.Leaves[m.CurrentLeaf]
+        if(m.LeafMode == model.TWO_PAGE) {
+            lo := newTwoPageLayout(m, canvas, cr, leaf)
+            renderTwoPageLayout(lo)
+        } else if m.LeafMode == model.ONE_PAGE {
+            lo := newOnePageLayout(canvas, cr, leaf.Pages[0])
+            renderOnePageLayout(lo)
+        } else {
+            lo := newLongStripLayout(canvas, cr, leaf)
+            renderLongStripLayout(m, u, lo)
+        }
+        w := u.mainWindow.GetAllocatedWidth() - 40
+        u.hdrControl.container.SetSizeRequest(w, 8)
+        u.navControl.container.SetSizeRequest(w, 8)
+    })
+}
+
+func (u *UI) initCanvas(m *model.Model) {
+    if u.canvas != nil {
+        u.hud.Remove(u.canvas)
+        u.canvas.Destroy()
+        u.canvas = nil
+    }
+
+    u.canvas, _ = gtk.DrawingAreaNew()
+	u.hud.Add(u.canvas)
+    u.initRenderer(m)
+    u.mainWindow.ShowAll()
+}
 
 func hudHandler(ui *UI) {
     for {
@@ -54,440 +266,6 @@ var hudTicker *time.Ticker
 var hudChan chan bool
 
 type PagePosition int
-
-type HdrControl struct {
-    container *gtk.Grid
-    leftBookmark *gtk.Label
-    title *gtk.Label
-    rightBookmark *gtk.Label
-}
-
-func NewHdrControl() *HdrControl {
-    c := &HdrControl{}
-
-    lbkmk, err := gtk.LabelNew("")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    lbkmk.SetHAlign(gtk.ALIGN_START)
-    lbkmk.SetHExpand(true)
-    css, _ := lbkmk.GetStyleContext()
-	css.AddClass("bkmk-btn")
-
-	t, err := gtk.LabelNew("")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    css, _ = t.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	rbkmk, err := gtk.LabelNew("")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    css, _ = rbkmk.GetStyleContext()
-	css.AddClass("bkmk-btn")
-
-    container, err := gtk.GridNew()
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    container.SetHAlign(gtk.ALIGN_CENTER)
-	container.SetVAlign(gtk.ALIGN_START)
-    container.SetHExpand(true)
-	css, _ = container.GetStyleContext()
-	css.AddClass("hdr-ctrl")
-    container.Attach(lbkmk, 0, 0, 1, 1)
-    container.Attach(t, 1, 0, 1, 1)
-    container.Attach(rbkmk, 2, 0, 1, 1)
-	container.SetSizeRequest(1000, 8)
-    c.leftBookmark = lbkmk
-    c.title = t
-    c.rightBookmark = rbkmk
-    c.container = container
-    return c
-}
-
-type NavControl struct {
-    container *gtk.Grid
-    navBar *gtk.ProgressBar
-    rightPageNum *gtk.Label
-    reflowControl *gtk.Label
-    readModeControl *gtk.Label
-    displayModeControl *gtk.Label
-    fullscreenControl *gtk.Label
-    leftPageNum *gtk.Label
-}
-
-func newNavControl() *NavControl {
-    nc := &NavControl{}
-
-	nbc, err := gtk.ProgressBarNew()
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    nbc.SetHExpand(true)
-	css, _ := nbc.GetStyleContext()
-	css.AddClass("nav-bar")
-
-	lpn, err := gtk.LabelNew("0")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    lpn.SetHAlign(gtk.ALIGN_START)
-    lpn.SetHExpand(true)
-	css, _ = lpn.GetStyleContext()
-	css.AddClass("nav-btn")
-	css.AddClass("page-num")
-
-   	rc, err := gtk.LabelNew("reflow")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = rc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	rmc, err := gtk.LabelNew("readmode")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = rmc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	dmc, err := gtk.LabelNew("displaymode")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = dmc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-    fsc, err := gtk.LabelNew("fullscreen")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = fsc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	rpn, err := gtk.LabelNew("1")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = rpn.GetStyleContext()
-	css.AddClass("nav-btn")
-	css.AddClass("page-num")
-
-    container, err := gtk.GridNew()
-	if err != nil {
-		fmt.Printf("Error creating grid %s\n", err)
-	}
-    container.SetHAlign(gtk.ALIGN_CENTER)
-	container.SetVAlign(gtk.ALIGN_END)
-    container.SetHExpand(true)
-	css, _ = container.GetStyleContext()
-	css.AddClass("nav-ctrl")
-
-    container.Attach(nbc, 0, 0, 7, 1)
-    container.Attach(lpn, 1, 1, 1, 1)
-    container.Attach(rc, 2, 1, 1, 1)
-    container.Attach(rmc, 3, 1, 1, 1)
-    container.Attach(dmc, 4, 1, 1, 1)
-    container.Attach(fsc, 5, 1, 1, 1)
-    container.Attach(rpn, 6, 1, 1, 1)
-	container.SetSizeRequest(1000, 8)
-    nc.container = container
-    nc.navBar = nbc
-    nc.reflowControl = rc
-    nc.readModeControl = rmc
-    nc.leftPageNum = lpn
-    nc.rightPageNum = rpn
-    nc.fullscreenControl = fsc
-    nc.displayModeControl = dmc
-
-    return nc
-}
-
-func newHUD(ui *UI, title string) *gtk.Overlay {
-	o, _ := gtk.OverlayNew()
-
-    ui.hdrControl = NewHdrControl()
-    ui.navControl = newNavControl()
-	o.AddOverlay(ui.hdrControl.container)
-	o.AddOverlay(ui.navControl.container)
-    ui.hudHidden = false
-
-    return o
-}
-
-type UI struct {
-    sendMessage util.Messenger
-    mainWindow *gtk.Window
-    hud *gtk.Overlay
-    hudHidden bool
-    canvas *gtk.DrawingArea
-    scrollbars *gtk.ScrolledWindow
-    hdrControl *HdrControl
-    navControl *NavControl
-    longStripRender []*gdk.Pixbuf
-}
-
-func initKBHandler(model *model.Model, ui *UI) {
-    ui.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
-        keyEvent := gdk.EventKeyNewFromEvent(event)
-        keyVal := keyEvent.KeyVal()
-        if keyVal == gdk.KEY_q {
-            ui.sendMessage(util.Message{TypeName: "quit"})
-        } else if keyVal == gdk.KEY_d {
-            ui.sendMessage(util.Message{TypeName: "nextPage"})
-        } else if keyVal == gdk.KEY_a {
-            ui.sendMessage(util.Message{TypeName: "previousPage"})
-        } else if keyVal == gdk.KEY_w {
-            ui.sendMessage(util.Message{TypeName: "firstPage"})
-        } else if keyVal == gdk.KEY_s {
-            ui.sendMessage(util.Message{TypeName: "lastPage"})
-        } else if keyVal == gdk.KEY_Tab {
-            ui.sendMessage(util.Message{TypeName: "selectPage"})
-        } else if keyVal == gdk.KEY_1 {
-            initCanvas(model, ui)
-            ui.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
-        } else if keyVal == gdk.KEY_2 {
-            initCanvas(model, ui)
-            ui.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
-        } else if keyVal == gdk.KEY_3 {
-            ui.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
-        } else if keyVal == gdk.KEY_grave {
-            ui.sendMessage(util.Message{TypeName: "toggleReadMode"})
-        } else if keyVal == gdk.KEY_f {
-            if model.Fullscreen {
-                ui.mainWindow.Unfullscreen()
-            } else {
-                ui.mainWindow.Fullscreen()
-            }
-            ui.sendMessage(util.Message{TypeName: "toggleFullscreen"})
-        } else if keyVal == gdk.KEY_o {
-            dlg, _ := gtk.FileChooserNativeDialogNew("Open", ui.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-            dlg.SetCurrentFolder(model.BrowseDirectory)
-            output := dlg.NativeDialog.Run()
-            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-                f := dlg.GetFilename()
-                m := &util.Message{TypeName: "openFile", Data: f}
-                ui.sendMessage(*m)
-            } else {
-            }
-            initCanvas(model, ui)
-        } else if keyVal == gdk.KEY_c {
-            ui.sendMessage(util.Message{TypeName: "closeFile"})
-            initCanvas(model, ui)
-        } else if keyVal == gdk.KEY_r {
-            ui.sendMessage(util.Message{TypeName: "reflow"})
-        } else if keyVal == gdk.KEY_e {
-            dlg, _ := gtk.FileChooserNativeDialogNew("Save", ui.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
-            base := filepath.Base(model.Pages[model.SelectedPage].FilePath)
-            dlg.SetCurrentFolder(model.BrowseDirectory)
-            dlg.SetCurrentName(base)
-            output := dlg.NativeDialog.Run()
-            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-                f := dlg.GetFilename()
-                m := &util.Message{TypeName: "exportFile", Data: f}
-                ui.sendMessage(*m)
-            } else {
-            }
-        } else if keyVal == gdk.KEY_n {
-            initCanvas(model, ui)
-            ui.sendMessage(util.Message{TypeName: "nextFile"})
-        } else if keyVal == gdk.KEY_p {
-            ui.sendMessage(util.Message{TypeName: "previousFile"})
-            initCanvas(model, ui)
-        } else if keyVal == gdk.KEY_space {
-            ui.sendMessage(util.Message{TypeName: "toggleBookmark"})
-        }
-
-        //reset the hud hiding
-        hudChan <-true
-        if ui.hudHidden {
-            ui.hud.ShowAll()
-            ui.hudHidden = false
-        }
-     })
-}
-
-func renderNavControl(m *model.Model, ui *UI) {
-    if len(m.Leaves) < 1 {
-        ui.navControl.navBar.SetFraction(0)
-        ui.navControl.leftPageNum.SetText("")
-        ui.navControl.reflowControl.SetText("")
-        if m.ReadMode == model.RTL {
-            ui.navControl.readModeControl.SetText("<")
-        } else {
-            ui.navControl.readModeControl.SetText(">")
-        }
-
-        if m.LeafMode == model.ONE_PAGE {
-            ui.navControl.displayModeControl.SetText("1-Page")
-        } else if m.LeafMode == model.TWO_PAGE {
-            ui.navControl.displayModeControl.SetText("2-Page")
-        } else {
-            ui.navControl.displayModeControl.SetText("Strip")
-        }
-
-        if m.Fullscreen {
-            ui.navControl.fullscreenControl.SetText("fullscreen")
-        } else {
-            ui.navControl.fullscreenControl.SetText("")
-        }
-
-        ui.navControl.rightPageNum.SetText("")
-
-        return 
-    } else {
-        leaf := m.Leaves[m.CurrentLeaf]
-        vpn := m.CalcVersoPage()
-        np := len(m.ImgPaths)
-        ui.navControl.leftPageNum.SetText("")
-        ui.navControl.rightPageNum.SetText("")
-        lpncss, _ := ui.navControl.leftPageNum.GetStyleContext()
-        rpncss, _ := ui.navControl.rightPageNum.GetStyleContext()
-        lpncss.RemoveClass("bordered")
-        rpncss.RemoveClass("bordered")
-        lpncss.RemoveClass("transparent")
-        rpncss.RemoveClass("transparent")
-        ui.navControl.leftPageNum.Show()
-        ui.navControl.rightPageNum.Show()
-
-        if m.ReadMode == model.RTL {
-            if np > 0 {
-                ui.navControl.navBar.SetInverted(true)
-                ui.navControl.navBar.SetFraction((float64(vpn)+float64(len(leaf.Pages)))/float64(np))
-            }
-
-            if len(leaf.Pages) > 1 {
-                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
-                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn+1))
-                if m.SelectedPage == vpn {
-                    rpncss.AddClass("bordered")
-                } else if m.SelectedPage == vpn+1 {
-                    lpncss.AddClass("bordered")
-                }
-            } else {
-                rpncss.AddClass("transparent")
-                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
-                lpncss.AddClass("bordered")
-            }
-            ui.navControl.readModeControl.SetText("<")
-        } else {
-            if np > 0 {
-                ui.navControl.navBar.SetInverted(false)
-                ui.navControl.navBar.SetFraction((float64(vpn)+float64(len(leaf.Pages)))/float64(np))
-            }
-
-            if len(leaf.Pages) > 1 {
-                ui.navControl.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
-                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn+1))
-                if m.SelectedPage == vpn {
-                    lpncss.AddClass("bordered")
-                } else if m.SelectedPage == vpn+1 {
-                    rpncss.AddClass("bordered")
-                }
-            } else {
-                lpncss.AddClass("transparent")
-                ui.navControl.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
-                rpncss.AddClass("bordered")
-            }
-            ui.navControl.readModeControl.SetText(">")
-        }
-
-        if m.LeafMode == model.ONE_PAGE {
-            ui.navControl.displayModeControl.SetText("1-Page")
-        } else if m.LeafMode == model.TWO_PAGE {
-            ui.navControl.displayModeControl.SetText("2-Page")
-        } else {
-            ui.navControl.displayModeControl.SetText("Strip")
-        }
-
-        if m.Fullscreen {
-            ui.navControl.fullscreenControl.SetText("fullscreen")
-        } else {
-            ui.navControl.fullscreenControl.SetText("")
-        }
-
-        if leaf.Pages[0].Orientation == model.LANDSCAPE {
-            ui.navControl.reflowControl.SetText("-")
-        } else {
-            ui.navControl.reflowControl.SetText("|")
-            if len(leaf.Pages) > 1 {
-                ui.navControl.reflowControl.SetText("||")
-            }
-        }
-    }
-}
-
-func renderHdrControl(m *model.Model, ui *UI) {
-    vpn := m.CalcVersoPage()
-    css, _ := ui.hdrControl.leftBookmark.GetStyleContext()
-    css.RemoveClass("marked")
-    css.RemoveClass("transparent")
-    css, _ = ui.hdrControl.rightBookmark.GetStyleContext()
-    css.RemoveClass("marked")
-    css.RemoveClass("transparent")
-    ui.hdrControl.title.SetText("")
-    if len(m.Leaves) < 1 || m.Bookmarks == nil {
-        ui.hdrControl.title.SetText("Loading...")
-        return 
-    } else {
-        lbkmkcss, _ := ui.hdrControl.leftBookmark.GetStyleContext()
-        rbkmkcss, _ := ui.hdrControl.rightBookmark.GetStyleContext()
-        leaf := m.Leaves[m.CurrentLeaf]
-        title := strings.TrimSuffix(filepath.Base(m.FilePath), filepath.Ext(m.FilePath))
-
-        if m.ReadMode == model.RTL {
-            b := m.Bookmarks.Find(vpn)
-            if b != nil {
-                if len(leaf.Pages) > 1 {
-                    rbkmkcss.AddClass("marked")
-                } else {
-                    rbkmkcss.AddClass("transparent")
-                    lbkmkcss.AddClass("marked")
-                }
-            } 
-
-            if len(leaf.Pages) > 1 {
-                b = m.Bookmarks.Find(vpn+1)
-                if b != nil {
-                    lbkmkcss.AddClass("marked")
-                }
-            }
-        } else {
-            b := m.Bookmarks.Find(vpn)
-            if b != nil {
-                if len(leaf.Pages) > 1 {
-                    lbkmkcss.AddClass("marked")
-                } else {
-                    lbkmkcss.AddClass("transparent")
-                    rbkmkcss.AddClass("marked")
-                }
-            } 
-
-            if len(leaf.Pages) > 1 {
-                b = m.Bookmarks.Find(vpn+1)
-                if b != nil {
-                    rbkmkcss.AddClass("marked")
-                }
-            }
-        }
-        ui.hdrControl.title.SetText(title)
-    }
-}
-
-func renderHud(m *model.Model, ui *UI) {
-	renderHdrControl(m, ui)
-	renderNavControl(m, ui)
-}
-
-func Render(m *model.Model, ui *UI) {
-    glib.IdleAdd(func(){
-        renderHud(m, ui)
-        ui.mainWindow.QueueDraw()
-    })
-}
 
 type OnePageLayout struct {
     canvas *gtk.DrawingArea
@@ -536,7 +314,6 @@ type LongStripLayout struct {
 }
 
 func newLongStripLayout(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *LongStripLayout {
-
     lo := &LongStripLayout{}
     lo.canvas = canvas
     lo.cr = cr
@@ -740,46 +517,6 @@ func renderLongStripLayout(m *model.Model, ui *UI, layout *LongStripLayout) erro
     return nil
 }
 
-func initRenderer(m *model.Model, ui *UI) {
-    ui.longStripRender = nil
-    ui.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
-        cr.SetSourceRGB(0,0,0)
-        cr.Rectangle(0,0,float64(ui.canvas.GetAllocatedWidth()), float64(ui.canvas.GetAllocatedHeight()))
-        cr.Fill()
-        if m.Leaves == nil {
-            return
-        }
-
-        leaf := m.Leaves[m.CurrentLeaf]
-        if(m.LeafMode == model.TWO_PAGE) {
-            lo := newTwoPageLayout(m, canvas, cr, leaf)
-            renderTwoPageLayout(lo)
-        } else if m.LeafMode == model.ONE_PAGE {
-            lo := newOnePageLayout(canvas, cr, leaf.Pages[0])
-            renderOnePageLayout(lo)
-        } else {
-            lo := newLongStripLayout(canvas, cr, leaf)
-            renderLongStripLayout(m, ui, lo)
-        }
-        w := ui.mainWindow.GetAllocatedWidth() - 40
-        ui.hdrControl.container.SetSizeRequest(w, 8)
-        ui.navControl.container.SetSizeRequest(w, 8)
-    })
-}
-
-func initCanvas(m *model.Model, ui *UI) {
-    if ui.canvas != nil {
-        ui.hud.Remove(ui.canvas)
-        ui.canvas.Destroy()
-        ui.canvas = nil
-    }
-
-    ui.canvas, _ = gtk.DrawingAreaNew()
-	ui.hud.Add(ui.canvas)
-    initRenderer(m, ui)
-    ui.mainWindow.ShowAll()
-}
-
 func initCss() {
 	css, err := gtk.CssProviderNew()
     if err != nil {
@@ -802,46 +539,5 @@ func initCss() {
 	}
 
     gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-}
-
-func InitUI(m *model.Model, ui *UI, messenger util.Messenger) {
-    gtk.Init(nil)
-    ui.sendMessage = messenger
-    ui.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-    ui.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
-    ui.mainWindow.SetTitle("cbxv")
-    ui.mainWindow.Connect("destroy", func() {
-        gtk.MainQuit()
-    })
-    ui.mainWindow.SetSizeRequest(1024, 768)
-
-    ui.mainWindow.Connect("configure-event", func() {
-        w := ui.mainWindow.GetAllocatedWidth() - 40
-        ui.hdrControl.container.SetSizeRequest(w, 8)
-        ui.navControl.container.SetSizeRequest(w, 8)
-    })
-
-    initCss()
-
-    ui.hud = newHUD(ui, "")
-    ui.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
-    ui.scrollbars.Add(ui.hud)
-	ui.mainWindow.Add(ui.scrollbars)
-
-    initKBHandler(m, ui)
-
-    initCanvas(m, ui)
-
-    hudChan = make(chan bool)
-    hudTicker = time.NewTicker(time.Second * 10)
-    defer hudTicker.Stop()
-
-    go hudHandler(ui)
-
-    ui.mainWindow.ShowAll()
-}
-
-func StopUI(model *model.Model, ui *UI) {
-    hudChan <-false
 }
 
