@@ -27,6 +27,7 @@ const RENDERERSTATE_FN string = "rendererstate.json"
 const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
 const TMP_CBXS_PREFIX string = "cbxv-"
+const DEBUG = false
 
 //go:embed assets
 var assets embed.FS
@@ -459,5 +460,25 @@ func LoadImageFile(filePath string) (image.Image, error) {
         return nil, err
     }
     return img, nil
+}
+
+func LoadImageFileMeta(filePath string) (*image.Config, error) {
+    f, err := os.Open(filePath)
+    if err != nil {
+        return nil, err
+    }
+    defer f.Close()
+
+    img, _, err := image.DecodeConfig(f)
+    if err != nil {
+        return nil, err
+    }
+    return &img, nil
+}
+
+func Log(format string, a ...any) {
+    if DEBUG == true {
+        fmt.Fprintf(os.Stdout, format, a...)
+    }
 }
 

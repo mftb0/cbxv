@@ -1,6 +1,6 @@
 module example.com/cbxv-gotk3
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gen2brain/go-unarr v0.1.6
@@ -9,7 +9,5 @@ require (
 )
 
 replace example.com/cbxv-gotk3/internal/util => ../cbxv-gotk3
-
 replace example.com/cbxv-gotk3/internal/ui => ../cbxv-gotk3
-
 replace example.com/cbxv-gotk3/internal/model => ../cbxv-gotk3

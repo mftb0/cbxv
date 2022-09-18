@@ -187,8 +187,9 @@ func (u *UI) initKBHandler(model *model.Model) {
             u.initCanvas(model)
         } else if keyVal == gdk.KEY_space {
             u.sendMessage(util.Message{TypeName: "toggleBookmark"})
+        } else if keyVal == gdk.KEY_l {
+            u.sendMessage(util.Message{TypeName: "lastBookmark"})
         }
-
         //reset the hud hiding
         hudChan <-true
         if u.hudHidden {

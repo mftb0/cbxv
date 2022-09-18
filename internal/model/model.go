@@ -77,7 +77,7 @@ type BookmarkListModel struct {
 
 // Manage a list of bookmarks
 type BookmarkList struct {
-    model BookmarkListModel
+    Model BookmarkListModel
 }
 
 func NewBookmarkList(filePath string) *BookmarkList {
@@ -90,19 +90,19 @@ func NewBookmarkList(filePath string) *BookmarkList {
     c.FilePath = filePath
     m.Comic = c
     m.Bookmarks = make([]Bookmark, 0)
-    b.model = m
+    b.Model = m
     return &b
 }
 
 func (l *BookmarkList) Add(b Bookmark) {
-    for i := 0; i < len(l.model.Bookmarks); i++ {
-        if l.model.Bookmarks[i].PageIndex == b.PageIndex {
+    for i := 0; i < len(l.Model.Bookmarks); i++ {
+        if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
             return
         }
     }
-    l.model.Bookmarks = append(l.model.Bookmarks, b)
-    sort.Slice(l.model.Bookmarks, func(i, j int) bool {
-        return l.model.Bookmarks[i].PageIndex < l.model.Bookmarks[j].PageIndex
+    l.Model.Bookmarks = append(l.Model.Bookmarks, b)
+    sort.Slice(l.Model.Bookmarks, func(i, j int) bool {
+        return l.Model.Bookmarks[i].PageIndex < l.Model.Bookmarks[j].PageIndex
     })
     l.Store()
 }
@@ -110,23 +110,23 @@ func (l *BookmarkList) Add(b Bookmark) {
 func (l *BookmarkList) Remove(b Bookmark) *Bookmark {
     var x int
     var r Bookmark
-    for i := 0; i < len(l.model.Bookmarks); i++ {
-        if l.model.Bookmarks[i].PageIndex == b.PageIndex {
-            r = l.model.Bookmarks[i]
+    for i := 0; i < len(l.Model.Bookmarks); i++ {
+        if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
+            r = l.Model.Bookmarks[i]
             x = i
             break;
         }
     }
-    l.model.Bookmarks = append(l.model.Bookmarks[:x], l.model.Bookmarks[x+1:]...)
+    l.Model.Bookmarks = append(l.Model.Bookmarks[:x], l.Model.Bookmarks[x+1:]...)
     l.Store()
     return &r
 }
 
 func (l *BookmarkList) Find(pageIndex int) *Bookmark {
     var r *Bookmark
-    for i := 0; i < len(l.model.Bookmarks); i++ {
-        if l.model.Bookmarks[i].PageIndex == pageIndex {
-            r = &l.model.Bookmarks[i]
+    for i := 0; i < len(l.Model.Bookmarks); i++ {
+        if l.Model.Bookmarks[i].PageIndex == pageIndex {
+            r = &l.Model.Bookmarks[i]
             break;
         }
     }
@@ -134,11 +134,11 @@ func (l *BookmarkList) Find(pageIndex int) *Bookmark {
 }
 
 func (l *BookmarkList) Store() error {
-    data, err := json.Marshal(l.model)
+    data, err := json.Marshal(l.Model)
     if err != nil {
         return err
     }
-    err = util.WriteBookmarkList(l.model.Comic.Hash, string(data))
+    err = util.WriteBookmarkList(l.Model.Comic.Hash, string(data))
     if err != nil {
         return err
     }
@@ -146,8 +146,8 @@ func (l *BookmarkList) Store() error {
 }
 
 func (l *BookmarkList) Load(hash string) {
-    l.model.Comic.Hash = hash
-    data, _ := util.ReadBookmarkList(l.model.Comic.Hash)
+    l.Model.Comic.Hash = hash
+    data, _ := util.ReadBookmarkList(l.Model.Comic.Hash)
 
     if data != nil {
         var m BookmarkListModel
@@ -155,19 +155,19 @@ func (l *BookmarkList) Load(hash string) {
         if err != nil {
             fmt.Printf("e:%s\n", err)
         }
-        l.model = m
+        l.Model = m
     }
 }
 
 // A page in this case is generally analogous to an image
 // They are grouped on Leaves
 type Page struct {
-    FilePath string
-    Width int
-    Height int
-    Orientation int
-    Loaded bool
-    Image *image.Image
+    FilePath string `json:"filePath"`
+    Width int`json:"width"`
+    Height int`json:"height"`
+    Orientation int `json:"orientation"`
+    Loaded bool `json:"loaded"`
+    Image *image.Image `json:"-"` 
 }
 
 func (p *Page) Load() {
@@ -185,20 +185,35 @@ func (p *Page) Load() {
     p.Loaded = true
 }
 
-// Creates pgs slice and loads it
-func (model *Model) NewPages() {
-    pages := make([]Page, len(model.ImgPaths))
+func (p *Page) LoadMeta() {
+    f, err := util.LoadImageFileMeta(p.FilePath)
+    if err != nil {
+        fmt.Printf("Error loading file %s\n", err)
+    }
+    p.Width = f.Width
+    p.Height = f.Height
+    if p.Width >= p.Height {
+        p.Orientation = LANDSCAPE
+    }
+    p.Loaded = false
+}
 
-    for i := range model.ImgPaths {
-        pages[i].FilePath = model.ImgPaths[i]
+// Creates pgs slice and loads it
+func (m *Model) NewPages() {
+    pages := make([]Page, len(m.ImgPaths))
+
+    for i := range m.ImgPaths {
+        pages[i].FilePath = m.ImgPaths[i]
         pages[i].Orientation = PORTRAIT
         pages[i].Loaded = false
         if i < MAX_LOAD {
             pages[i].Load()
+        } else {
+            pages[i].LoadMeta()
         }
     }
 
-    model.Pages = pages
+    m.Pages = pages
 }
 
 // How a page is oriented
@@ -220,18 +235,18 @@ type Leaf struct {
 }
 
 // Creates leaf slice based on pg slice and leaf mode
-func (model *Model) NewLeaves() {
+func (m *Model) NewLeaves() {
     var leaves []*Leaf
 
-    pages := model.Pages
-    if(model.LeafMode == ONE_PAGE) {
+    pages := m.Pages
+    if(m.LeafMode == ONE_PAGE) {
         for i := range pages {
             leaf := &Leaf{}
             p := &pages[i]
             leaf.Pages = append(leaf.Pages, p)
             leaves = append(leaves, leaf)
         }
-    } else if model.LeafMode == TWO_PAGE {
+    } else if m.LeafMode == TWO_PAGE {
         for i := 0; i < len(pages); i++ {
             // create leaf add a page
             leaf := &Leaf{}
@@ -276,7 +291,7 @@ func (model *Model) NewLeaves() {
         leaves = append(leaves, leaf)
     }
 
-    model.Leaves = leaves
+    m.Leaves = leaves
 }
 
 // Leaf mode determines how many pages per leaf
@@ -292,10 +307,10 @@ const (
 )
 
 // Uses leaves to determine which pages to load or unload
-func (model *Model) RefreshPages() {
-    if model.LeafMode != LONG_STRIP {
+func (m *Model) RefreshPages() {
+    if m.LeafMode != LONG_STRIP {
         // load the current leaf
-        leaf := model.Leaves[model.CurrentLeaf]
+        leaf := m.Leaves[m.CurrentLeaf]
         for i := range leaf.Pages {
             if !leaf.Pages[i].Loaded {
                 leaf.Pages[i].Load()
@@ -303,10 +318,10 @@ func (model *Model) RefreshPages() {
         }
 
         // buffer nearby leaves
-        start := int(math.Max(0, float64(model.CurrentLeaf-(MAX_LOAD/2))))
-        end := int(math.Min(float64(model.CurrentLeaf+(MAX_LOAD/2)), float64(len(model.Leaves))))
+        start := int(math.Max(0, float64(m.CurrentLeaf-(MAX_LOAD/2))))
+        end := int(math.Min(float64(m.CurrentLeaf+(MAX_LOAD/2)), float64(len(m.Leaves))))
         for j := start; j < end; j++  {
-            leaf = model.Leaves[j]
+            leaf = m.Leaves[j]
             for i := range leaf.Pages {
                 if !leaf.Pages[i].Loaded {
                     leaf.Pages[i].Load()
@@ -315,11 +330,13 @@ func (model *Model) RefreshPages() {
         }
 
         // remove distant leaves
-        for j := range model.Leaves {
+        for j := range m.Leaves {
             if j < start || j > end {
-                leaf := model.Leaves[j]
+                leaf := m.Leaves[j]
                 for i := range leaf.Pages {
                     if leaf.Pages[i].Loaded {
+                        //leave image metadata alone
+                        util.Log("Unload pg %d\n", j);
                         leaf.Pages[i].Image = nil
                         leaf.Pages[i].Loaded = false
                     }
@@ -328,11 +345,11 @@ func (model *Model) RefreshPages() {
         }
 
         c := 0
-        for x := range model.Pages {
-            if !model.Pages[x].Loaded {
-                if model.Pages[x].Image != nil {
+        for x := range m.Pages {
+            if !m.Pages[x].Loaded {
+                if m.Pages[x].Image != nil {
                     fmt.Printf("Page %d shouldn't be loaded\n", x)
-                    model.Pages[x].Image = nil
+                    m.Pages[x].Image = nil
                 }
             } else {
                 c++
@@ -340,43 +357,62 @@ func (model *Model) RefreshPages() {
         }
     } else {
         // load all pages
-        for i := range model.Pages {
-            model.Pages[i].Load()
+        for i := range m.Pages {
+            m.Pages[i].Load()
         }
     }
 }
 
-func (model *Model) CalcVersoPage() int {
+// for the current leaf find the "lesser" or
+// verso page number
+func (m *Model) CalcVersoPage() int {
     r := 0
-    if(model.LeafMode == ONE_PAGE) {
-        r = model.CurrentLeaf
-    } else if model.LeafMode == TWO_PAGE {
-        if model.Leaves == nil {
+    if(m.LeafMode == ONE_PAGE) {
+        r = m.CurrentLeaf
+    } else if m.LeafMode == TWO_PAGE {
+        if m.Leaves == nil {
             return 0
         }
-        for i := 0; i < model.CurrentLeaf; i++ {
-            leaf := model.Leaves[i]
+        for i := 0; i < m.CurrentLeaf; i++ {
+            leaf := m.Leaves[i]
             r += len(leaf.Pages)
         }
     } else {
-        r = model.CurrentLeaf
+        r = m.CurrentLeaf
     }
     return r
 }
 
-func (model *Model) loadBookmarks() {
-    model.Bookmarks = NewBookmarkList(model.FilePath)
-    model.Bookmarks.Load(model.Hash)
-    m := &util.Message{TypeName: "render"}
-    model.SendMessage(*m)
+// page index to leaf index
+func (m *Model) PageToLeaf(n int) int {
+    if m.Leaves == nil {
+        return 0
+    } else if m.LeafMode == TWO_PAGE {
+        var p = 0
+        for i := range m.Leaves {
+            leaf := m.Leaves[i]
+            p += len(leaf.Pages)
+            if p > n {
+                return i
+            }
+        }
+    }
+    return n;
 }
 
-func (model *Model) LoadHash() {
-    hash, err := util.HashFile(model.FilePath)
+func (m *Model) loadBookmarks() {
+    m.Bookmarks = NewBookmarkList(m.FilePath)
+    m.Bookmarks.Load(m.Hash)
+    msg := &util.Message{TypeName: "render"}
+    m.SendMessage(*msg)
+}
+
+func (m *Model) LoadHash() {
+    hash, err := util.HashFile(m.FilePath)
     if err != nil {
         fmt.Printf("Unable to compute file hash %s\n", err)
     }
-    model.Hash = hash
-    model.loadBookmarks()
+    m.Hash = hash
+    m.loadBookmarks()
 }
 

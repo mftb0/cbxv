@@ -75,6 +75,23 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command {
+        Name: "lastBookmark",
+        DisplayName: "Last Bookmark",
+    }
+    cmds.Commands[cmd.Name] = func(data string) {
+        blen := (len(m.Bookmarks.Model.Bookmarks) - 1)
+        if blen > -1 {
+            bkmk := m.Bookmarks.Model.Bookmarks[blen]
+            if bkmk.PageIndex > 0 && bkmk.PageIndex < blen {
+                m.CurrentLeaf = m.PageToLeaf(bkmk.PageIndex)
+                m.SelectedPage = bkmk.PageIndex 
+            }
+            m.RefreshPages()
+            m.NewLeaves()
+        }
+    }
+
+    cmd = Command {
         Name: "selectPage",
         DisplayName: "Select Page",
     }
