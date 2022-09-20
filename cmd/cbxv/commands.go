@@ -169,6 +169,8 @@ func NewCommands(m *model.Model) *CommandList {
         }
 
         // Swap the keys
+        // fixme: This means in rtl things are
+        // named backward
         n := cmds.Commands["nextPage"]
         p := cmds.Commands["previousPage"]
         cmds.Commands["nextPage"] = p
@@ -269,7 +271,12 @@ func NewCommands(m *model.Model) *CommandList {
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LeafMode == model.TWO_PAGE {
             spg := m.SelectedPage
-            rpn := m.CalcVersoPage() + 1
+            var rpn int
+            if m.ReadMode == model.RTL {
+                rpn = m.CalcVersoPage() + 1
+            } else {
+                rpn = m.CalcVersoPage() + 1
+            }
             p := &m.Pages[spg]
             if p.Orientation == model.PORTRAIT {
                 p.Orientation = model.LANDSCAPE
@@ -282,7 +289,14 @@ func NewCommands(m *model.Model) *CommandList {
             // recto pg when we started we need to
             // advance a page
             if spg == rpn {
-                cmds.Commands["nextPage"]("")
+                // fixme: This is lame, in rtl mode 
+                // ui is actually sending previous to
+                // go next
+                if m.ReadMode == model.RTL {
+                    cmds.Commands["previousPage"]("")
+                } else {
+                    cmds.Commands["nextPage"]("")
+                }
             }
         }
     }
