@@ -247,18 +247,12 @@ func (u *UI) initRenderer(m *model.Model) {
         w := u.mainWindow.GetAllocatedWidth()
         half := float64(w/2)
         e := &gdk.EventButton{Event:event}
+        // fixme: Don't have to deal w/rtl here because it's dealt with
+        // in the app
         if e.X() < half {
-            if m.ReadMode == model.LTR {
-                u.sendMessage(util.Message{TypeName: "previousPage"})
-            } else {
-                u.sendMessage(util.Message{TypeName: "nextPage"})
-            }
+            u.sendMessage(util.Message{TypeName: "previousPage"})
         } else {
-            if m.ReadMode == model.LTR {
-                u.sendMessage(util.Message{TypeName: "nextPage"})
-            } else {
-                u.sendMessage(util.Message{TypeName: "previousPage"})
-            }
+            u.sendMessage(util.Message{TypeName: "nextPage"})
         }
     })
 }
