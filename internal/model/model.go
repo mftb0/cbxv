@@ -30,6 +30,8 @@ type Model struct {
     SeriesIndex int
     BrowseDirectory string
     Fullscreen bool
+    ProgramName string
+    ProgramVersion string
 }
 
 func NewModel(messenger util.Messenger) *Model {

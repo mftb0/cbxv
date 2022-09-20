@@ -15,14 +15,20 @@
     border: solid 1px #00ff00;
 }
 
-label {
+button {
+    border: solid 1px black;
 }
 
 .nav-btn {
+    background-image:none;
     background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
     color: #00ff00;
     padding: 3px 19px 3px 19px;
     font-weight: bold;
+    font-size: 14px;
 }
 
 .nav-bar {

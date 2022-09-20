@@ -20,10 +20,12 @@ import (
 )
 
 const (
-   LEFT_ALIGN = iota
-   RIGHT_ALIGN
-   CENTER
+   ALIGN_LEFT = iota
+   ALIGN_RIGHT
+   ALIGN_CENTER
 )
+
+const TICK = time.Second * 5
 
 type UI struct {
     sendMessage util.Messenger
@@ -57,7 +59,7 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 
     initCss()
 
-    u.hud = u.newHUD("")
+    u.hud = u.newHUD(m, "")
     u.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
     u.scrollbars.Add(u.hud)
 	u.mainWindow.Add(u.scrollbars)
@@ -67,7 +69,7 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
     u.initCanvas(m)
 
     hudChan = make(chan bool)
-    hudTicker = time.NewTicker(time.Second * 10)
+    hudTicker = time.NewTicker(TICK)
     defer hudTicker.Stop()
 
     go hudHandler(u)
@@ -96,15 +98,18 @@ func (u *UI) RunFunc(f interface{}) {
 func (u *UI) Render(m *model.Model) {
     glib.IdleAdd(func(){
         u.renderHud(m)
+        // causes the draw event to fire
+        // which gets the canvas to Render
+        // see initRenderer
         u.mainWindow.QueueDraw()
     })
 }
 
-func (u *UI) newHUD(title string) *gtk.Overlay {
+func (u *UI) newHUD(m *model.Model, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
     u.hdrControl = NewHdrControl()
-    u.navControl = NewNavControl()
+    u.navControl = NewNavControl(m, u)
 	o.AddOverlay(u.hdrControl.container)
 	o.AddOverlay(u.navControl.container)
     u.hudHidden = false
@@ -166,7 +171,7 @@ func (u *UI) initKBHandler(model *model.Model) {
             u.sendMessage(util.Message{TypeName: "closeFile"})
             u.initCanvas(model)
         } else if keyVal == gdk.KEY_r {
-            u.sendMessage(util.Message{TypeName: "reflow"})
+            u.sendMessage(util.Message{TypeName: "spread"})
         } else if keyVal == gdk.KEY_e {
             dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
             base := filepath.Base(model.Pages[model.SelectedPage].FilePath)
@@ -211,18 +216,50 @@ func (u *UI) initRenderer(m *model.Model) {
 
         leaf := m.Leaves[m.CurrentLeaf]
         if(m.LeafMode == model.TWO_PAGE) {
-            lo := newTwoPageLayout(m, canvas, cr, leaf)
-            renderTwoPageLayout(lo)
+            lo := newTwoPageSpread(m, canvas, cr, leaf)
+            renderTwoPageSpread(lo)
         } else if m.LeafMode == model.ONE_PAGE {
-            lo := newOnePageLayout(canvas, cr, leaf.Pages[0])
-            renderOnePageLayout(lo)
+            lo := newOnePageSpread(canvas, cr, leaf.Pages[0])
+            renderOnePageSpread(lo)
         } else {
-            lo := newLongStripLayout(canvas, cr, leaf)
-            renderLongStripLayout(m, u, lo)
+            lo := newLongStripSpread(canvas, cr, leaf)
+            renderLongStripSpread(m, u, lo)
         }
         w := u.mainWindow.GetAllocatedWidth() - 40
         u.hdrControl.container.SetSizeRequest(w, 8)
         u.navControl.container.SetSizeRequest(w, 8)
+    })
+
+    u.canvas.AddEvents(4)
+    u.canvas.AddEvents(int(gdk.BUTTON_PRESS_MASK))
+    u.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
+        //reset the hud hiding
+        if hudChan != nil {
+            hudChan <-true
+            if u.hudHidden {
+                u.hud.ShowAll()
+                u.hudHidden = false
+            }
+        }
+    })
+
+    u.canvas.Connect("button-press-event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
+        w := u.mainWindow.GetAllocatedWidth()
+        half := float64(w/2)
+        e := &gdk.EventButton{Event:event}
+        if e.X() < half {
+            if m.ReadMode == model.LTR {
+                u.sendMessage(util.Message{TypeName: "previousPage"})
+            } else {
+                u.sendMessage(util.Message{TypeName: "nextPage"})
+            }
+        } else {
+            if m.ReadMode == model.LTR {
+                u.sendMessage(util.Message{TypeName: "nextPage"})
+            } else {
+                u.sendMessage(util.Message{TypeName: "previousPage"})
+            }
+        }
     })
 }
 
@@ -253,7 +290,7 @@ func hudHandler(ui *UI) {
             }
         case r := <-hudChan:
             if r == true {
-                hudTicker = time.NewTicker(time.Second * 10)
+                hudTicker = time.NewTicker(TICK)
                 ui.hudHidden = false
             } else {
                 return
@@ -268,58 +305,58 @@ var hudChan chan bool
 
 type PagePosition int
 
-type OnePageLayout struct {
+type OnePageSpread struct {
     canvas *gtk.DrawingArea
     cr *cairo.Context
     page *model.Page
 }
 
-func newOnePageLayout(canvas *gtk.DrawingArea, cr *cairo.Context,
-    page *model.Page) *OnePageLayout {
-    return &OnePageLayout{canvas, cr, page}
+func newOnePageSpread(canvas *gtk.DrawingArea, cr *cairo.Context,
+    page *model.Page) *OnePageSpread {
+    return &OnePageSpread{canvas, cr, page}
 }
 
-type TwoPageLayout struct {
+type TwoPageSpread struct {
     canvas *gtk.DrawingArea
     cr *cairo.Context
     leftPage *model.Page
     rightPage *model.Page
 }
 
-// Create a two pg layout accounting for readmode
-func newTwoPageLayout(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *TwoPageLayout {
-    lo := &TwoPageLayout{}
-    lo.canvas = canvas
-    lo.cr = cr
+// Create a two pg spread accounting for readmode
+func newTwoPageSpread(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *TwoPageSpread {
+    s := &TwoPageSpread{}
+    s.canvas = canvas
+    s.cr = cr
     if m.ReadMode == model.LTR {
-        lo.leftPage = leaf.Pages[0]
+        s.leftPage = leaf.Pages[0]
         if(len(leaf.Pages) > 1) {
-            lo.rightPage = leaf.Pages[1]
+            s.rightPage = leaf.Pages[1]
         }
     } else {
         if(len(leaf.Pages) > 1) {
-            lo.leftPage = leaf.Pages[1]
-            lo.rightPage = leaf.Pages[0]
+            s.leftPage = leaf.Pages[1]
+            s.rightPage = leaf.Pages[0]
         } else {
-            lo.leftPage = leaf.Pages[0]
+            s.leftPage = leaf.Pages[0]
         }
     }
 
-    return lo
+    return s
 }
 
-type LongStripLayout struct {
+type LongStripSpread struct {
     canvas *gtk.DrawingArea
     cr *cairo.Context
     pages []*model.Page
 }
 
-func newLongStripLayout(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *LongStripLayout {
-    lo := &LongStripLayout{}
-    lo.canvas = canvas
-    lo.cr = cr
-    lo.pages = leaf.Pages
-    return lo
+func newLongStripSpread(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *LongStripSpread {
+    s := &LongStripSpread{}
+    s.canvas = canvas
+    s.cr = cr
+    s.pages = leaf.Pages
+    return s
 }
 
 func scalePixbufToFit(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int, h int) (*gdk.Pixbuf, error) {
@@ -361,7 +398,7 @@ func scalePixbufToWidth(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int) (*gdk.Pix
 
 func positionPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf, pos PagePosition) (x, y int) {
     var cW int
-    if pos != CENTER {
+    if pos != ALIGN_CENTER {
         cW = canvas.GetAllocatedWidth() / 2
     } else {
         cW = canvas.GetAllocatedWidth()
@@ -370,9 +407,9 @@ func positionPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf, pos PagePosition) (x
     pW := p.GetWidth()
     pH := p.GetHeight()
 
-    if pos == CENTER {
+    if pos == ALIGN_CENTER {
         x = (cW - pW) / 2
-    } else if pos == LEFT_ALIGN {
+    } else if pos == ALIGN_LEFT {
         x = cW
     } else {
         x = (cW - pW)
@@ -431,89 +468,89 @@ func componentToByte(component uint32) byte {
 	return byte(byteValue)
 }
 
-func renderOnePageLayout(layout *OnePageLayout) error {
-	p, _ := imageToPixbuf(*layout.page.Image)
-    cW := layout.canvas.GetAllocatedWidth()
-    cH := layout.canvas.GetAllocatedHeight()
+func renderOnePageSpread(s *OnePageSpread) error {
+	p, _ := imageToPixbuf(*s.page.Image)
+    cW := s.canvas.GetAllocatedWidth()
+    cH := s.canvas.GetAllocatedHeight()
 
-    p, err := scalePixbufToFit(layout.canvas, p, cW, cH)
+    p, err := scalePixbufToFit(s.canvas, p, cW, cH)
     if err != nil {
         return err
     }
 
-    x, y := positionPixbuf(layout.canvas, p, CENTER)
-    renderPixbuf(layout.cr, p, x, y)
+    x, y := positionPixbuf(s.canvas, p, ALIGN_CENTER)
+    renderPixbuf(s.cr, p, x, y)
     p = nil
     return nil
 }
 
 // readmode (rtl or ltr) has already been accounted for
 // so left and right here are literal
-func renderTwoPageLayout(layout *TwoPageLayout) error {
+func renderTwoPageSpread(s *TwoPageSpread) error {
     var err error
-	lp, _ := imageToPixbuf(*layout.leftPage.Image)
+	lp, _ := imageToPixbuf(*s.leftPage.Image)
 
 	var x, y, cW, cH int
-    if layout.rightPage != nil {
+    if s.rightPage != nil {
 	    //put the left pg on the left, right-aligned
-		cW = layout.canvas.GetAllocatedWidth() / 2
-		cH = layout.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
+		cW = s.canvas.GetAllocatedWidth() / 2
+		cH = s.canvas.GetAllocatedHeight()
+        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
 		if err != nil {
 			return err
 		}
-        x, y = positionPixbuf(layout.canvas, lp, RIGHT_ALIGN)
-        renderPixbuf(layout.cr, lp, x, y)
+        x, y = positionPixbuf(s.canvas, lp, ALIGN_RIGHT)
+        renderPixbuf(s.cr, lp, x, y)
 
 	    //put the right pg on the right, left-aligned
-		rp, _ := imageToPixbuf(*layout.rightPage.Image)
-        rp, err := scalePixbufToFit(layout.canvas, rp, cW, cH)
+		rp, _ := imageToPixbuf(*s.rightPage.Image)
+        rp, err := scalePixbufToFit(s.canvas, rp, cW, cH)
         if err != nil {
             return err
         }
-        x, y = positionPixbuf(layout.canvas, rp, LEFT_ALIGN)
-        renderPixbuf(layout.cr, rp, x, y)
+        x, y = positionPixbuf(s.canvas, rp, ALIGN_LEFT)
+        renderPixbuf(s.cr, rp, x, y)
     } else {
 	    //there is no right page, then center the left page
-		cW = layout.canvas.GetAllocatedWidth()
-		cH = layout.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(layout.canvas, lp, cW, cH)
+		cW = s.canvas.GetAllocatedWidth()
+		cH = s.canvas.GetAllocatedHeight()
+        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
 		if err != nil {
 			return err
 		}
-		x, y = positionPixbuf(layout.canvas, lp, CENTER)
-        renderPixbuf(layout.cr, lp, x, y)
+		x, y = positionPixbuf(s.canvas, lp, ALIGN_CENTER)
+        renderPixbuf(s.cr, lp, x, y)
     }
 
     return nil
 }
 
-func renderLongStripLayout(m *model.Model, ui *UI, layout *LongStripLayout) error {
+func renderLongStripSpread(m *model.Model, u *UI, s *LongStripSpread) error {
     var x, y int
-    if ui.longStripRender == nil {
-        cW := layout.canvas.GetAllocatedWidth()
+    if u.longStripRender == nil {
+        cW := s.canvas.GetAllocatedWidth()
 
-        for i := range layout.pages {
-            page := layout.pages[i]
+        for i := range s.pages {
+            page := s.pages[i]
 	        p, _ := imageToPixbuf(*page.Image)
-            p, err := scalePixbufToWidth(layout.canvas, p, cW)
+            p, err := scalePixbufToWidth(s.canvas, p, cW)
             if err != nil {
                 return err
             }
-            x = positionLongStripPixbuf(layout.canvas, p)
-            renderPixbuf(layout.cr, p, x, y)
+            x = positionLongStripPixbuf(s.canvas, p)
+            renderPixbuf(s.cr, p, x, y)
             y += p.GetHeight()
-            ui.longStripRender = append(ui.longStripRender, p)
+            u.longStripRender = append(u.longStripRender, p)
         }
     } else {
-        for i := range ui.longStripRender {
-            p := ui.longStripRender[i]
-            x = positionLongStripPixbuf(layout.canvas, p)
-            renderPixbuf(layout.cr, p, x, y)
+        for i := range u.longStripRender {
+            p := u.longStripRender[i]
+            x = positionLongStripPixbuf(s.canvas, p)
+            renderPixbuf(s.cr, p, x, y)
             y += p.GetHeight()
         }
     }
-    layout.canvas.SetSizeRequest(x, y)
+    s.canvas.SetSizeRequest(x, y)
 
     return nil
 }

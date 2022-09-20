@@ -5,20 +5,35 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
     "example.com/cbxv-gotk3/internal/model"
+    "example.com/cbxv-gotk3/internal/util"
+)
+
+const (
+    DIR_LTR_ICN = "⯈"   // u+2bc8
+    DIR_RTL_ICN = "⯇"   // u+2bc7
+    FS_MAX_ICN  = "⛶ "  // u+26f6 - square four corners
+    FS_RES_ICN  = "🮻 "  // u+1fbbb 
+    SD_ONE_ICN  = "Ⅰ"   // u+2160 - roman numeral 1
+    SD_TWO_ICN  = "Ⅱ"   // u+2161 - roman numeral 2
+    SD_DBL_ICN  = "█"   // u+2588
+    APP_CLS_ICN = "⮽ "  // u+2bbd
+    CBX_CLS_ICN = "⮾ "  // u+2bbe
 )
 
 type NavControl struct {
     container *gtk.Grid
     navBar *gtk.ProgressBar
     rightPageNum *gtk.Label
-    reflowControl *gtk.Label
-    readModeControl *gtk.Label
+    progName *gtk.Label
+    progVersion *gtk.Label
+    spreadControl *gtk.Button
+    readModeControl *gtk.Button
     displayModeControl *gtk.Label
-    fullscreenControl *gtk.Label
+    fullscreenControl *gtk.Button
     leftPageNum *gtk.Label
 }
 
-func NewNavControl() *NavControl {
+func NewNavControl(m *model.Model, u *UI) *NavControl {
     nc := &NavControl{}
 
 	nbc, err := gtk.ProgressBarNew()
@@ -34,19 +49,28 @@ func NewNavControl() *NavControl {
 		fmt.Printf("Error creating label %s\n", err)
 	}
     lpn.SetHAlign(gtk.ALIGN_START)
-    lpn.SetHExpand(true)
 	css, _ = lpn.GetStyleContext()
 	css.AddClass("nav-btn")
 	css.AddClass("page-num")
 
-   	rc, err := gtk.LabelNew("reflow")
+	pn, err := gtk.LabelNew("cbxv")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-	css, _ = rc.GetStyleContext()
+    pn.SetHAlign(gtk.ALIGN_START)
+	css, _ = pn.GetStyleContext()
 	css.AddClass("nav-btn")
 
-	rmc, err := gtk.LabelNew("readmode")
+	pv, err := gtk.LabelNew("v0.0.1")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    pv.SetHAlign(gtk.ALIGN_START)
+    pv.SetHExpand(true)
+	css, _ = pv.GetStyleContext()
+	css.AddClass("nav-btn")
+
+	rmc, err := gtk.ButtonNewWithLabel(DIR_LTR_ICN)
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
@@ -60,7 +84,15 @@ func NewNavControl() *NavControl {
 	css, _ = dmc.GetStyleContext()
 	css.AddClass("nav-btn")
 
-    fsc, err := gtk.LabelNew("fullscreen")
+   	sc, err := gtk.ButtonNewWithLabel("spread")
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    sc.SetTooltipText("Current Spread")
+	css, _ = sc.GetStyleContext()
+	css.AddClass("nav-btn")
+
+    fsc, err := gtk.ButtonNewWithLabel(FS_MAX_ICN) 
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
@@ -85,23 +117,48 @@ func NewNavControl() *NavControl {
 	css, _ = container.GetStyleContext()
 	css.AddClass("nav-ctrl")
 
-    container.Attach(nbc, 0, 0, 7, 1)
+    sc.Connect("clicked", func() { 
+        u.sendMessage(util.Message{TypeName: "spread"})
+    })
+
+    sc.Connect("query-tooltip", func() bool { 
+        return true
+    })
+
+    rmc.Connect("clicked", func() { 
+        u.sendMessage(util.Message{TypeName: "toggleReadMode"})
+    })
+
+    fsc.Connect("clicked", func() { 
+        if m.Fullscreen {
+            u.mainWindow.Unfullscreen()
+        } else {
+            u.mainWindow.Fullscreen()
+        }
+        u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
+    })
+
+    container.Attach(nbc, 0, 0, 9, 1)
     container.Attach(lpn, 1, 1, 1, 1)
-    container.Attach(rc, 2, 1, 1, 1)
-    container.Attach(rmc, 3, 1, 1, 1)
-    container.Attach(dmc, 4, 1, 1, 1)
-    container.Attach(fsc, 5, 1, 1, 1)
-    container.Attach(rpn, 6, 1, 1, 1)
+    container.Attach(pn, 2, 1, 1, 1)
+    container.Attach(pv, 3, 1, 1, 1)
+    container.Attach(rmc, 4, 1, 1, 1)
+    container.Attach(dmc, 5, 1, 1, 1)
+    container.Attach(sc, 6, 1, 1, 1)
+    container.Attach(fsc, 7, 1, 1, 1)
+    container.Attach(rpn, 8, 1, 1, 1)
 	container.SetSizeRequest(1000, 8)
     nc.container = container
     nc.navBar = nbc
-    nc.reflowControl = rc
-    nc.readModeControl = rmc
     nc.leftPageNum = lpn
-    nc.rightPageNum = rpn
-    nc.fullscreenControl = fsc
+    nc.progName = pn
+    nc.progVersion = pv
+    nc.readModeControl = rmc
     nc.displayModeControl = dmc
-
+    nc.spreadControl = sc
+    nc.fullscreenControl = fsc
+    nc.rightPageNum = rpn
+    
     return nc
 }
 
@@ -109,11 +166,11 @@ func (c *NavControl) Render(m *model.Model) {
     if len(m.Leaves) < 1 {
         c.navBar.SetFraction(0)
         c.leftPageNum.SetText("")
-        c.reflowControl.SetText("")
+        c.spreadControl.SetLabel("")
         if m.ReadMode == model.RTL {
-            c.readModeControl.SetText("<")
+            c.readModeControl.SetLabel(DIR_RTL_ICN)
         } else {
-            c.readModeControl.SetText(">")
+            c.readModeControl.SetLabel(DIR_LTR_ICN)
         }
 
         if m.LeafMode == model.ONE_PAGE {
@@ -125,9 +182,9 @@ func (c *NavControl) Render(m *model.Model) {
         }
 
         if m.Fullscreen {
-            c.fullscreenControl.SetText("fullscreen")
+            c.fullscreenControl.SetLabel(FS_MAX_ICN)
         } else {
-            c.fullscreenControl.SetText("")
+            c.fullscreenControl.SetLabel(FS_RES_ICN)
         }
 
         c.rightPageNum.SetText("")
@@ -167,7 +224,7 @@ func (c *NavControl) Render(m *model.Model) {
                 c.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
                 lpncss.AddClass("bordered")
             }
-            c.readModeControl.SetText("<")
+            c.readModeControl.SetLabel(DIR_RTL_ICN)
         } else {
             if np > 0 {
                 c.navBar.SetInverted(false)
@@ -187,7 +244,7 @@ func (c *NavControl) Render(m *model.Model) {
                 c.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
                 rpncss.AddClass("bordered")
             }
-            c.readModeControl.SetText(">")
+            c.readModeControl.SetLabel(DIR_LTR_ICN)
         }
 
         if m.LeafMode == model.ONE_PAGE {
@@ -199,17 +256,17 @@ func (c *NavControl) Render(m *model.Model) {
         }
 
         if m.Fullscreen {
-            c.fullscreenControl.SetText("fullscreen")
+            c.fullscreenControl.SetLabel(FS_RES_ICN)
         } else {
-            c.fullscreenControl.SetText("")
+            c.fullscreenControl.SetLabel(FS_MAX_ICN)
         }
 
         if leaf.Pages[0].Orientation == model.LANDSCAPE {
-            c.reflowControl.SetText("-")
+            c.spreadControl.SetLabel(SD_DBL_ICN) 
         } else {
-            c.reflowControl.SetText("|")
+            c.spreadControl.SetLabel(SD_ONE_ICN)
             if len(leaf.Pages) > 1 {
-                c.reflowControl.SetText("||")
+                c.spreadControl.SetLabel(SD_TWO_ICN)
             }
         }
     }

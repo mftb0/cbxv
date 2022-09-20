@@ -263,8 +263,8 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command {
-        Name: "reflow",
-        DisplayName: "Reflow",
+        Name: "spread",
+        DisplayName: "spread",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LeafMode == model.TWO_PAGE {

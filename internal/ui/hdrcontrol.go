@@ -71,8 +71,8 @@ func (c *HdrControl) Render(m *model.Model) {
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
     c.title.SetText("")
+    c.title.SetText("Loading...")
     if len(m.Leaves) < 1 || m.Bookmarks == nil {
-        c.title.SetText("Loading...")
         return 
     } else {
         lbkmkcss, _ := c.leftBookmark.GetStyleContext()
