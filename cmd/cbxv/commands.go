@@ -268,7 +268,9 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LeafMode == model.TWO_PAGE {
-            p := &m.Pages[m.SelectedPage]
+            spg := m.SelectedPage
+            rpn := m.CalcVersoPage() + 1
+            p := &m.Pages[spg]
             if p.Orientation == model.PORTRAIT {
                 p.Orientation = model.LANDSCAPE
             } else {
@@ -276,6 +278,12 @@ func NewCommands(m *model.Model) *CommandList {
             }
             m.RefreshPages()
             m.NewLeaves()
+            // if the selected pg was equal to the
+            // recto pg when we started we need to
+            // advance a page
+            if spg == rpn {
+                cmds.Commands["nextPage"]("")
+            }
         }
     }
 
