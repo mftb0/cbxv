@@ -197,9 +197,13 @@ func NewCommands(m *model.Model) *CommandList {
         m.FilePath = data
         m.BrowseDirectory = filepath.Dir(data)
 
+        // Start loading stuff async
+        // See the model for details about
+        // Error handling
+        m.Loading = true
         go m.LoadHash()
-        go loadCbxFile(m, m.SendMessage)
-        go loadSeriesList(m)
+        go m.LoadCbxFile()
+        go m.LoadSeriesList()
 
         m.SelectedPage = m.CalcVersoPage()
     }
@@ -209,7 +213,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Close File",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        closeCbxFile(m)
+        m.CloseCbxFile()
     }
 
     cmd = Command {

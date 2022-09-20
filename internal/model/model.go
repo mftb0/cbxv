@@ -30,6 +30,7 @@ type Model struct {
     SeriesIndex int
     BrowseDirectory string
     Fullscreen bool
+    Loading bool
     ProgramName string
     ProgramVersion string
 }
@@ -216,6 +217,7 @@ func (m *Model) NewPages() {
     }
 
     m.Pages = pages
+    m.Loading = false
 }
 
 // How a page is oriented
@@ -307,6 +309,83 @@ const (
     TWO_PAGE
     LONG_STRIP
 )
+
+/*
+ * We have a lot of stuff to load hash, bookmarks, serieslist, cbx,
+ * individual pages, and page metadata. 
+ * Error handling - All Load functions are responsible for handling any 
+ * errors they encounter. They currently handle them by logging to the console.
+ * The load process starts in the openFile Command when the Loading property 
+ * is set true on the Model. It ends in NewPages after we've attemped to load 
+ * the inital pages and metadata, we set Loading to false. There may still be 
+ * some stuff loading async, but by that point the user should be able to know
+ * that either the attempt failed or that they can reasonably start paging
+ * through their comic.
+ */
+func (m *Model) loadBookmarks() {
+    m.Bookmarks = NewBookmarkList(m.FilePath)
+    m.Bookmarks.Load(m.Hash)
+    msg := &util.Message{TypeName: "render"}
+    m.SendMessage(*msg)
+}
+
+func (m *Model) LoadHash() {
+    hash, err := util.HashFile(m.FilePath)
+    if err != nil {
+        fmt.Printf("Unable to compute file hash %s\n", err)
+    }
+    m.Hash = hash
+    m.loadBookmarks()
+}
+
+func (m *Model) LoadSeriesList() {
+    s, err := util.ReadSeriesList(m.FilePath)
+    if err != nil {
+        fmt.Printf("Unable to load series list %s\n", err)
+    }
+    m.SeriesList = s
+
+    for i := range s {
+        if m.FilePath == s[i] {
+            m.SeriesIndex = i
+        }
+    }
+    m.SelectedPage = m.CalcVersoPage()
+}
+
+func (m *Model) LoadCbxFile() {
+    td, err := util.CreateTmpDir()
+    if err != nil {
+        fmt.Printf("Unable to create tmp dir %s\n", err)
+        return
+    }
+    m.TmpDir = td
+
+    ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
+    if err != nil {
+        fmt.Printf("Unable to load cbx file %s\n", err)
+    }
+    m.ImgPaths = ip
+    m.NewPages()
+    m.NewLeaves()
+    m.CurrentLeaf = 0
+    m.SelectedPage = 0
+    m.RefreshPages()
+
+    m.SendMessage(util.Message{TypeName: "render"})
+}
+
+func (m *Model) CloseCbxFile() {
+    os.RemoveAll(m.TmpDir)
+    m.ImgPaths = nil
+    m.Pages = nil
+    m.Leaves = nil
+    m.CurrentLeaf = 0
+    m.SelectedPage = 0
+    m.Bookmarks = nil
+    m.SeriesList = nil
+    m.SeriesIndex = 0
+}
 
 // Uses leaves to determine which pages to load or unload
 func (m *Model) RefreshPages() {
@@ -402,19 +481,4 @@ func (m *Model) PageToLeaf(n int) int {
     return n;
 }
 
-func (m *Model) loadBookmarks() {
-    m.Bookmarks = NewBookmarkList(m.FilePath)
-    m.Bookmarks.Load(m.Hash)
-    msg := &util.Message{TypeName: "render"}
-    m.SendMessage(*msg)
-}
-
-func (m *Model) LoadHash() {
-    hash, err := util.HashFile(m.FilePath)
-    if err != nil {
-        fmt.Printf("Unable to compute file hash %s\n", err)
-    }
-    m.Hash = hash
-    m.loadBookmarks()
-}
 

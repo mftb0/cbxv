@@ -72,7 +72,7 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
     hudTicker = time.NewTicker(TICK)
     defer hudTicker.Stop()
 
-    go hudHandler(u)
+    go hudHandler(m, u)
 
     u.mainWindow.ShowAll()
 
@@ -270,11 +270,11 @@ func (u *UI) initCanvas(m *model.Model) {
     u.mainWindow.ShowAll()
 }
 
-func hudHandler(ui *UI) {
+func hudHandler(m *model.Model, ui *UI) {
     for {
         select {
         case <-hudTicker.C:
-            if !ui.hudHidden {
+            if !ui.hudHidden && !m.Loading {
                 glib.IdleAdd(func(){
                     ui.hdrControl.container.Hide()
                     ui.navControl.container.Hide()
