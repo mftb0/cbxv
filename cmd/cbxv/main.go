@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
     "example.com/cbxv-gotk3/internal/model"
@@ -10,57 +9,6 @@ import (
 )
 
 // Simple cbx application with a gui provided by gtk
-
-// Some data loading utils
-func loadCbxFile(m *model.Model, sendMessage util.Messenger) error {
-    td, err := util.CreateTmpDir()
-    if err != nil {
-        return err
-    }
-    m.TmpDir = td
-
-    ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
-    if err != nil {
-        return err
-    }
-    m.ImgPaths = ip
-    m.NewPages()
-    m.NewLeaves()
-    m.CurrentLeaf = 0
-    m.SelectedPage = 0
-    m.RefreshPages()
-
-    sendMessage(util.Message{TypeName: "render"})
-
-    return nil
-}
-
-func closeCbxFile(m *model.Model) {
-    os.RemoveAll(m.TmpDir)
-    m.ImgPaths = nil
-    m.Pages = nil
-    m.Leaves = nil
-    m.CurrentLeaf = 0
-    m.SelectedPage = 0
-    m.Bookmarks = nil
-    m.SeriesList = nil
-    m.SeriesIndex = 0
-}
-
-func loadSeriesList(m *model.Model) {
-    s, err := util.ReadSeriesList(m.FilePath)
-    if err != nil {
-        fmt.Printf("Unable to load series list %s\n", err)
-    }
-    m.SeriesList = s
-
-    for i := range s {
-        if m.FilePath == s[i] {
-            m.SeriesIndex = i
-        }
-    }
-    m.SelectedPage = m.CalcVersoPage()
-}
 
 func quit() {
     //noop currently called in case app ever wants to take
