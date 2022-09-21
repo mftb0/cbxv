@@ -6,7 +6,6 @@ import (
 	_ "image/color"
 	"math"
 	"path/filepath"
-	"time"
 
 	_ "golang.org/x/image/colornames"
 
@@ -25,7 +24,7 @@ const (
    ALIGN_CENTER
 )
 
-const TICK = time.Second * 5
+const TICK = 5000
 
 type UI struct {
     sendMessage util.Messenger
@@ -37,6 +36,7 @@ type UI struct {
     hdrControl *HdrControl
     navControl *NavControl
     longStripRender []*gdk.Pixbuf
+    hudKeepAlive bool
 }
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {
@@ -68,11 +68,18 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 
     u.initCanvas(m)
 
-    hudChan = make(chan bool)
-    hudTicker = time.NewTicker(TICK)
-    defer hudTicker.Stop()
-
-    go hudHandler(u)
+    u.hudKeepAlive = false
+    glib.TimeoutAdd(TICK, func () bool {
+        if !u.hudHidden && !u.hudKeepAlive {
+            u.hdrControl.container.Hide()
+            u.navControl.container.Hide()
+            u.mainWindow.QueueDraw()
+            u.hudHidden = true;
+        } else {
+            u.hudKeepAlive = false
+        }
+        return true
+    })
 
     u.mainWindow.ShowAll()
 
@@ -88,7 +95,7 @@ func (u *UI) Quit() {
 }
 
 func (u *UI) Dispose() {
-    hudChan <-false
+    //noop may need cleanup eventually
 }
 
 func (u *UI) RunFunc(f interface{}) {
@@ -195,12 +202,10 @@ func (u *UI) initKBHandler(model *model.Model) {
         } else if keyVal == gdk.KEY_l {
             u.sendMessage(util.Message{TypeName: "lastBookmark"})
         }
-        //reset the hud hiding
-        hudChan <-true
-        if u.hudHidden {
-            u.hud.ShowAll()
-            u.hudHidden = false
-        }
+
+        u.hud.ShowAll()
+        u.hudHidden = false
+        u.hudKeepAlive = true
      })
 }
 
@@ -232,15 +237,13 @@ func (u *UI) initRenderer(m *model.Model) {
 
     u.canvas.AddEvents(4)
     u.canvas.AddEvents(int(gdk.BUTTON_PRESS_MASK))
-    u.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
+    u.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) bool {
         //reset the hud hiding
-        if hudChan != nil {
-            hudChan <-true
-            if u.hudHidden {
-                u.hud.ShowAll()
-                u.hudHidden = false
-            }
-        }
+        u.hdrControl.container.Show()
+        u.navControl.container.Show()
+        u.hudHidden = false
+        u.hudKeepAlive = true
+        return false
     })
 
     u.canvas.Connect("button-press-event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
@@ -254,6 +257,10 @@ func (u *UI) initRenderer(m *model.Model) {
         } else {
             u.sendMessage(util.Message{TypeName: "nextPage"})
         }
+        //reset the hud hiding
+        u.hud.ShowAll()
+        u.hudHidden = false
+        u.hudKeepAlive = true
     })
 }
 
@@ -269,33 +276,6 @@ func (u *UI) initCanvas(m *model.Model) {
     u.initRenderer(m)
     u.mainWindow.ShowAll()
 }
-
-func hudHandler(ui *UI) {
-    for {
-        select {
-        case <-hudTicker.C:
-            if !ui.hudHidden {
-                glib.IdleAdd(func(){
-                    ui.hdrControl.container.Hide()
-                    ui.navControl.container.Hide()
-                    ui.mainWindow.QueueDraw()
-                })
-                ui.hudHidden = true;
-            }
-        case r := <-hudChan:
-            if r == true {
-                hudTicker = time.NewTicker(TICK)
-                ui.hudHidden = false
-            } else {
-                return
-            }
-        }
-    }
-}
-
-// Ticker to hide the HUD
-var hudTicker *time.Ticker
-var hudChan chan bool
 
 type PagePosition int
 
@@ -462,7 +442,12 @@ func componentToByte(component uint32) byte {
 	return byte(byteValue)
 }
 
+
 func renderOnePageSpread(s *OnePageSpread) error {
+    if s.page.Image == nil {
+        return fmt.Errorf("Image for spread not loaded")
+    }
+
 	p, _ := imageToPixbuf(*s.page.Image)
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
@@ -475,13 +460,17 @@ func renderOnePageSpread(s *OnePageSpread) error {
     x, y := positionPixbuf(s.canvas, p, ALIGN_CENTER)
     renderPixbuf(s.cr, p, x, y)
     p = nil
-    return nil
+    return err
 }
 
 // readmode (rtl or ltr) has already been accounted for
 // so left and right here are literal
 func renderTwoPageSpread(s *TwoPageSpread) error {
     var err error
+    if s.leftPage.Image == nil {
+        return fmt.Errorf("Image for spread not loaded")
+    }
+
 	lp, _ := imageToPixbuf(*s.leftPage.Image)
 
 	var x, y, cW, cH int
@@ -495,6 +484,10 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 		}
         x, y = positionPixbuf(s.canvas, lp, ALIGN_RIGHT)
         renderPixbuf(s.cr, lp, x, y)
+
+        if s.rightPage.Image == nil {
+            return err
+        }
 
 	    //put the right pg on the right, left-aligned
 		rp, _ := imageToPixbuf(*s.rightPage.Image)
@@ -516,7 +509,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
         renderPixbuf(s.cr, lp, x, y)
     }
 
-    return nil
+    return err
 }
 
 func renderLongStripSpread(m *model.Model, u *UI, s *LongStripSpread) error {
@@ -526,6 +519,10 @@ func renderLongStripSpread(m *model.Model, u *UI, s *LongStripSpread) error {
 
         for i := range s.pages {
             page := s.pages[i]
+            if page.Image == nil {
+                return fmt.Errorf("Image for spread not loaded")
+            }
+
 	        p, _ := imageToPixbuf(*page.Image)
             p, err := scalePixbufToWidth(s.canvas, p, cW)
             if err != nil {
