@@ -448,32 +448,32 @@ func LoadTextFile(filePath string) (*string, error) {
 }
 
 // Utility for pages to load images
-func LoadImageFile(filePath string) (image.Image, error) {
+func LoadImageFile(filePath string) (image.Image, string, error) {
     f, err := os.Open(filePath)
     if err != nil {
-        return nil, err
+        return nil, "", err
     }
     defer f.Close()
 
-    img, _, err := image.Decode(f)
+    img, frmt, err := image.Decode(f)
     if err != nil {
-        return nil, err
+        return nil, "", err
     }
-    return img, nil
+    return img, frmt, nil
 }
 
-func LoadImageFileMeta(filePath string) (*image.Config, error) {
+func LoadImageFileMeta(filePath string) (*image.Config, string, error) {
     f, err := os.Open(filePath)
     if err != nil {
-        return nil, err
+        return nil, "", err
     }
     defer f.Close()
 
-    img, _, err := image.DecodeConfig(f)
+    img, frmt, err := image.DecodeConfig(f)
     if err != nil {
-        return nil, err
+        return nil, "", err
     }
-    return &img, nil
+    return &img, frmt, nil
 }
 
 func Log(format string, a ...any) {

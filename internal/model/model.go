@@ -168,13 +168,14 @@ type Page struct {
     FilePath string `json:"filePath"`
     Width int`json:"width"`
     Height int`json:"height"`
+    Format string `json:"format"`
     Orientation int `json:"orientation"`
     Loaded bool `json:"loaded"`
     Image *image.Image `json:"-"` 
 }
 
 func (p *Page) Load() {
-    f, err := util.LoadImageFile(p.FilePath)
+    f, frmt, err := util.LoadImageFile(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
     }
@@ -182,6 +183,7 @@ func (p *Page) Load() {
     b := f.Bounds()
     p.Width = b.Dx()
     p.Height = b.Dy()
+    p.Format = frmt
     if p.Width >= p.Height {
         p.Orientation = LANDSCAPE
     }
@@ -189,12 +191,13 @@ func (p *Page) Load() {
 }
 
 func (p *Page) LoadMeta() {
-    f, err := util.LoadImageFileMeta(p.FilePath)
+    f, frmt, err := util.LoadImageFileMeta(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
     }
     p.Width = f.Width
     p.Height = f.Height
+    p.Format = frmt
     if p.Width >= p.Height {
         p.Orientation = LANDSCAPE
     }
@@ -425,16 +428,8 @@ func (m *Model) RefreshPages() {
             }
         }
 
-        c := 0
-        for x := range m.Pages {
-            if !m.Pages[x].Loaded {
-                if m.Pages[x].Image != nil {
-                    fmt.Printf("Page %d shouldn't be loaded\n", x)
-                    m.Pages[x].Image = nil
-                }
-            } else {
-                c++
-            }
+        if util.DEBUG {
+            m.checkLeaves()
         }
     } else {
         // load all pages
@@ -481,4 +476,17 @@ func (m *Model) PageToLeaf(n int) int {
     return n;
 }
 
+func (m *Model) checkLeaves() {
+    c := 0
+    for x := range m.Pages {
+        if !m.Pages[x].Loaded {
+            if m.Pages[x].Image != nil {
+                fmt.Printf("Page %d shouldn't be loaded\n", x)
+                m.Pages[x].Image = nil
+            }
+        } else {
+            c++
+        }
+    }
+}
 

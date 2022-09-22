@@ -52,7 +52,10 @@ func main() {
     go update(m, u, msgChan, commands)
 
     if len(os.Args) > 1 {
-        commands.Commands["openFile"](os.Args[1])
+        u.RunFunc(func(){
+            commands.Commands["openFile"](os.Args[1])
+            u.Render(m)
+        })
     }
 
     u.Run()

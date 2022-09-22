@@ -30,8 +30,7 @@ func NewCommands(m *model.Model) *CommandList {
         if m.CurrentLeaf < len(m.Leaves) - 1 {
             m.CurrentLeaf++
             m.SelectedPage = m.CalcVersoPage()
-            m.RefreshPages()
-            m.NewLeaves()
+            go m.RefreshPages()
         } else {
             cmds.Commands["nextFile"]("")
         }
@@ -45,8 +44,7 @@ func NewCommands(m *model.Model) *CommandList {
         if m.CurrentLeaf > 0 {
             m.CurrentLeaf--
             m.SelectedPage = m.CalcVersoPage()
-            m.RefreshPages()
-            m.NewLeaves()
+            go m.RefreshPages()
         } else {
             cmds.Commands["previousFile"]("")
         }

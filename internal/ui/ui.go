@@ -1,18 +1,21 @@
 package ui
 
 import (
+	"bytes"
 	"fmt"
     "image"
 	_ "image/color"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 	"math"
 	"path/filepath"
-	"time"
 
 	_ "golang.org/x/image/colornames"
 
 	"github.com/gotk3/gotk3/cairo"
-	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
     "example.com/cbxv-gotk3/internal/util"
@@ -25,7 +28,7 @@ const (
    ALIGN_CENTER
 )
 
-const TICK = time.Second * 5
+const TICK = 5000
 
 type UI struct {
     sendMessage util.Messenger
@@ -37,6 +40,7 @@ type UI struct {
     hdrControl *HdrControl
     navControl *NavControl
     longStripRender []*gdk.Pixbuf
+    hudKeepAlive bool
 }
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {
@@ -68,11 +72,18 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 
     u.initCanvas(m)
 
-    hudChan = make(chan bool)
-    hudTicker = time.NewTicker(TICK)
-    defer hudTicker.Stop()
-
-    go hudHandler(m, u)
+    u.hudKeepAlive = false
+    glib.TimeoutAdd(TICK, func () bool {
+        if !u.hudHidden && !u.hudKeepAlive {
+            u.hdrControl.container.Hide()
+            u.navControl.container.Hide()
+            u.mainWindow.QueueDraw()
+            u.hudHidden = true;
+        } else {
+            u.hudKeepAlive = false
+        }
+        return true
+    })
 
     u.mainWindow.ShowAll()
 
@@ -88,7 +99,7 @@ func (u *UI) Quit() {
 }
 
 func (u *UI) Dispose() {
-    hudChan <-false
+    //noop may need cleanup eventually
 }
 
 func (u *UI) RunFunc(f interface{}) {
@@ -195,12 +206,10 @@ func (u *UI) initKBHandler(model *model.Model) {
         } else if keyVal == gdk.KEY_l {
             u.sendMessage(util.Message{TypeName: "lastBookmark"})
         }
-        //reset the hud hiding
-        hudChan <-true
-        if u.hudHidden {
-            u.hud.ShowAll()
-            u.hudHidden = false
-        }
+
+        u.hud.ShowAll()
+        u.hudHidden = false
+        u.hudKeepAlive = true
      })
 }
 
@@ -232,15 +241,13 @@ func (u *UI) initRenderer(m *model.Model) {
 
     u.canvas.AddEvents(4)
     u.canvas.AddEvents(int(gdk.BUTTON_PRESS_MASK))
-    u.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
+    u.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) bool {
         //reset the hud hiding
-        if hudChan != nil {
-            hudChan <-true
-            if u.hudHidden {
-                u.hud.ShowAll()
-                u.hudHidden = false
-            }
-        }
+        u.hdrControl.container.Show()
+        u.navControl.container.Show()
+        u.hudHidden = false
+        u.hudKeepAlive = true
+        return false
     })
 
     u.canvas.Connect("button-press-event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
@@ -254,6 +261,10 @@ func (u *UI) initRenderer(m *model.Model) {
         } else {
             u.sendMessage(util.Message{TypeName: "nextPage"})
         }
+        //reset the hud hiding
+        u.hud.ShowAll()
+        u.hudHidden = false
+        u.hudKeepAlive = true
     })
 }
 
@@ -269,33 +280,6 @@ func (u *UI) initCanvas(m *model.Model) {
     u.initRenderer(m)
     u.mainWindow.ShowAll()
 }
-
-func hudHandler(m *model.Model, ui *UI) {
-    for {
-        select {
-        case <-hudTicker.C:
-            if !ui.hudHidden && !m.Loading {
-                glib.IdleAdd(func(){
-                    ui.hdrControl.container.Hide()
-                    ui.navControl.container.Hide()
-                    ui.mainWindow.QueueDraw()
-                })
-                ui.hudHidden = true;
-            }
-        case r := <-hudChan:
-            if r == true {
-                hudTicker = time.NewTicker(TICK)
-                ui.hudHidden = false
-            } else {
-                return
-            }
-        }
-    }
-}
-
-// Ticker to hide the HUD
-var hudTicker *time.Ticker
-var hudChan chan bool
 
 type PagePosition int
 
@@ -424,55 +408,102 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
     cr.Paint()
 }
 
-func imageToPixbuf(picture image.Image) (*gdk.Pixbuf, error) {
-	w := picture.Bounds().Max.X
-	h := picture.Bounds().Max.Y
-	pixbuf, err := gdk.PixbufNew(gdk.COLORSPACE_RGB, true, 8, w, h)
-	if nil != err {
-		return nil, err
-	}
-	pixels := pixbuf.GetPixels()
+func imgToPixbuf(i image.Image) (*gdk.Pixbuf, error) {
+    var buf bytes.Buffer
 
-	const bytesPerPixel = 4
-	i := 0
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			colour := picture.At(x, y)
-			r, g, b, a := colour.RGBA()
+    err := jpeg.Encode(&buf, i, nil)
+    if err != nil {
+        return nil, err
+    }
 
-			pixels[i] = componentToByte(r)
-			pixels[i+1] = componentToByte(g)
-			pixels[i+2] = componentToByte(b)
-			pixels[i+3] = componentToByte(a)
+    loader, err := gdk.PixbufLoaderNew()
+    if err != nil {
+        return nil, err
+    }
 
-			i += bytesPerPixel
-		}
-	}
-
-	return pixbuf, nil
+    r, err := loader.WriteAndReturnPixbuf(buf.Bytes())
+    if err != nil {
+        return nil, err
+    }
+    
+    return r, nil
 }
 
-func componentToByte(component uint32) byte {
-    //256/65536
-    const ratio = 0.00390625
-	byteValue := ratio * float64(component)
-	if byteValue > 255 {
-		return byte(255)
-	}
-	return byte(byteValue)
+func pgToPixbufSz(p model.Page, w int, h int) (*gdk.Pixbuf, error) {
+    var buf bytes.Buffer
+    var err error
+
+    if p.Loaded == false {
+        return nil, fmt.Errorf("Image required for spread not loaded")
+    }
+
+    if p.Format == "jpeg" {
+        err = jpeg.Encode(&buf, *p.Image, nil)
+    } else if p.Format == "png" {
+        err = png.Encode(&buf, *p.Image)
+    } else if p.Format == "gif" {
+        err = gif.Encode(&buf, *p.Image, nil)
+    } else {
+        err = fmt.Errorf("Unreconized format %s", p.Format)
+    }
+
+    if err != nil {
+        return nil, err
+    }
+
+    loader, err := gdk.PixbufLoaderNew()
+    if err != nil {
+        return nil, err
+    }
+
+    zw, zh := calcPgSz(p, w, h)
+    loader.SetSize(zw, zh)
+
+    r, err := loader.WriteAndReturnPixbuf(buf.Bytes())
+    if err != nil {
+        return nil, err
+    }
+    
+    return r, nil
+}
+
+func calcPgSz(pg model.Page, w int, h int) (int, int) {
+    cW := float64(w)
+    cH := float64(h)
+    pW := float64(pg.Width)
+    pH := float64(pg.Height)
+    var zw, zh float64
+    if pW > cW || pH > cH {
+        scale := math.Min(cW/pW, cH/pH)
+        zw = pW * scale
+        zh = pH * scale
+    } else {
+        scale := math.Min(cW/pW, cH/pH)
+        zw = pW * scale
+        zh = pH * scale
+    }
+    return int(zw), int(zh)
 }
 
 func renderOnePageSpread(s *OnePageSpread) error {
-	p, _ := imageToPixbuf(*s.page.Image)
+    if s.page.Loaded == false {
+        return fmt.Errorf("Image required by spread not loaded")
+    }
+
+    p, err := imgToPixbuf(*s.page.Image)
+    if err != nil {
+        return err
+    }
+
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
-
-    p, err := scalePixbufToFit(s.canvas, p, cW, cH)
+    p, err = scalePixbufToFit(s.canvas, p, cW, cH)
     if err != nil {
         return err
     }
 
     x, y := positionPixbuf(s.canvas, p, ALIGN_CENTER)
+
     renderPixbuf(s.cr, p, x, y)
     p = nil
     return nil
@@ -481,37 +512,59 @@ func renderOnePageSpread(s *OnePageSpread) error {
 // readmode (rtl or ltr) has already been accounted for
 // so left and right here are literal
 func renderTwoPageSpread(s *TwoPageSpread) error {
-    var err error
-	lp, _ := imageToPixbuf(*s.leftPage.Image)
+    if s.leftPage.Loaded == false {
+        return fmt.Errorf("Image required by spread not loaded")
+    }
 
 	var x, y, cW, cH int
     if s.rightPage != nil {
 	    //put the left pg on the left, right-aligned
 		cW = s.canvas.GetAllocatedWidth() / 2
 		cH = s.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+	    lp, err := imgToPixbuf(*s.leftPage.Image)
 		if err != nil {
 			return err
 		}
+
+        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+        if err != nil {
+            return err
+        }
+
         x, y = positionPixbuf(s.canvas, lp, ALIGN_RIGHT)
         renderPixbuf(s.cr, lp, x, y)
 
 	    //put the right pg on the right, left-aligned
-		rp, _ := imageToPixbuf(*s.rightPage.Image)
-        rp, err := scalePixbufToFit(s.canvas, rp, cW, cH)
+        if s.rightPage.Loaded == false {
+            return fmt.Errorf("Image required by spread not loaded")
+        }
+
+	    rp, err := imgToPixbuf(*s.rightPage.Image)
         if err != nil {
             return err
         }
+
+        rp, err = scalePixbufToFit(s.canvas, rp, cW, cH)
+        if err != nil {
+            return err
+        }
+
         x, y = positionPixbuf(s.canvas, rp, ALIGN_LEFT)
         renderPixbuf(s.cr, rp, x, y)
     } else {
 	    //there is no right page, then center the left page
 		cW = s.canvas.GetAllocatedWidth()
 		cH = s.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+	    lp, err := imgToPixbuf(*s.leftPage.Image)
 		if err != nil {
 			return err
 		}
+
+        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+        if err != nil {
+            return err
+        }
+
 		x, y = positionPixbuf(s.canvas, lp, ALIGN_CENTER)
         renderPixbuf(s.cr, lp, x, y)
     }
@@ -526,7 +579,7 @@ func renderLongStripSpread(m *model.Model, u *UI, s *LongStripSpread) error {
 
         for i := range s.pages {
             page := s.pages[i]
-	        p, _ := imageToPixbuf(*page.Image)
+	        p, _ := imgToPixbuf(*page.Image)
             p, err := scalePixbufToWidth(s.canvas, p, cW)
             if err != nil {
                 return err
