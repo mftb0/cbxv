@@ -9,10 +9,16 @@ import (
     "example.com/cbxv-gotk3/internal/model"
 )
 
+const (
+    APP_HLP_ICN = "?"
+)
+
 type HdrControl struct {
     container *gtk.Grid
     leftBookmark *gtk.Label
+    spinner *gtk.Spinner
     title *gtk.Label
+    helpControl *gtk.Button
     rightBookmark *gtk.Label
 }
 
@@ -28,11 +34,25 @@ func NewHdrControl() *HdrControl {
     css, _ := lbkmk.GetStyleContext()
 	css.AddClass("bkmk-btn")
 
+	spn, err := gtk.SpinnerNew()
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    css, _ = spn.GetStyleContext()
+	css.AddClass("nav-btn")
+
 	t, err := gtk.LabelNew("")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
     css, _ = t.GetStyleContext()
+	css.AddClass("nav-btn")
+
+	hc, err := gtk.ButtonNewWithLabel(APP_HLP_ICN)
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    css, _ = hc.GetStyleContext()
 	css.AddClass("nav-btn")
 
 	rbkmk, err := gtk.LabelNew("")
@@ -41,6 +61,11 @@ func NewHdrControl() *HdrControl {
 	}
     css, _ = rbkmk.GetStyleContext()
 	css.AddClass("bkmk-btn")
+
+    hc.Connect("clicked", func() bool { 
+        fmt.Printf("help\n")
+        return true
+    })
 
     container, err := gtk.GridNew()
 	if err != nil {
@@ -52,11 +77,15 @@ func NewHdrControl() *HdrControl {
 	css, _ = container.GetStyleContext()
 	css.AddClass("hdr-ctrl")
     container.Attach(lbkmk, 0, 0, 1, 1)
-    container.Attach(t, 1, 0, 1, 1)
-    container.Attach(rbkmk, 2, 0, 1, 1)
+    container.Attach(spn, 1, 0, 1, 1)
+    container.Attach(t, 2, 0, 1, 1)
+    container.Attach(hc, 3, 0, 1, 1)
+    container.Attach(rbkmk, 4, 0, 1, 1)
 	container.SetSizeRequest(1000, 8)
     c.leftBookmark = lbkmk
+    c.spinner = spn
     c.title = t
+    c.helpControl = hc
     c.rightBookmark = rbkmk
     c.container = container
     return c
@@ -71,7 +100,13 @@ func (c *HdrControl) Render(m *model.Model) {
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
     c.title.SetText("")
-    c.title.SetText("Loading...")
+
+    if m.Loading {
+        c.spinner.Start()
+    } else {
+        c.spinner.Stop()
+    }
+
     if len(m.Leaves) < 1 || m.Bookmarks == nil {
         return 
     } else {
