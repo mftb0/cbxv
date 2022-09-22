@@ -3,11 +3,12 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"image"
+	_"image"
 	"math"
 	"os"
 	"sort"
 
+	"github.com/gotk3/gotk3/gdk"
     "example.com/cbxv-gotk3/internal/util"
 )
 
@@ -168,22 +169,20 @@ type Page struct {
     FilePath string `json:"filePath"`
     Width int`json:"width"`
     Height int`json:"height"`
-    Format string `json:"format"`
     Orientation int `json:"orientation"`
     Loaded bool `json:"loaded"`
-    Image *image.Image `json:"-"` 
+    Image *gdk.Pixbuf `json:"-"` 
 }
 
 func (p *Page) Load() {
-    f, frmt, err := util.LoadImageFile(p.FilePath)
+//    f, frmt, err := util.LoadImageFile(p.FilePath)
+    f, err := gdk.PixbufNewFromFile(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
     }
-    p.Image = &f
-    b := f.Bounds()
-    p.Width = b.Dx()
-    p.Height = b.Dy()
-    p.Format = frmt
+    p.Image = f
+    p.Width = f.GetWidth()
+    p.Height = f.GetHeight()
     if p.Width >= p.Height {
         p.Orientation = LANDSCAPE
     }
@@ -191,13 +190,12 @@ func (p *Page) Load() {
 }
 
 func (p *Page) LoadMeta() {
-    f, frmt, err := util.LoadImageFileMeta(p.FilePath)
+    _, w, h, err := gdk.PixbufGetFileInfo(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
     }
-    p.Width = f.Width
-    p.Height = f.Height
-    p.Format = frmt
+    p.Width = w
+    p.Height = h
     if p.Width >= p.Height {
         p.Orientation = LANDSCAPE
     }

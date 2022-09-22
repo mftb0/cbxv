@@ -1,13 +1,8 @@
 package ui
 
 import (
-	"bytes"
 	"fmt"
-    "image"
 	_ "image/color"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"math"
 	"path/filepath"
 
@@ -408,96 +403,14 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
     cr.Paint()
 }
 
-func imgToPixbuf(i image.Image) (*gdk.Pixbuf, error) {
-    var buf bytes.Buffer
-
-    err := jpeg.Encode(&buf, i, nil)
-    if err != nil {
-        return nil, err
-    }
-
-    loader, err := gdk.PixbufLoaderNew()
-    if err != nil {
-        return nil, err
-    }
-
-    r, err := loader.WriteAndReturnPixbuf(buf.Bytes())
-    if err != nil {
-        return nil, err
-    }
-    
-    return r, nil
-}
-
-func pgToPixbufSz(p model.Page, w int, h int) (*gdk.Pixbuf, error) {
-    var buf bytes.Buffer
-    var err error
-
-    if p.Loaded == false {
-        return nil, fmt.Errorf("Image required for spread not loaded")
-    }
-
-    if p.Format == "jpeg" {
-        err = jpeg.Encode(&buf, *p.Image, nil)
-    } else if p.Format == "png" {
-        err = png.Encode(&buf, *p.Image)
-    } else if p.Format == "gif" {
-        err = gif.Encode(&buf, *p.Image, nil)
-    } else {
-        err = fmt.Errorf("Unreconized format %s", p.Format)
-    }
-
-    if err != nil {
-        return nil, err
-    }
-
-    loader, err := gdk.PixbufLoaderNew()
-    if err != nil {
-        return nil, err
-    }
-
-    zw, zh := calcPgSz(p, w, h)
-    loader.SetSize(zw, zh)
-
-    r, err := loader.WriteAndReturnPixbuf(buf.Bytes())
-    if err != nil {
-        return nil, err
-    }
-    
-    return r, nil
-}
-
-func calcPgSz(pg model.Page, w int, h int) (int, int) {
-    cW := float64(w)
-    cH := float64(h)
-    pW := float64(pg.Width)
-    pH := float64(pg.Height)
-    var zw, zh float64
-    if pW > cW || pH > cH {
-        scale := math.Min(cW/pW, cH/pH)
-        zw = pW * scale
-        zh = pH * scale
-    } else {
-        scale := math.Min(cW/pW, cH/pH)
-        zw = pW * scale
-        zh = pH * scale
-    }
-    return int(zw), int(zh)
-}
-
 func renderOnePageSpread(s *OnePageSpread) error {
     if s.page.Loaded == false {
         return fmt.Errorf("Image required by spread not loaded")
     }
 
-    p, err := imgToPixbuf(*s.page.Image)
-    if err != nil {
-        return err
-    }
-
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
-    p, err = scalePixbufToFit(s.canvas, p, cW, cH)
+    p, err := scalePixbufToFit(s.canvas, s.page.Image, cW, cH)
     if err != nil {
         return err
     }
@@ -521,12 +434,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //put the left pg on the left, right-aligned
 		cW = s.canvas.GetAllocatedWidth() / 2
 		cH = s.canvas.GetAllocatedHeight()
-	    lp, err := imgToPixbuf(*s.leftPage.Image)
-		if err != nil {
-			return err
-		}
-
-        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+        lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
@@ -539,12 +447,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return fmt.Errorf("Image required by spread not loaded")
         }
 
-	    rp, err := imgToPixbuf(*s.rightPage.Image)
-        if err != nil {
-            return err
-        }
-
-        rp, err = scalePixbufToFit(s.canvas, rp, cW, cH)
+        rp, err := scalePixbufToFit(s.canvas, s.rightPage.Image, cW, cH)
         if err != nil {
             return err
         }
@@ -555,12 +458,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //there is no right page, then center the left page
 		cW = s.canvas.GetAllocatedWidth()
 		cH = s.canvas.GetAllocatedHeight()
-	    lp, err := imgToPixbuf(*s.leftPage.Image)
-		if err != nil {
-			return err
-		}
-
-        lp, err = scalePixbufToFit(s.canvas, lp, cW, cH)
+        lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
@@ -579,8 +477,7 @@ func renderLongStripSpread(m *model.Model, u *UI, s *LongStripSpread) error {
 
         for i := range s.pages {
             page := s.pages[i]
-	        p, _ := imgToPixbuf(*page.Image)
-            p, err := scalePixbufToWidth(s.canvas, p, cW)
+            p, err := scalePixbufToWidth(s.canvas, page.Image, cW)
             if err != nil {
                 return err
             }
