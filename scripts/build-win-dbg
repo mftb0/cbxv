@@ -1,0 +1,4 @@
+#!/bin/sh
+
+go build -ldflags -H=windowsgui -o out/cbxv.exe
+

@@ -12,6 +12,8 @@ cache/
 /dist
 /lib
 /tmp
+/test
+/windows
 tags
 notes.txt
 
