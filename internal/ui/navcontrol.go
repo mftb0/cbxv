@@ -70,25 +70,27 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 	css, _ = pv.GetStyleContext()
 	css.AddClass("nav-btn")
 
-	rmc, err := gtk.ButtonNewWithLabel(DIR_LTR_ICN)
+	dc, err := gtk.ButtonNewWithLabel(DIR_LTR_ICN)
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-	css, _ = rmc.GetStyleContext()
+    dc.SetTooltipText("Direction Toggle")
+	css, _ = dc.GetStyleContext()
 	css.AddClass("nav-btn")
 
-	dmc, err := gtk.LabelNew("displaymode")
+	dmc, err := gtk.LabelNew("Layout")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
+    dmc.SetTooltipText("Layout")
 	css, _ = dmc.GetStyleContext()
 	css.AddClass("nav-btn")
 
-   	sc, err := gtk.ButtonNewWithLabel("spread")
+   	sc, err := gtk.ButtonNewWithLabel("Spread Toggle")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    sc.SetTooltipText("Current Spread")
+    sc.SetTooltipText("Spread Toggle")
 	css, _ = sc.GetStyleContext()
 	css.AddClass("nav-btn")
 
@@ -96,6 +98,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
+    sc.SetTooltipText("Fullscreen Toggle")
 	css, _ = fsc.GetStyleContext()
 	css.AddClass("nav-btn")
 
@@ -121,11 +124,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
         u.sendMessage(util.Message{TypeName: "spread"})
     })
 
-    sc.Connect("query-tooltip", func() bool { 
-        return true
-    })
-
-    rmc.Connect("clicked", func() { 
+    dc.Connect("clicked", func() { 
         u.sendMessage(util.Message{TypeName: "toggleReadMode"})
     })
 
@@ -142,7 +141,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     container.Attach(lpn, 1, 1, 1, 1)
     container.Attach(pn, 2, 1, 1, 1)
     container.Attach(pv, 3, 1, 1, 1)
-    container.Attach(rmc, 4, 1, 1, 1)
+    container.Attach(dc, 4, 1, 1, 1)
     container.Attach(dmc, 5, 1, 1, 1)
     container.Attach(sc, 6, 1, 1, 1)
     container.Attach(fsc, 7, 1, 1, 1)
@@ -153,7 +152,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     nc.leftPageNum = lpn
     nc.progName = pn
     nc.progVersion = pv
-    nc.readModeControl = rmc
+    nc.readModeControl = dc
     nc.displayModeControl = dmc
     nc.spreadControl = sc
     nc.fullscreenControl = fsc

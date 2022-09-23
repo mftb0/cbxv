@@ -45,6 +45,7 @@ func NewHdrControl() *HdrControl {
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
+    t.SetTooltipText("Open File")
     css, _ = t.GetStyleContext()
 	css.AddClass("nav-btn")
 
@@ -52,6 +53,7 @@ func NewHdrControl() *HdrControl {
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
+    t.SetTooltipText("Help")
     css, _ = hc.GetStyleContext()
 	css.AddClass("nav-btn")
 
