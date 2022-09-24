@@ -114,7 +114,7 @@ func (u *UI) Render(m *model.Model) {
 func (u *UI) newHUD(m *model.Model, title string) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
-    u.hdrControl = NewHdrControl()
+    u.hdrControl = NewHdrControl(m, u)
     u.navControl = NewNavControl(m, u)
 	o.AddOverlay(u.hdrControl.container)
 	o.AddOverlay(u.navControl.container)
@@ -128,7 +128,7 @@ func (u *UI) renderHud(m *model.Model) {
 	u.navControl.Render(m)
 }
 
-func (u *UI) initKBHandler(model *model.Model) {
+func (u *UI) initKBHandler(m *model.Model) {
     u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
         keyEvent := gdk.EventKeyNewFromEvent(event)
         keyVal := keyEvent.KeyVal()
@@ -146,17 +146,17 @@ func (u *UI) initKBHandler(model *model.Model) {
         } else if keyVal == gdk.KEY_Tab {
             u.sendMessage(util.Message{TypeName: "selectPage"})
         } else if keyVal == gdk.KEY_1 {
-            u.initCanvas(model)
+            u.initCanvas(m)
             u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
         } else if keyVal == gdk.KEY_2 {
-            u.initCanvas(model)
+            u.initCanvas(m)
             u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
         } else if keyVal == gdk.KEY_3 {
             u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
         } else if keyVal == gdk.KEY_grave {
             u.sendMessage(util.Message{TypeName: "toggleReadMode"})
         } else if keyVal == gdk.KEY_f {
-            if model.Fullscreen {
+            if m.Fullscreen {
                 u.mainWindow.Unfullscreen()
             } else {
                 u.mainWindow.Fullscreen()
@@ -164,24 +164,23 @@ func (u *UI) initKBHandler(model *model.Model) {
             u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
         } else if keyVal == gdk.KEY_o {
             dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-            dlg.SetCurrentFolder(model.BrowseDirectory)
+            dlg.SetCurrentFolder(m.BrowseDirectory)
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
                 m := &util.Message{TypeName: "openFile", Data: f}
                 u.sendMessage(*m)
-            } else {
             }
-            u.initCanvas(model)
+            u.initCanvas(m)
         } else if keyVal == gdk.KEY_c {
             u.sendMessage(util.Message{TypeName: "closeFile"})
-            u.initCanvas(model)
+            u.initCanvas(m)
         } else if keyVal == gdk.KEY_r {
             u.sendMessage(util.Message{TypeName: "spread"})
         } else if keyVal == gdk.KEY_e {
             dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
-            base := filepath.Base(model.Pages[model.SelectedPage].FilePath)
-            dlg.SetCurrentFolder(model.BrowseDirectory)
+            base := filepath.Base(m.Pages[m.SelectedPage].FilePath)
+            dlg.SetCurrentFolder(m.BrowseDirectory)
             dlg.SetCurrentName(base)
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
@@ -191,15 +190,25 @@ func (u *UI) initKBHandler(model *model.Model) {
             } else {
             }
         } else if keyVal == gdk.KEY_n {
-            u.initCanvas(model)
+            u.initCanvas(m)
             u.sendMessage(util.Message{TypeName: "nextFile"})
         } else if keyVal == gdk.KEY_p {
             u.sendMessage(util.Message{TypeName: "previousFile"})
-            u.initCanvas(model)
+            u.initCanvas(m)
         } else if keyVal == gdk.KEY_space {
             u.sendMessage(util.Message{TypeName: "toggleBookmark"})
         } else if keyVal == gdk.KEY_l {
             u.sendMessage(util.Message{TypeName: "lastBookmark"})
+        } else if keyVal == gdk.KEY_question {
+            dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow, 
+                gtk.DialogFlags(gtk.DIALOG_MODAL), 
+                gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
+            dlg.SetTitle("Help")
+            dlg.SetMarkup(util.HELP_TXT)
+            css, _ := dlg.GetStyleContext()
+	        css.AddClass("msg-dlg")
+            dlg.Run()
+            dlg.Destroy()
         }
 
         u.hud.ShowAll()

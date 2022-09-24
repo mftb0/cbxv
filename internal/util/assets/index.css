@@ -31,6 +31,40 @@ button {
     font-size: 14px;
 }
 
+.msg-dlg {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.msg-dlg button {
+    background-image:none;
+    background-color:#000000;
+    border: solid 1px #00ff00;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.msg-dlg .titlebar {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 .nav-bar {
     padding-bottom: 8px;
 }

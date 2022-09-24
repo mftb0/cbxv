@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
+
+    "example.com/cbxv-gotk3/internal/util"
     "example.com/cbxv-gotk3/internal/model"
 )
 
@@ -17,12 +19,12 @@ type HdrControl struct {
     container *gtk.Grid
     leftBookmark *gtk.Label
     spinner *gtk.Spinner
-    title *gtk.Label
+    title *gtk.Button
     helpControl *gtk.Button
     rightBookmark *gtk.Label
 }
 
-func NewHdrControl() *HdrControl {
+func NewHdrControl(m *model.Model, u *UI) *HdrControl {
     c := &HdrControl{}
 
     lbkmk, err := gtk.LabelNew("")
@@ -41,7 +43,7 @@ func NewHdrControl() *HdrControl {
     css, _ = spn.GetStyleContext()
 	css.AddClass("nav-btn")
 
-	t, err := gtk.LabelNew("")
+	t, err := gtk.ButtonNewWithLabel("Untitled")
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
@@ -64,8 +66,34 @@ func NewHdrControl() *HdrControl {
     css, _ = rbkmk.GetStyleContext()
 	css.AddClass("bkmk-btn")
 
+    t.Connect("clicked", func() bool { 
+        fmt.Printf("openFile\n")
+        // fixme: this code just copy/pasted from UI
+        // should add a concept of UICommand
+        dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+        dlg.SetCurrentFolder(m.BrowseDirectory)
+        output := dlg.NativeDialog.Run()
+        if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
+            f := dlg.GetFilename()
+            m := &util.Message{TypeName: "openFile", Data: f}
+            u.sendMessage(*m)
+        }
+        u.initCanvas(m)
+        return true
+    })
+
     hc.Connect("clicked", func() bool { 
-        fmt.Printf("help\n")
+        // fixme: this code just copy/pasted from UI
+        // should add a concept of UICommand
+        dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow, 
+            gtk.DialogFlags(gtk.DIALOG_MODAL), 
+            gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
+        dlg.SetTitle("Help")
+        dlg.SetMarkup(util.HELP_TXT)
+        css, _ := dlg.GetStyleContext()
+        css.AddClass("msg-dlg")
+        dlg.Run()
+        dlg.Destroy()
         return true
     })
 
@@ -101,7 +129,7 @@ func (c *HdrControl) Render(m *model.Model) {
     css, _ = c.rightBookmark.GetStyleContext()
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
-    c.title.SetText("")
+    c.title.SetLabel("Untitled")
 
     if m.Loading {
         c.spinner.Start()
@@ -152,7 +180,7 @@ func (c *HdrControl) Render(m *model.Model) {
                 }
             }
         }
-        c.title.SetText(title)
+        c.title.SetLabel(title)
     }
 }
 

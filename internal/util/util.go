@@ -29,6 +29,27 @@ const BOOKMARKS_DN string = "bookmarks"
 const TMP_CBXS_PREFIX string = "cbxv-"
 const DEBUG = false
 
+const HELP_TXT = `<tt>
+Command             Key         Mouse
+quit                q           Click Window Close Button 
+openFile            o           Click Title Button
+closeFile           c           NA
+rightPage           d           Click right (side of) page
+leftPage            a           Click left (side of) page
+firstPage           w           NA
+lastPage            s           NA
+help                ?           Click Question Mark Button
+Direction           Back Tick   Click Direction Button
+1-Page Layout       1           NA
+2-Page Layout       2           NA
+stripLayout         3           NA
+toggleSpread        r           Click Spread Toggle
+toggleFullscreen    f           Click Fullscreen Toggle
+Export Page         e           NA
+
+<a href="http://www.sierrawhiskeybravodelta.com">Additional Help</a>
+</tt>`
+
 //go:embed assets
 var assets embed.FS
 
