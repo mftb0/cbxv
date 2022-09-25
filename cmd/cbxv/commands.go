@@ -2,11 +2,11 @@ package main
 
 import (
 	"math"
-    "path/filepath"
-    "time"
+	"path/filepath"
+	"time"
 
-    "example.com/cbxv-gotk3/internal/util"
-    "example.com/cbxv-gotk3/internal/model"
+	"example.com/cbxv-gotk3/internal/model"
+	"example.com/cbxv-gotk3/internal/util"
 )
 
 type Command struct {
@@ -58,7 +58,6 @@ func NewCommands(m *model.Model) *CommandList {
         m.CurrentLeaf = 0
         m.SelectedPage = m.CalcVersoPage()
         m.RefreshPages()
-        m.NewLeaves()
     }
 
     cmd = Command {
@@ -69,7 +68,6 @@ func NewCommands(m *model.Model) *CommandList {
         m.CurrentLeaf = (len(m.Leaves) - 1)
         m.SelectedPage = m.CalcVersoPage()
         m.RefreshPages()
-        m.NewLeaves()
     }
 
     cmd = Command {
@@ -80,12 +78,11 @@ func NewCommands(m *model.Model) *CommandList {
         blen := (len(m.Bookmarks.Model.Bookmarks) - 1)
         if blen > -1 {
             bkmk := m.Bookmarks.Model.Bookmarks[blen]
-            if bkmk.PageIndex > 0 && bkmk.PageIndex < blen {
+            if bkmk.PageIndex > 0 && bkmk.PageIndex < len(m.Pages) {
                 m.CurrentLeaf = m.PageToLeaf(bkmk.PageIndex)
                 m.SelectedPage = bkmk.PageIndex 
             }
             m.RefreshPages()
-            m.NewLeaves()
         }
     }
 
@@ -195,7 +192,7 @@ func NewCommands(m *model.Model) *CommandList {
         m.FilePath = data
         m.BrowseDirectory = filepath.Dir(data)
 
-        // Start loading stuff async
+        // Start loading stuff
         // See the model for details about
         // Error handling
         m.Loading = true
@@ -267,18 +264,13 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command {
-        Name: "spread",
-        DisplayName: "spread",
+        Name: "toggleSpread",
+        DisplayName: "toggleSpread",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LeafMode == model.TWO_PAGE {
             spg := m.SelectedPage
-            var rpn int
-            if m.ReadMode == model.RTL {
-                rpn = m.CalcVersoPage() + 1
-            } else {
-                rpn = m.CalcVersoPage() + 1
-            }
+            //vp := m.CalcVersoPage()
             p := &m.Pages[spg]
             if p.Orientation == model.PORTRAIT {
                 p.Orientation = model.LANDSCAPE
@@ -287,18 +279,12 @@ func NewCommands(m *model.Model) *CommandList {
             }
             m.RefreshPages()
             m.NewLeaves()
-            // if the selected pg was equal to the
-            // recto pg when we started we need to
-            // advance a page
-            if spg == rpn {
-                // fixme: This is lame, in rtl mode 
-                // ui is actually sending previous to
-                // go next
-                if m.ReadMode == model.RTL {
-                    cmds.Commands["previousPage"]("")
-                } else {
-                    cmds.Commands["nextPage"]("")
-                }
+            m.CurrentLeaf = m.PageToLeaf(spg)
+            vpg := m.CalcVersoPage() 
+            if m.SelectedPage == vpg + 1 {
+                m.SelectedPage = vpg + 1
+            } else {
+                m.SelectedPage = m.CalcVersoPage()
             }
         }
     }

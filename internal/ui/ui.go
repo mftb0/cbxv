@@ -176,7 +176,7 @@ func (u *UI) initKBHandler(m *model.Model) {
             u.sendMessage(util.Message{TypeName: "closeFile"})
             u.initCanvas(m)
         } else if keyVal == gdk.KEY_r {
-            u.sendMessage(util.Message{TypeName: "spread"})
+            u.sendMessage(util.Message{TypeName: "toggleSpread"})
         } else if keyVal == gdk.KEY_e {
             dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
             base := filepath.Base(m.Pages[m.SelectedPage].FilePath)
