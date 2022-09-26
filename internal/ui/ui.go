@@ -421,6 +421,7 @@ func renderOnePageSpread(s *OnePageSpread) error {
 
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
+    p,_ := gdk.PixbufCopy(s.page.Image)
     p, err := scalePixbufToFit(s.canvas, s.page.Image, cW, cH)
     if err != nil {
         return err
@@ -429,7 +430,6 @@ func renderOnePageSpread(s *OnePageSpread) error {
     x, y := positionPixbuf(s.canvas, p, ALIGN_CENTER)
 
     renderPixbuf(s.cr, p, x, y)
-    p = nil
     return nil
 }
 
