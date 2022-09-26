@@ -27,47 +27,22 @@ type HdrControl struct {
 func NewHdrControl(m *model.Model, u *UI) *HdrControl {
     c := &HdrControl{}
 
-    lbkmk, err := gtk.LabelNew("")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
+    lbkmk := util.CreateLabel("", "bkmk-btn", nil)
     lbkmk.SetHAlign(gtk.ALIGN_START)
     lbkmk.SetHExpand(true)
-    css, _ := lbkmk.GetStyleContext()
-	css.AddClass("bkmk-btn")
 
 	spn, err := gtk.SpinnerNew()
 	if err != nil {
 		fmt.Printf("Error creating label %s\n", err)
 	}
-    css, _ = spn.GetStyleContext()
+    css, _ := spn.GetStyleContext()
 	css.AddClass("nav-btn")
 
-	t, err := gtk.ButtonNewWithLabel("Untitled")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    t.SetTooltipText("Open File")
-    css, _ = t.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	hc, err := gtk.ButtonNewWithLabel(APP_HLP_ICN)
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    t.SetTooltipText("Help")
-    css, _ = hc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	rbkmk, err := gtk.LabelNew("")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    css, _ = rbkmk.GetStyleContext()
-	css.AddClass("bkmk-btn")
+	t := util.CreateButton("Untitled", "nav-btn", util.S("Open File"))
+	hc := util.CreateButton(APP_HLP_ICN, "nav-btn", util.S("Help"))
+	rbkmk := util.CreateLabel("", "bkmk-btn", nil)
 
     t.Connect("clicked", func() bool { 
-        fmt.Printf("openFile\n")
         // fixme: this code just copy/pasted from UI
         // should add a concept of UICommand
         dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")

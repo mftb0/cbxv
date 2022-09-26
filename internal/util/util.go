@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gen2brain/go-unarr"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 const RENDERERSTATE_FN string = "rendererstate.json"
@@ -495,6 +496,35 @@ func LoadImageFileMeta(filePath string) (*image.Config, string, error) {
         return nil, "", err
     }
     return &img, frmt, nil
+}
+
+func S(str string) *string { return &str }
+
+func CreateLabel(text string, cssClass string, toolTip *string) *gtk.Label {
+    c, err := gtk.LabelNew(text)
+	if err != nil {
+		fmt.Printf("Error creating %s label %s\n", text, err)
+	}
+    if toolTip != nil {
+        c.SetTooltipMarkup(*toolTip)
+    }
+    css, _ := c.GetStyleContext()
+	css.AddClass(cssClass)
+    return c
+}
+
+func CreateButton(text string, cssClass string, toolTip *string) *gtk.Button {
+	c, err := gtk.ButtonNewWithLabel(text)
+	if err != nil {
+		fmt.Printf("Error creating label %s\n", err)
+	}
+    c.SetCanFocus(false)
+    if toolTip != nil {
+        c.SetTooltipText(*toolTip)
+    }
+    css, _ := c.GetStyleContext()
+	css.AddClass(cssClass)
+    return c
 }
 
 func Log(format string, a ...any) {

@@ -44,70 +44,23 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 	css, _ := nbc.GetStyleContext()
 	css.AddClass("nav-bar")
 
-	lpn, err := gtk.LabelNew("0")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
+    lpn := util.CreateLabel("0", "nav-btn", nil)
     lpn.SetHAlign(gtk.ALIGN_START)
-	css, _ = lpn.GetStyleContext()
-	css.AddClass("nav-btn")
 	css.AddClass("page-num")
 
-	pn, err := gtk.LabelNew("cbxv")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
+    pn := util.CreateLabel("cbxv", "nav-btn", nil)
     pn.SetHAlign(gtk.ALIGN_START)
-	css, _ = pn.GetStyleContext()
-	css.AddClass("nav-btn")
 
-	pv, err := gtk.LabelNew("v0.0.1")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
+    pv := util.CreateLabel("v0.0.1", "nav-btn", nil)
     pv.SetHAlign(gtk.ALIGN_START)
     pv.SetHExpand(true)
-	css, _ = pv.GetStyleContext()
-	css.AddClass("nav-btn")
 
-	dc, err := gtk.ButtonNewWithLabel(DIR_LTR_ICN)
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    dc.SetTooltipText("Direction Toggle")
-	css, _ = dc.GetStyleContext()
-	css.AddClass("nav-btn")
+	dc := util.CreateButton(DIR_LTR_ICN, "nav-btn", util.S("Direction Toggle"))
+    dmc := util.CreateLabel("Layout", "nav-btn", util.S("Layout"))
+	sc := util.CreateButton("Spread", "nav-btn", util.S("Spread Toggle"))
+	fsc := util.CreateButton(FS_MAX_ICN, "nav-btn", util.S("Fullscreen Toggle"))
 
-	dmc, err := gtk.LabelNew("Layout")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    dmc.SetTooltipText("Layout")
-	css, _ = dmc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-   	sc, err := gtk.ButtonNewWithLabel("Spread Toggle")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    sc.SetTooltipText("Spread Toggle")
-	css, _ = sc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-    fsc, err := gtk.ButtonNewWithLabel(FS_MAX_ICN) 
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-    sc.SetTooltipText("Fullscreen Toggle")
-	css, _ = fsc.GetStyleContext()
-	css.AddClass("nav-btn")
-
-	rpn, err := gtk.LabelNew("1")
-	if err != nil {
-		fmt.Printf("Error creating label %s\n", err)
-	}
-	css, _ = rpn.GetStyleContext()
-	css.AddClass("nav-btn")
+    rpn := util.CreateLabel("1", "nav-btn", nil)
 	css.AddClass("page-num")
 
     container, err := gtk.GridNew()

@@ -421,6 +421,9 @@ func renderOnePageSpread(s *OnePageSpread) error {
 
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
+    // fixme: Dramatically reduces memory use ~70%, makes little sense but
+    // possible explanation, some gtk methods are refusing to unref, possible
+    // thread-safety issue
     p,_ := gdk.PixbufCopy(s.page.Image)
     p, err := scalePixbufToFit(s.canvas, s.page.Image, cW, cH)
     if err != nil {
@@ -445,6 +448,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //put the left pg on the left, right-aligned
 		cW = s.canvas.GetAllocatedWidth() / 2
 		cH = s.canvas.GetAllocatedHeight()
+        // fixme: Dramatically reduces memory use ~70%
         lp,_ := gdk.PixbufCopy(s.leftPage.Image)
         lp, err := scalePixbufToFit(s.canvas, lp, cW, cH)
         if err != nil {
@@ -459,6 +463,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return fmt.Errorf("Image required by spread not loaded")
         }
 
+        // fixme: Dramatically reduces memory use ~70%
         rp,_ := gdk.PixbufCopy(s.rightPage.Image)
         rp, err = scalePixbufToFit(s.canvas, rp, cW, cH)
         if err != nil {
@@ -471,6 +476,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //there is no right page, then center the left page
 		cW = s.canvas.GetAllocatedWidth()
 		cH = s.canvas.GetAllocatedHeight()
+        // fixme: Dramatically reduces memory use ~70%
         lp,_ := gdk.PixbufCopy(s.leftPage.Image)
         lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
         if err != nil {
