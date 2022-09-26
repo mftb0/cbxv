@@ -5,6 +5,7 @@ import (
 	_ "image/color"
 	"math"
 	"path/filepath"
+	"runtime"
 
 	_ "golang.org/x/image/colornames"
 
@@ -13,8 +14,8 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
-    "example.com/cbxv-gotk3/internal/util"
-    "example.com/cbxv-gotk3/internal/model"
+	"example.com/cbxv-gotk3/internal/model"
+	"example.com/cbxv-gotk3/internal/util"
 )
 
 const (
@@ -241,6 +242,7 @@ func (u *UI) initRenderer(m *model.Model) {
         w := u.mainWindow.GetAllocatedWidth() - 40
         u.hdrControl.container.SetSizeRequest(w, 8)
         u.navControl.container.SetSizeRequest(w, 8)
+        runtime.GC()
     })
 
     u.canvas.AddEvents(4)
@@ -443,7 +445,8 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //put the left pg on the left, right-aligned
 		cW = s.canvas.GetAllocatedWidth() / 2
 		cH = s.canvas.GetAllocatedHeight()
-        lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
+        lp,_ := gdk.PixbufCopy(s.leftPage.Image)
+        lp, err := scalePixbufToFit(s.canvas, lp, cW, cH)
         if err != nil {
             return err
         }
@@ -456,7 +459,8 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return fmt.Errorf("Image required by spread not loaded")
         }
 
-        rp, err := scalePixbufToFit(s.canvas, s.rightPage.Image, cW, cH)
+        rp,_ := gdk.PixbufCopy(s.rightPage.Image)
+        rp, err = scalePixbufToFit(s.canvas, rp, cW, cH)
         if err != nil {
             return err
         }
@@ -467,6 +471,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	    //there is no right page, then center the left page
 		cW = s.canvas.GetAllocatedWidth()
 		cH = s.canvas.GetAllocatedHeight()
+        lp,_ := gdk.PixbufCopy(s.leftPage.Image)
         lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
         if err != nil {
             return err
@@ -475,7 +480,6 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 		x, y = positionPixbuf(s.canvas, lp, ALIGN_CENTER)
         renderPixbuf(s.cr, lp, x, y)
     }
-
     return nil
 }
 
