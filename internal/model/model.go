@@ -413,40 +413,27 @@ func (m *Model) CloseCbxFile() {
 // Walk the layout and load/unload pages as needed
 func (m *Model) RefreshPages() {
 	if m.LayoutMode != LONG_STRIP {
-		// load the current spread
-		spread := m.Spreads[m.CurrentSpread]
-		for i := range spread.Pages {
-			if !spread.Pages[i].Loaded {
-				util.Log("load\n")
-				spread.Pages[i].Load()
-			}
-		}
+		start := int(math.Max(0, float64(m.CurrentSpread-(MAX_LOAD/2)+1)))
+		end := int(math.Min(float64(m.CurrentSpread+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
 
-		// buffer nearby spreads
-		start := int(math.Max(0, float64(m.CurrentSpread-(MAX_LOAD/2))))
-		end := int(math.Min(float64(m.CurrentSpread+(MAX_LOAD/2)), float64(len(m.Spreads))))
-		for i := start; i < end; i++ {
-			spread = m.Spreads[i]
-			for j := range spread.Pages {
-				if !spread.Pages[j].Loaded {
-					util.Log("load\n")
-					spread.Pages[j].Load()
-				}
-			}
-		}
-
-		// remove distant spreads
+		// iterate over all spreads 
+        // load/unload pgs as needed
 		for i := range m.Spreads {
+		    spread := m.Spreads[i]
 			if i < start || i > end {
-				spread := m.Spreads[i]
 				for j := range spread.Pages {
 					if spread.Pages[j].Loaded {
-						util.Log("unload\n")
 						spread.Pages[j].Image = nil
 						spread.Pages[j].Loaded = false
 					}
 				}
-			}
+			} else {
+                for j := range spread.Pages {
+                    if !spread.Pages[j].Loaded {
+                        spread.Pages[j].Load()
+                    }
+                }
+            }
 		}
 
 		if util.DEBUG {
