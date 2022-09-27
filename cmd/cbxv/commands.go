@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
 	"path/filepath"
 	"time"
 
@@ -27,8 +26,8 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Next Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.CurrentLeaf < len(m.Leaves) - 1 {
-            m.CurrentLeaf++
+        if m.CurrentSpread < len(m.Spreads) - 1 {
+            m.CurrentSpread++
             m.SelectedPage = m.CalcVersoPage()
             go m.RefreshPages()
         } else {
@@ -41,8 +40,8 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Previous Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.CurrentLeaf > 0 {
-            m.CurrentLeaf--
+        if m.CurrentSpread > 0 {
+            m.CurrentSpread--
             m.SelectedPage = m.CalcVersoPage()
             go m.RefreshPages()
         } else {
@@ -55,7 +54,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "First Page",
     }
     cmds.Commands [cmd.Name] = func(data string) {
-        m.CurrentLeaf = 0
+        m.CurrentSpread = 0
         m.SelectedPage = m.CalcVersoPage()
         m.RefreshPages()
     }
@@ -65,7 +64,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Last Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        m.CurrentLeaf = (len(m.Leaves) - 1)
+        m.CurrentSpread = (len(m.Spreads) - 1)
         m.SelectedPage = m.CalcVersoPage()
         m.RefreshPages()
     }
@@ -79,7 +78,7 @@ func NewCommands(m *model.Model) *CommandList {
         if blen > -1 {
             bkmk := m.Bookmarks.Model.Bookmarks[blen]
             if bkmk.PageIndex > 0 && bkmk.PageIndex < len(m.Pages) {
-                m.CurrentLeaf = m.PageToLeaf(bkmk.PageIndex)
+                m.CurrentSpread = m.PageToSpread(bkmk.PageIndex)
                 m.SelectedPage = bkmk.PageIndex 
             }
             m.RefreshPages()
@@ -91,7 +90,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Select Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.LeafMode == model.TWO_PAGE {
+        if m.LayoutMode == model.TWO_PAGE {
             if m.SelectedPage == m.CalcVersoPage() {
                 m.SelectedPage++
             } else {
@@ -105,18 +104,10 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Display Mode One Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        m.LeafMode = model.ONE_PAGE
-        m.NewLeaves()
-        c := m.CurrentLeaf*2
-        if c < 0 {
-            c = 0
-        } else if c > len(m.Leaves) - 1 {
-            c = len(m.Leaves) - 1
-        }
-        m.CurrentLeaf = c
-        m.SelectedPage = m.CalcVersoPage()
+        m.LayoutMode = model.ONE_PAGE
+        m.CurrentSpread = m.PageToSpread(m.SelectedPage)
         m.RefreshPages()
-        m.NewLeaves()
+        m.NewSpreads()
     }
 
     cmd = Command {
@@ -124,18 +115,10 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Display Mode Two Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        m.LeafMode = model.TWO_PAGE
-        m.NewLeaves()
-        c := int(math.Floor(float64(m.CurrentLeaf)/2))
-        if c < 0 {
-            c = 0
-        } else if c > len(m.Leaves) - 1 {
-            c = len(m.Leaves) - 1
-        }
-        m.CurrentLeaf = c
-        m.SelectedPage = m.CalcVersoPage()
+        m.LayoutMode = model.TWO_PAGE
+        m.CurrentSpread = m.PageToSpread(m.SelectedPage)
         m.RefreshPages()
-        m.NewLeaves()
+        m.NewSpreads()
     }
 
     cmd = Command {
@@ -143,24 +126,23 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Display Mode Long Strip",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        m.LeafMode = model.LONG_STRIP
-        m.NewLeaves()
-        m.CurrentLeaf = 0
+        m.LayoutMode = model.LONG_STRIP
+        m.CurrentSpread = 0
         m.SelectedPage = m.CalcVersoPage()
         m.RefreshPages()
-        m.NewLeaves()
+        m.NewSpreads()
     }
 
     cmd = Command {
-        Name: "toggleReadMode",
+        Name: "toggleDirection",
         DisplayName: "Toggle Read Mode",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         // Toggle the read mode
-        if m.ReadMode == model.LTR {
-            m.ReadMode = model.RTL
+        if m.Direction == model.LTR {
+            m.Direction = model.RTL
         } else {
-            m.ReadMode = model.LTR
+            m.Direction = model.LTR
         }
 
         // Swap the keys
@@ -196,7 +178,7 @@ func NewCommands(m *model.Model) *CommandList {
         // See the model for details about
         // Error handling
         m.Loading = true
-        go m.LoadHash()
+        m.LoadHash()
         go m.LoadCbxFile()
         go m.LoadSeriesList()
 
@@ -268,9 +250,8 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "toggleSpread",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.LeafMode == model.TWO_PAGE {
+        if m.LayoutMode == model.TWO_PAGE {
             spg := m.SelectedPage
-            //vp := m.CalcVersoPage()
             p := &m.Pages[spg]
             if p.Orientation == model.PORTRAIT {
                 p.Orientation = model.LANDSCAPE
@@ -278,8 +259,9 @@ func NewCommands(m *model.Model) *CommandList {
                 p.Orientation = model.PORTRAIT
             }
             m.RefreshPages()
-            m.NewLeaves()
-            m.CurrentLeaf = m.PageToLeaf(spg)
+            m.NewSpreads()
+            m.StoreLayout()
+            m.CurrentSpread = m.PageToSpread(spg)
             vpg := m.CalcVersoPage() 
             if m.SelectedPage == vpg + 1 {
                 m.SelectedPage = vpg + 1
@@ -303,7 +285,6 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         cmds.Commands["closeFile"]("")
-        quit()
     }
 
     return cmds

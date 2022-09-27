@@ -27,7 +27,7 @@ type NavControl struct {
     progName *gtk.Label
     progVersion *gtk.Label
     spreadControl *gtk.Button
-    readModeControl *gtk.Button
+    DirectionControl *gtk.Button
     displayModeControl *gtk.Label
     fullscreenControl *gtk.Button
     leftPageNum *gtk.Label
@@ -78,7 +78,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     })
 
     dc.Connect("clicked", func() { 
-        u.sendMessage(util.Message{TypeName: "toggleReadMode"})
+        u.sendMessage(util.Message{TypeName: "toggleDirection"})
     })
 
     fsc.Connect("clicked", func() { 
@@ -105,7 +105,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     nc.leftPageNum = lpn
     nc.progName = pn
     nc.progVersion = pv
-    nc.readModeControl = dc
+    nc.DirectionControl = dc
     nc.displayModeControl = dmc
     nc.spreadControl = sc
     nc.fullscreenControl = fsc
@@ -115,19 +115,19 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 }
 
 func (c *NavControl) Render(m *model.Model) {
-    if len(m.Leaves) < 1 {
+    if len(m.Spreads) < 1 {
         c.navBar.SetFraction(0)
         c.leftPageNum.SetText("")
         c.spreadControl.SetLabel("")
-        if m.ReadMode == model.RTL {
-            c.readModeControl.SetLabel(DIR_RTL_ICN)
+        if m.Direction == model.RTL {
+            c.DirectionControl.SetLabel(DIR_RTL_ICN)
         } else {
-            c.readModeControl.SetLabel(DIR_LTR_ICN)
+            c.DirectionControl.SetLabel(DIR_LTR_ICN)
         }
 
-        if m.LeafMode == model.ONE_PAGE {
+        if m.LayoutMode == model.ONE_PAGE {
             c.displayModeControl.SetText("1-Page")
-        } else if m.LeafMode == model.TWO_PAGE {
+        } else if m.LayoutMode == model.TWO_PAGE {
             c.displayModeControl.SetText("2-Page")
         } else {
             c.displayModeControl.SetText("Strip")
@@ -143,7 +143,7 @@ func (c *NavControl) Render(m *model.Model) {
 
         return 
     } else {
-        leaf := m.Leaves[m.CurrentLeaf]
+        spread := m.Spreads[m.CurrentSpread]
         vpn := m.CalcVersoPage()
         np := len(m.ImgPaths)
         c.leftPageNum.SetText("")
@@ -157,13 +157,13 @@ func (c *NavControl) Render(m *model.Model) {
         c.leftPageNum.Show()
         c.rightPageNum.Show()
 
-        if m.ReadMode == model.RTL {
+        if m.Direction == model.RTL {
             if np > 0 {
                 c.navBar.SetInverted(true)
-                c.navBar.SetFraction((float64(vpn)+float64(len(leaf.Pages)))/float64(np))
+                c.navBar.SetFraction((float64(vpn)+float64(len(spread.Pages)))/float64(np))
             }
 
-            if len(leaf.Pages) > 1 {
+            if len(spread.Pages) > 1 {
                 c.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
                 c.leftPageNum.SetText(fmt.Sprintf("%d", vpn+1))
                 if m.SelectedPage == vpn {
@@ -176,14 +176,14 @@ func (c *NavControl) Render(m *model.Model) {
                 c.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
                 lpncss.AddClass("bordered")
             }
-            c.readModeControl.SetLabel(DIR_RTL_ICN)
+            c.DirectionControl.SetLabel(DIR_RTL_ICN)
         } else {
             if np > 0 {
                 c.navBar.SetInverted(false)
-                c.navBar.SetFraction((float64(vpn)+float64(len(leaf.Pages)))/float64(np))
+                c.navBar.SetFraction((float64(vpn)+float64(len(spread.Pages)))/float64(np))
             }
 
-            if len(leaf.Pages) > 1 {
+            if len(spread.Pages) > 1 {
                 c.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
                 c.rightPageNum.SetText(fmt.Sprintf("%d", vpn+1))
                 if m.SelectedPage == vpn {
@@ -196,12 +196,12 @@ func (c *NavControl) Render(m *model.Model) {
                 c.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
                 rpncss.AddClass("bordered")
             }
-            c.readModeControl.SetLabel(DIR_LTR_ICN)
+            c.DirectionControl.SetLabel(DIR_LTR_ICN)
         }
 
-        if m.LeafMode == model.ONE_PAGE {
+        if m.LayoutMode == model.ONE_PAGE {
             c.displayModeControl.SetText("1-Page")
-        } else if m.LeafMode == model.TWO_PAGE {
+        } else if m.LayoutMode == model.TWO_PAGE {
             c.displayModeControl.SetText("2-Page")
         } else {
             c.displayModeControl.SetText("Strip")
@@ -213,11 +213,11 @@ func (c *NavControl) Render(m *model.Model) {
             c.fullscreenControl.SetLabel(FS_MAX_ICN)
         }
 
-        if leaf.Pages[0].Orientation == model.LANDSCAPE {
+        if spread.Pages[0].Orientation == model.LANDSCAPE {
             c.spreadControl.SetLabel(SD_DBL_ICN) 
         } else {
             c.spreadControl.SetLabel(SD_ONE_ICN)
-            if len(leaf.Pages) > 1 {
+            if len(spread.Pages) > 1 {
                 c.spreadControl.SetLabel(SD_TWO_ICN)
             }
         }

@@ -10,17 +10,12 @@ import (
 
 // Simple cbx application with a gui provided by gtk
 
-func quit() {
-    //noop currently called in case app ever wants to take
-    //action before ui shutsdown
-}
-
 // Update listens for message on the message channel and
 // handles messages by invoking commands which update the model
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *CommandList) {
     for msg := range msgChan {
         cmd := commands.Commands[msg.TypeName]
-        if m.Leaves == nil && (
+        if m.Spreads == nil && (
             msg.TypeName != "quit" &&
             msg.TypeName != "openFile") {
             continue

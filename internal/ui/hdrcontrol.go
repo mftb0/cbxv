@@ -112,18 +112,18 @@ func (c *HdrControl) Render(m *model.Model) {
         c.spinner.Stop()
     }
 
-    if len(m.Leaves) < 1 || m.Bookmarks == nil {
+    if len(m.Spreads) < 1 || m.Bookmarks == nil {
         return 
     } else {
         lbkmkcss, _ := c.leftBookmark.GetStyleContext()
         rbkmkcss, _ := c.rightBookmark.GetStyleContext()
-        leaf := m.Leaves[m.CurrentLeaf]
+        spread := m.Spreads[m.CurrentSpread]
         title := strings.TrimSuffix(filepath.Base(m.FilePath), filepath.Ext(m.FilePath))
 
-        if m.ReadMode == model.RTL {
+        if m.Direction == model.RTL {
             b := m.Bookmarks.Find(vpn)
             if b != nil {
-                if len(leaf.Pages) > 1 {
+                if len(spread.Pages) > 1 {
                     rbkmkcss.AddClass("marked")
                 } else {
                     rbkmkcss.AddClass("transparent")
@@ -131,7 +131,7 @@ func (c *HdrControl) Render(m *model.Model) {
                 }
             } 
 
-            if len(leaf.Pages) > 1 {
+            if len(spread.Pages) > 1 {
                 b = m.Bookmarks.Find(vpn+1)
                 if b != nil {
                     lbkmkcss.AddClass("marked")
@@ -140,7 +140,7 @@ func (c *HdrControl) Render(m *model.Model) {
         } else {
             b := m.Bookmarks.Find(vpn)
             if b != nil {
-                if len(leaf.Pages) > 1 {
+                if len(spread.Pages) > 1 {
                     lbkmkcss.AddClass("marked")
                 } else {
                     lbkmkcss.AddClass("transparent")
@@ -148,7 +148,7 @@ func (c *HdrControl) Render(m *model.Model) {
                 }
             } 
 
-            if len(leaf.Pages) > 1 {
+            if len(spread.Pages) > 1 {
                 b = m.Bookmarks.Find(vpn+1)
                 if b != nil {
                     rbkmkcss.AddClass("marked")

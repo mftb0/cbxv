@@ -27,8 +27,9 @@ import (
 const RENDERERSTATE_FN string = "rendererstate.json"
 const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
+const LAYOUTS_DN string = "layouts"
 const TMP_CBXS_PREFIX string = "cbxv-"
-const DEBUG = false
+const DEBUG = true
 
 const HELP_TXT = `<tt>
 Command             Key         Mouse
@@ -116,6 +117,14 @@ func bookmarksPath() (string, error) {
         return p, err
     }
     return filepath.Join(p, BOOKMARKS_DN), nil
+}
+
+func layoutsPath() (string, error) {
+    p, err := dataPath()
+    if err != nil {
+        return p, err
+    }
+    return filepath.Join(p, LAYOUTS_DN), nil
 }
 
 func createRandomString(n int) string {
@@ -359,6 +368,37 @@ func ReadBookmarkList(hash string) (*string, error) {
     bkmarksPath = fmt.Sprintf("%s.json", bkmarksPath)
 
     b, err := ioutil.ReadFile(bkmarksPath)
+    if(err != nil) {
+        return nil, err
+    }
+    s := string(b)
+    return &s, nil
+}
+
+func WriteLayout(hash string, data string) error {
+    lPath, err := layoutsPath()
+    if err != nil {
+        return err
+    }
+    if err := os.MkdirAll(lPath, 0777); err != nil {
+        return err
+    }
+
+    storePath := filepath.Join(lPath, fmt.Sprintf("%s.json", hash))
+    os.WriteFile(storePath, []byte(data), 0777)
+    return nil
+}
+
+func ReadLayout(hash string) (*string, error) {
+    lPath, err := layoutsPath()
+    if err != nil {
+        return nil, err
+    }
+
+    lPath = filepath.Join(lPath, hash)
+    lPath = fmt.Sprintf("%s.json", lPath)
+
+    b, err := ioutil.ReadFile(lPath)
     if(err != nil) {
         return nil, err
     }

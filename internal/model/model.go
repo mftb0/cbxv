@@ -3,488 +3,571 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	_"image"
+	_ "image"
 	"math"
 	"os"
 	"sort"
 
+	"example.com/cbxv-gotk3/internal/util"
 	"github.com/gotk3/gotk3/gdk"
-    "example.com/cbxv-gotk3/internal/util"
 )
 
 // Data model of a cbx application
 // Composed of a handful of sub-models, collections and other standard types
 type Model struct {
-    SendMessage util.Messenger
-    FilePath string
-    TmpDir string
-    Hash string
-    Bookmarks *BookmarkList
-    ImgPaths []string
-    Pages []Page
-    SelectedPage int
-    Leaves []*Leaf
-    CurrentLeaf int
-    ReadMode ReadMode
-    LeafMode LeafMode
-    SeriesList []string
-    SeriesIndex int
-    BrowseDirectory string
-    Fullscreen bool
-    Loading bool
-    ProgramName string
-    ProgramVersion string
+	SendMessage     util.Messenger
+	FilePath        string
+	TmpDir          string
+	Hash            string
+	Bookmarks       *BookmarkList
+	ImgPaths        []string
+	Pages           []Page
+	SelectedPage    int
+	Spreads         []*Spread
+	CurrentSpread   int
+	Direction       Direction
+	LayoutMode      LayoutMode
+	SeriesList      []string
+	SeriesIndex     int
+	BrowseDirectory string
+	Fullscreen      bool
+	Loading         bool
+	ProgramName     string
+	ProgramVersion  string
 }
 
 func NewModel(messenger util.Messenger) *Model {
-    m := &Model{}
-    m.SendMessage = messenger
-    m.BrowseDirectory, _ = os.Getwd()
-    return m
+	m := &Model{}
+	m.SendMessage = messenger
+	m.BrowseDirectory, _ = os.Getwd()
+	return m
 }
 
-// ReadMode of the model is either
+// Direction of the model is either
 // Left-To-Right or
 // Right-To-Left
-type ReadMode int
+type Direction int
 
 const (
-    LTR ReadMode = iota
-    RTL
+	LTR Direction = iota
+	RTL
 )
 
 // Maximum to load into the model
 // Currently confusing because at init the units are pages
-// Later it's leaves (so frequently double the number of pagesj
+// Later it's spreads (so frequently double the number of pages
 const (
-    MAX_LOAD = 8
+	MAX_LOAD = 8
 )
 
 // Mark a place in the model by keeping track of an index in the pages slice
 type Bookmark struct {
-    PageIndex int `json:"pageIndex"`
-    CreationTime int64 `json:"creationTime"`
+	PageIndex    int   `json:"pageIndex"`
+	CreationTime int64 `json:"creationTime"`
 }
 
 // Just a little type for serialization
-type BookmarkListComic struct {
-    Hash string `json:"hash"`
-    FilePath string `json:"filePath"`
+type ComicData struct {
+	Hash     string `json:"hash"`
+	FilePath string `json:"filePath"`
 }
 
 // Type used for serialization/deserialization of the BookmarkList
 type BookmarkListModel struct {
-    FormatVersion string `json:"formatVersion"`
-    Comic BookmarkListComic `json:"comic"`
-    Bookmarks []Bookmark `json:"bookmarks"`
+	FormatVersion string            `json:"formatVersion"`
+	Comic         ComicData         `json:"comic"`
+	Bookmarks     []Bookmark        `json:"bookmarks"`
 }
 
 // Manage a list of bookmarks
 type BookmarkList struct {
-    Model BookmarkListModel
+	Model BookmarkListModel
 }
 
 func NewBookmarkList(filePath string) *BookmarkList {
-    b := BookmarkList{}
-    m := BookmarkListModel {
-        FormatVersion : "0.1",
-    }
-    c := BookmarkListComic{}
-    c.Hash = ""
-    c.FilePath = filePath
-    m.Comic = c
-    m.Bookmarks = make([]Bookmark, 0)
-    b.Model = m
-    return &b
+	b := BookmarkList{}
+	m := BookmarkListModel{
+		FormatVersion: "0.1",
+	}
+	c := ComicData{}
+	c.Hash = ""
+	c.FilePath = filePath
+	m.Comic = c
+	m.Bookmarks = make([]Bookmark, 0)
+	b.Model = m
+	return &b
 }
 
 func (l *BookmarkList) Add(b Bookmark) {
-    for i := 0; i < len(l.Model.Bookmarks); i++ {
-        if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
-            return
-        }
-    }
-    l.Model.Bookmarks = append(l.Model.Bookmarks, b)
-    sort.Slice(l.Model.Bookmarks, func(i, j int) bool {
-        return l.Model.Bookmarks[i].PageIndex < l.Model.Bookmarks[j].PageIndex
-    })
-    l.Store()
+	for i := 0; i < len(l.Model.Bookmarks); i++ {
+		if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
+			return
+		}
+	}
+	l.Model.Bookmarks = append(l.Model.Bookmarks, b)
+	sort.Slice(l.Model.Bookmarks, func(i, j int) bool {
+		return l.Model.Bookmarks[i].PageIndex < l.Model.Bookmarks[j].PageIndex
+	})
+	l.Store()
 }
 
 func (l *BookmarkList) Remove(b Bookmark) *Bookmark {
-    var x int
-    var r Bookmark
-    for i := 0; i < len(l.Model.Bookmarks); i++ {
-        if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
-            r = l.Model.Bookmarks[i]
-            x = i
-            break;
-        }
-    }
-    l.Model.Bookmarks = append(l.Model.Bookmarks[:x], l.Model.Bookmarks[x+1:]...)
-    l.Store()
-    return &r
+	var x int
+	var r Bookmark
+	for i := 0; i < len(l.Model.Bookmarks); i++ {
+		if l.Model.Bookmarks[i].PageIndex == b.PageIndex {
+			r = l.Model.Bookmarks[i]
+			x = i
+			break
+		}
+	}
+	l.Model.Bookmarks = append(l.Model.Bookmarks[:x], l.Model.Bookmarks[x+1:]...)
+	l.Store()
+	return &r
 }
 
 func (l *BookmarkList) Find(pageIndex int) *Bookmark {
-    var r *Bookmark
-    for i := 0; i < len(l.Model.Bookmarks); i++ {
-        if l.Model.Bookmarks[i].PageIndex == pageIndex {
-            r = &l.Model.Bookmarks[i]
-            break;
-        }
-    }
-    return r
+	var r *Bookmark
+	for i := 0; i < len(l.Model.Bookmarks); i++ {
+		if l.Model.Bookmarks[i].PageIndex == pageIndex {
+			r = &l.Model.Bookmarks[i]
+			break
+		}
+	}
+	return r
 }
 
 func (l *BookmarkList) Store() error {
-    data, err := json.Marshal(l.Model)
-    if err != nil {
-        return err
-    }
-    err = util.WriteBookmarkList(l.Model.Comic.Hash, string(data))
-    if err != nil {
-        return err
-    }
-    return nil
+	data, err := json.Marshal(l.Model)
+	if err != nil {
+		return err
+	}
+	err = util.WriteBookmarkList(l.Model.Comic.Hash, string(data))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (l *BookmarkList) Load(hash string) {
-    l.Model.Comic.Hash = hash
-    data, _ := util.ReadBookmarkList(l.Model.Comic.Hash)
+	l.Model.Comic.Hash = hash
+	data, _ := util.ReadBookmarkList(l.Model.Comic.Hash)
 
-    if data != nil {
-        var m BookmarkListModel
-        err := json.Unmarshal([]byte(*data), &m)
-        if err != nil {
-            fmt.Printf("e:%s\n", err)
-        }
-        l.Model = m
-    }
+	if data != nil {
+		var m BookmarkListModel
+		err := json.Unmarshal([]byte(*data), &m)
+		if err != nil {
+			fmt.Printf("e:%s\n", err)
+		}
+		l.Model = m
+	}
 }
 
 // A page in this case is generally analogous to an image
-// They are grouped on Leaves
+// They are grouped on Spreads
 type Page struct {
-    FilePath string `json:"filePath"`
-    Width int`json:"width"`
-    Height int`json:"height"`
-    Orientation int `json:"orientation"`
-    Loaded bool `json:"loaded"`
-    Image *gdk.Pixbuf `json:"-"` 
+	FilePath    string      `json:"filePath"`
+	Width       int         `json:"width"`
+	Height      int         `json:"height"`
+	Orientation int         `json:"orientation"`
+    Hidden      bool        `json:"hidden"`
+	Loaded      bool        `json:"loaded"`
+	Image       *gdk.Pixbuf `json:"-"`
 }
 
 func (p *Page) Load() {
-//    f, frmt, err := util.LoadImageFile(p.FilePath)
-    f, err := gdk.PixbufNewFromFile(p.FilePath)
-    if err != nil {
-        fmt.Printf("Error loading file %s\n", err)
-    }
-    p.Image = f
-    p.Width = f.GetWidth()
-    p.Height = f.GetHeight()
-    if p.Width >= p.Height {
-        p.Orientation = LANDSCAPE
-    }
-    p.Loaded = true
+	//    f, frmt, err := util.LoadImageFile(p.FilePath)
+	f, err := gdk.PixbufNewFromFile(p.FilePath)
+	if err != nil {
+		fmt.Printf("Error loading file %s\n", err)
+	}
+	p.Image = f
+	p.Width = f.GetWidth()
+	p.Height = f.GetHeight()
+	p.Loaded = true
 }
 
 func (p *Page) LoadMeta() {
-    _, w, h, err := gdk.PixbufGetFileInfo(p.FilePath)
-    if err != nil {
-        fmt.Printf("Error loading file %s\n", err)
-    }
-    p.Width = w
-    p.Height = h
-    if p.Width >= p.Height {
-        p.Orientation = LANDSCAPE
-    }
-    p.Loaded = false
+	_, w, h, err := gdk.PixbufGetFileInfo(p.FilePath)
+	if err != nil {
+		fmt.Printf("Error loading file %s\n", err)
+	}
+	p.Width = w
+	p.Height = h
+	if p.Width >= p.Height {
+		p.Orientation = LANDSCAPE
+	}
+	p.Loaded = false
 }
 
 // Creates pgs slice and loads it
 func (m *Model) NewPages() {
-    pages := make([]Page, len(m.ImgPaths))
+	pages := make([]Page, len(m.ImgPaths))
 
-    for i := range m.ImgPaths {
-        pages[i].FilePath = m.ImgPaths[i]
-        pages[i].Orientation = PORTRAIT
-        pages[i].Loaded = false
-        if i < MAX_LOAD {
-            pages[i].Load()
-        } else {
-            pages[i].LoadMeta()
-        }
-    }
+	for i := range m.ImgPaths {
+		pages[i].FilePath = m.ImgPaths[i]
+		pages[i].Orientation = PORTRAIT
+		pages[i].Loaded = false
+		if i < MAX_LOAD {
+			pages[i].Load()
+		} else {
+			pages[i].LoadMeta()
+		}
+	}
 
-    m.Pages = pages
-    m.Loading = false
+	m.Pages = pages
+	m.Loading = false
 }
 
 // How a page is oriented
 type Orientation int
 
 const (
-    PORTRAIT = iota
-    LANDSCAPE
+	PORTRAIT = iota
+	LANDSCAPE
 )
 
-// Leaf here is borrowed from publishing
-// and can generally be thought of like a sheet of paper,
-// on which any number of pages may be printed.
-// In a folio binding for instance there are generrally
-// 4 pages on each leaf (2 on the front, 2 on the back)
-// In our case the leafMode determines how many pages per leaf
-type Leaf struct {
-    Pages []*Page
+// A Spread is an element of a layout
+// It's essentially the pages you can
+// see at a given time
+type Spread struct {
+	Pages []*Page
 }
 
-// Creates leaf slice based on pg slice and leaf mode
-func (m *Model) NewLeaves() {
-    var leaves []*Leaf
+// Creates spread slice based on pg slice and layout mode
+func (m *Model) NewSpreads() {
+	var spreads []*Spread
 
-    pages := m.Pages
-    if(m.LeafMode == ONE_PAGE) {
-        for i := range pages {
-            leaf := &Leaf{}
-            p := &pages[i]
-            leaf.Pages = append(leaf.Pages, p)
-            leaves = append(leaves, leaf)
-        }
-    } else if m.LeafMode == TWO_PAGE {
-        for i := 0; i < len(pages); i++ {
-            // create leaf add a page
-            leaf := &Leaf{}
-            p := &pages[i]
-            leaf.Pages = append(leaf.Pages, p)
+	pages := m.Pages
+	if m.LayoutMode == ONE_PAGE {
+		for i := range pages {
+			spread := &Spread{}
+			p := &pages[i]
+			spread.Pages = append(spread.Pages, p)
+			spreads = append(spreads, spread)
+		}
+	} else if m.LayoutMode == TWO_PAGE {
+		for i := 0; i < len(pages); i++ {
+			// create spread add a page
+			spread := &Spread{}
+			p := &pages[i]
+			spread.Pages = append(spread.Pages, p)
 
-            // if pg is landscape, leaf done
-            if p.Orientation == LANDSCAPE {
-                leaves = append(leaves, leaf)
-                continue
-            }
-            // if pg is last page, leaves done
-            if i == (len(pages) - 1) {
-                leaves = append(leaves, leaf)
-                break
-            }
+			// if pg is landscape, spread done
+			if p.Orientation == LANDSCAPE {
+				spreads = append(spreads, spread)
+				continue
+			}
+			// if pg is last page, spreads done
+			if i == (len(pages) - 1) {
+				spreads = append(spreads, spread)
+				break
+			}
 
-            // on to the next page
-            i++
-            p = &pages[i]
+			// on to the next page
+			i++
+			p = &pages[i]
 
-            // if pg is landscape, make a new leaf, leaf done
-            if p.Orientation == LANDSCAPE {
-                leaves = append(leaves, leaf)
-                leaf = &Leaf{}
-                leaf.Pages = append(leaf.Pages, p)
-                leaves = append(leaves, leaf)
-                continue
-            }
+			// if pg is landscape, make a new spread, spread done
+			if p.Orientation == LANDSCAPE {
+				spreads = append(spreads, spread)
+				spread = &Spread{}
+				spread.Pages = append(spread.Pages, p)
+				spreads = append(spreads, spread)
+				continue
+			}
 
-            // No special cases, so leaf with 2 pages
-            leaf.Pages = append(leaf.Pages, p)
-            leaves = append(leaves, leaf)
-        }
-    } else {
-        // Put all pages on one leaf
-        leaf := &Leaf{}
-        for i := range pages {
-            p := &pages[i]
-            leaf.Pages = append(leaf.Pages, p)
-        }
-        leaves = append(leaves, leaf)
-    }
+			// No special cases, so spread with 2 pages
+			spread.Pages = append(spread.Pages, p)
+			spreads = append(spreads, spread)
+		}
+	} else {
+		// Put all pages on one spread
+		spread := &Spread{}
+		for i := range pages {
+			p := &pages[i]
+			spread.Pages = append(spread.Pages, p)
+		}
+		spreads = append(spreads, spread)
+	}
 
-    m.Leaves = leaves
+	m.Spreads = spreads
 }
 
-// Leaf mode determines how many pages per leaf
+// Layout mode determines the max pages per spread
 // ONE_PAGE = 1 pg
-// TWO_PAGE = 2 pgs
+// TWO_PAGE = up to 2 pgs
 // LONG_STRIP = n pgs
-type LeafMode int
+type LayoutMode int
 
 const (
-    ONE_PAGE = iota
-    TWO_PAGE
-    LONG_STRIP
+	ONE_PAGE = iota
+	TWO_PAGE
+	LONG_STRIP
 )
+
+type Layout struct {
+	FormatVersion string     `json:"formatVersion"`
+	Comic         ComicData  `json:"comic"`
+    Mode          LayoutMode `json:"mode"`
+    Pages         []Page     `json:"pages"`
+}
 
 /*
  * We have a lot of stuff to load hash, bookmarks, serieslist, cbx,
- * individual pages, and page metadata. 
- * Error handling - All Load functions are responsible for handling any 
+ * individual pages, page metadata and layout.
+ * Error handling - All Load functions are responsible for handling any
  * errors they encounter. They currently handle them by logging to the console.
- * The load process starts in the openFile Command when the Loading property 
- * is set true on the Model. It ends in NewPages after we've attemped to load 
- * the inital pages and metadata, we set Loading to false. There may still be 
+ * The load process starts in the openFile Command when the Loading property
+ * is set true on the Model. It ends in NewPages after we've attemped to load
+ * the inital pages and metadata, we set Loading to false. There may still be
  * some stuff loading async, but by that point the user should be able to know
  * that either the attempt failed or that they can reasonably start paging
  * through their comic.
  */
 func (m *Model) loadBookmarks() {
-    m.Bookmarks = NewBookmarkList(m.FilePath)
-    m.Bookmarks.Load(m.Hash)
-    msg := &util.Message{TypeName: "render"}
-    m.SendMessage(*msg)
+	m.Bookmarks = NewBookmarkList(m.FilePath)
+	m.Bookmarks.Load(m.Hash)
+	msg := &util.Message{TypeName: "render"}
+	m.SendMessage(*msg)
+}
+
+func (m *Model) loadLayout(hash string) *Layout {
+	data, _ := util.ReadLayout(hash)
+
+	if data != nil {
+		var lo Layout
+		err := json.Unmarshal([]byte(*data), &lo)
+		if err != nil {
+			fmt.Printf("e:%s\n", err)
+		}
+        return &lo
+	}
+    return nil
 }
 
 func (m *Model) LoadHash() {
-    hash, err := util.HashFile(m.FilePath)
-    if err != nil {
-        fmt.Printf("Unable to compute file hash %s\n", err)
-    }
-    m.Hash = hash
-    m.loadBookmarks()
+	hash, err := util.HashFile(m.FilePath)
+	if err != nil {
+		fmt.Printf("Unable to compute file hash %s\n", err)
+	}
+	m.Hash = hash
+	m.loadBookmarks()
 }
 
 func (m *Model) LoadSeriesList() {
-    s, err := util.ReadSeriesList(m.FilePath)
-    if err != nil {
-        fmt.Printf("Unable to load series list %s\n", err)
-    }
-    m.SeriesList = s
+	s, err := util.ReadSeriesList(m.FilePath)
+	if err != nil {
+		fmt.Printf("Unable to load series list %s\n", err)
+	}
+	m.SeriesList = s
 
-    for i := range s {
-        if m.FilePath == s[i] {
-            m.SeriesIndex = i
-        }
-    }
-    m.SelectedPage = m.CalcVersoPage()
+	for i := range s {
+		if m.FilePath == s[i] {
+			m.SeriesIndex = i
+		}
+	}
+	m.SelectedPage = m.CalcVersoPage()
 }
 
 func (m *Model) LoadCbxFile() {
-    td, err := util.CreateTmpDir()
-    if err != nil {
-        fmt.Printf("Unable to create tmp dir %s\n", err)
-        return
-    }
-    m.TmpDir = td
+	td, err := util.CreateTmpDir()
+	if err != nil {
+		fmt.Printf("Unable to create tmp dir %s\n", err)
+		return
+	}
+	m.TmpDir = td
 
-    ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
-    if err != nil {
-        fmt.Printf("Unable to load cbx file %s\n", err)
+	ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
+	if err != nil {
+		fmt.Printf("Unable to load cbx file %s\n", err)
+	}
+	m.ImgPaths = ip
+	m.NewPages()
+	m.CurrentSpread = 0
+	m.SelectedPage = 0
+	m.joinAll()
+    lo := m.loadLayout(m.Hash)
+    if lo != nil {
+        util.Log("Applying layout\n")
+	    m.applyLayout(lo)
     }
-    m.ImgPaths = ip
-    m.NewPages()
-    m.NewLeaves()
-    m.CurrentLeaf = 0
-    m.SelectedPage = 0
-    m.RefreshPages()
+	m.NewSpreads()
 
-    m.SendMessage(util.Message{TypeName: "render"})
+	m.SendMessage(util.Message{TypeName: "render"})
 }
 
 func (m *Model) CloseCbxFile() {
-    os.RemoveAll(m.TmpDir)
-    m.ImgPaths = nil
-    m.Pages = nil
-    m.Leaves = nil
-    m.CurrentLeaf = 0
-    m.SelectedPage = 0
-    m.Bookmarks = nil
-    m.SeriesList = nil
-    m.SeriesIndex = 0
+    m.StoreLayout()
+	os.RemoveAll(m.TmpDir)
+	m.ImgPaths = nil
+	m.Pages = nil
+	m.Spreads = nil
+	m.CurrentSpread = 0
+	m.SelectedPage = 0
+	m.Bookmarks = nil
+	m.SeriesList = nil
+	m.SeriesIndex = 0
 }
 
-// Uses leaves to determine which pages to load or unload
+// Walk the layout and load/unload pages as needed
 func (m *Model) RefreshPages() {
-    if m.LeafMode != LONG_STRIP {
-        // load the current leaf
-        leaf := m.Leaves[m.CurrentLeaf]
-        for i := range leaf.Pages {
-            if !leaf.Pages[i].Loaded {
-                leaf.Pages[i].Load()
-            }
-        }
+	if m.LayoutMode != LONG_STRIP {
+		// load the current spread
+		spread := m.Spreads[m.CurrentSpread]
+		for i := range spread.Pages {
+			if !spread.Pages[i].Loaded {
+				util.Log("load\n")
+				spread.Pages[i].Load()
+			}
+		}
 
-        // buffer nearby leaves
-        start := int(math.Max(0, float64(m.CurrentLeaf-(MAX_LOAD/2))))
-        end := int(math.Min(float64(m.CurrentLeaf+(MAX_LOAD/2)), float64(len(m.Leaves))))
-        for j := start; j < end; j++  {
-            leaf = m.Leaves[j]
-            for i := range leaf.Pages {
-                if !leaf.Pages[i].Loaded {
-                    leaf.Pages[i].Load()
-                }
-            }
-        }
+		// buffer nearby spreads
+		start := int(math.Max(0, float64(m.CurrentSpread-(MAX_LOAD/2))))
+		end := int(math.Min(float64(m.CurrentSpread+(MAX_LOAD/2)), float64(len(m.Spreads))))
+		for i := start; i < end; i++ {
+			spread = m.Spreads[i]
+			for j := range spread.Pages {
+				if !spread.Pages[j].Loaded {
+					util.Log("load\n")
+					spread.Pages[j].Load()
+				}
+			}
+		}
 
-        // remove distant leaves
-        for j := range m.Leaves {
-            if j < start || j > end {
-                leaf := m.Leaves[j]
-                for i := range leaf.Pages {
-                    if leaf.Pages[i].Loaded {
-                        //leave image metadata alone
-                        util.Log("Unload pg %d\n", j);
-                        leaf.Pages[i].Image = nil
-                        leaf.Pages[i].Loaded = false
-                    }
-                }
-            }
-        }
+		// remove distant spreads
+		for i := range m.Spreads {
+			if i < start || i > end {
+				spread := m.Spreads[i]
+				for j := range spread.Pages {
+					if spread.Pages[j].Loaded {
+						util.Log("unload\n")
+						spread.Pages[j].Image = nil
+						spread.Pages[j].Loaded = false
+					}
+				}
+			}
+		}
 
-        if util.DEBUG {
-            m.checkLeaves()
-        }
-    } else {
-        // load all pages
-        for i := range m.Pages {
-            m.Pages[i].Load()
-        }
-    }
+		if util.DEBUG {
+			m.checkSpreads()
+			m.printLoaded()
+		}
+	} else {
+		// load all pages
+		for i := range m.Pages {
+			m.Pages[i].Load()
+		}
+	}
 }
 
-// for the current leaf find the "lesser" or
+// For the current spread find the "lesser" or
 // verso page number
 func (m *Model) CalcVersoPage() int {
-    r := 0
-    if(m.LeafMode == ONE_PAGE) {
-        r = m.CurrentLeaf
-    } else if m.LeafMode == TWO_PAGE {
-        if m.Leaves == nil {
-            return 0
-        }
-        for i := 0; i < m.CurrentLeaf; i++ {
-            leaf := m.Leaves[i]
-            r += len(leaf.Pages)
-        }
-    } else {
-        r = m.CurrentLeaf
-    }
-    return r
+	r := 0
+	if m.LayoutMode == ONE_PAGE {
+		r = m.CurrentSpread
+	} else if m.LayoutMode == TWO_PAGE {
+		if m.Spreads == nil {
+			return 0
+		}
+
+		for i := 0; i < m.CurrentSpread; i++ {
+			spread := m.Spreads[i]
+			r += len(spread.Pages)
+		}
+	} else {
+		r = m.CurrentSpread
+	}
+
+	return r
 }
 
-// page index to leaf index
-func (m *Model) PageToLeaf(n int) int {
-    if m.Leaves == nil {
-        return 0
-    } else if m.LeafMode == TWO_PAGE {
-        var p = 0
-        for i := range m.Leaves {
-            leaf := m.Leaves[i]
-            p += len(leaf.Pages)
-            if p > n {
-                return i
-            }
-        }
-    }
-    return n;
+// page index to spread index
+func (m *Model) PageToSpread(n int) int {
+	if m.Spreads == nil {
+		return 0
+	} else if m.LayoutMode == TWO_PAGE {
+		var p = 0
+		for i := range m.Spreads {
+			spread := m.Spreads[i]
+			p += len(spread.Pages)
+			if p > n {
+				return i
+			}
+		}
+	}
+	return n
 }
 
-func (m *Model) checkLeaves() {
-    c := 0
-    for x := range m.Pages {
-        if !m.Pages[x].Loaded {
-            if m.Pages[x].Image != nil {
-                fmt.Printf("Page %d shouldn't be loaded\n", x)
-                m.Pages[x].Image = nil
-            }
-        } else {
-            c++
-        }
-    }
+func (m *Model) joinAll() {
+	for i := range m.Pages {
+		p := m.Pages[i]
+		if p.Width >= p.Height {
+			p.Orientation = LANDSCAPE
+		}
+        m.Pages[i] = p
+	}
 }
+
+func (m *Model) applyLayout(layout *Layout) {
+    m.LayoutMode = layout.Mode
+	for i := range layout.Pages {
+		p := layout.Pages[i]
+		mp := m.Pages[i]
+        mp.Orientation = p.Orientation
+        mp.Hidden = p.Hidden
+        m.Pages[i] = mp
+	}
+}
+
+func (m *Model) StoreLayout() error {
+	layout := Layout{
+		FormatVersion: "0.1",
+	}
+	c := ComicData{}
+	c.Hash = m.Hash
+	c.FilePath = m.FilePath
+	layout.Comic = c
+    layout.Mode = m.LayoutMode
+    layout.Pages = m.Pages
+
+	data, err := json.Marshal(layout)
+	if err != nil {
+		return err
+	}
+
+	err = util.WriteLayout(m.Hash, string(data))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Model) checkSpreads() {
+	c := 0
+	for x := range m.Pages {
+		if !m.Pages[x].Loaded {
+			if m.Pages[x].Image != nil {
+				fmt.Printf("Page %d shouldn't be loaded\n", x)
+				m.Pages[x].Image = nil
+			}
+		} else {
+			c++
+		}
+	}
+}
+
+func (m *Model) printLoaded() {
+	var buf string
+	for i := range m.Pages {
+		if !m.Pages[i].Loaded {
+			buf += "0"
+		} else {
+			buf += "1"
+		}
+	}
+	fmt.Printf("%s\n", buf)
+}
+
 

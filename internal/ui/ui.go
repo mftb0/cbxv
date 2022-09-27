@@ -155,7 +155,7 @@ func (u *UI) initKBHandler(m *model.Model) {
         } else if keyVal == gdk.KEY_3 {
             u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
         } else if keyVal == gdk.KEY_grave {
-            u.sendMessage(util.Message{TypeName: "toggleReadMode"})
+            u.sendMessage(util.Message{TypeName: "toggleDirection"})
         } else if keyVal == gdk.KEY_f {
             if m.Fullscreen {
                 u.mainWindow.Unfullscreen()
@@ -224,20 +224,20 @@ func (u *UI) initRenderer(m *model.Model) {
         cr.SetSourceRGB(0,0,0)
         cr.Rectangle(0,0,float64(u.canvas.GetAllocatedWidth()), float64(u.canvas.GetAllocatedHeight()))
         cr.Fill()
-        if m.Leaves == nil {
+        if m.Spreads == nil {
             return
         }
 
-        leaf := m.Leaves[m.CurrentLeaf]
-        if(m.LeafMode == model.TWO_PAGE) {
-            lo := newTwoPageSpread(m, canvas, cr, leaf)
-            renderTwoPageSpread(lo)
-        } else if m.LeafMode == model.ONE_PAGE {
-            lo := newOnePageSpread(canvas, cr, leaf.Pages[0])
-            renderOnePageSpread(lo)
+        spread := m.Spreads[m.CurrentSpread]
+        if(m.LayoutMode == model.TWO_PAGE) {
+            s := newTwoPageSpread(m, canvas, cr, spread)
+            renderTwoPageSpread(s)
+        } else if m.LayoutMode == model.ONE_PAGE {
+            s := newOnePageSpread(canvas, cr, spread.Pages[0])
+            renderOnePageSpread(s)
         } else {
-            lo := newLongStripSpread(canvas, cr, leaf)
-            renderLongStripSpread(m, u, lo)
+            s := newLongStripSpread(canvas, cr, spread)
+            renderLongStripSpread(m, u, s)
         }
         w := u.mainWindow.GetAllocatedWidth() - 40
         u.hdrControl.container.SetSizeRequest(w, 8)
@@ -307,22 +307,22 @@ type TwoPageSpread struct {
     rightPage *model.Page
 }
 
-// Create a two pg spread accounting for readmode
-func newTwoPageSpread(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *TwoPageSpread {
+// Create a two pg spread accounting for direction
+func newTwoPageSpread(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context, spread *model.Spread) *TwoPageSpread {
     s := &TwoPageSpread{}
     s.canvas = canvas
     s.cr = cr
-    if m.ReadMode == model.LTR {
-        s.leftPage = leaf.Pages[0]
-        if(len(leaf.Pages) > 1) {
-            s.rightPage = leaf.Pages[1]
+    if m.Direction == model.LTR {
+        s.leftPage = spread.Pages[0]
+        if(len(spread.Pages) > 1) {
+            s.rightPage = spread.Pages[1]
         }
     } else {
-        if(len(leaf.Pages) > 1) {
-            s.leftPage = leaf.Pages[1]
-            s.rightPage = leaf.Pages[0]
+        if(len(spread.Pages) > 1) {
+            s.leftPage = spread.Pages[1]
+            s.rightPage = spread.Pages[0]
         } else {
-            s.leftPage = leaf.Pages[0]
+            s.leftPage = spread.Pages[0]
         }
     }
 
@@ -335,11 +335,11 @@ type LongStripSpread struct {
     pages []*model.Page
 }
 
-func newLongStripSpread(canvas *gtk.DrawingArea, cr *cairo.Context, leaf *model.Leaf) *LongStripSpread {
+func newLongStripSpread(canvas *gtk.DrawingArea, cr *cairo.Context, spread *model.Spread) *LongStripSpread {
     s := &LongStripSpread{}
     s.canvas = canvas
     s.cr = cr
-    s.pages = leaf.Pages
+    s.pages = spread.Pages
     return s
 }
 
@@ -436,7 +436,7 @@ func renderOnePageSpread(s *OnePageSpread) error {
     return nil
 }
 
-// readmode (rtl or ltr) has already been accounted for
+// direction (rtl or ltr) has already been accounted for
 // so left and right here are literal
 func renderTwoPageSpread(s *TwoPageSpread) error {
     if s.leftPage.Loaded == false {
