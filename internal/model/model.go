@@ -194,9 +194,6 @@ func (p *Page) LoadMeta() {
 	}
 	p.Width = w
 	p.Height = h
-	if p.Width >= p.Height {
-		p.Orientation = LANDSCAPE
-	}
 	p.Loaded = false
 }
 
