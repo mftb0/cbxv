@@ -106,8 +106,11 @@ func NewCommands(m *model.Model) *CommandList {
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
         m.CurrentSpread = m.PageToSpread(m.SelectedPage)
-        m.RefreshPages()
         m.NewSpreads()
+        if m.CurrentSpread > len(m.Spreads) - 1 {
+            m.CurrentSpread = len(m.Spreads) - 1
+        }
+        m.RefreshPages()
     }
 
     cmd = Command {
@@ -117,8 +120,11 @@ func NewCommands(m *model.Model) *CommandList {
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
         m.CurrentSpread = m.PageToSpread(m.SelectedPage)
-        m.RefreshPages()
         m.NewSpreads()
+        if m.CurrentSpread > len(m.Spreads) - 1 {
+            m.CurrentSpread = len(m.Spreads) - 1
+        }
+        m.RefreshPages()
     }
 
     cmd = Command {
@@ -129,8 +135,8 @@ func NewCommands(m *model.Model) *CommandList {
         m.LayoutMode = model.LONG_STRIP
         m.CurrentSpread = 0
         m.SelectedPage = m.CalcVersoPage()
-        m.RefreshPages()
         m.NewSpreads()
+        m.RefreshPages()
     }
 
     cmd = Command {

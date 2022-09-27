@@ -450,7 +450,6 @@ func (m *Model) RefreshPages() {
 		}
 
 		if util.DEBUG {
-			m.checkSpreads()
 			m.printLoaded()
 		}
 	} else {
@@ -564,7 +563,11 @@ func (m *Model) printLoaded() {
 		if !m.Pages[i].Loaded {
 			buf += "0"
 		} else {
-			buf += "1"
+            if i == m.SelectedPage {
+                buf += "_"
+            } else {
+    			buf += "1"
+            }
 		}
 	}
 	fmt.Printf("%s\n", buf)

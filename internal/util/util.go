@@ -29,7 +29,7 @@ const CBXS_DN string = "cbxv"
 const BOOKMARKS_DN string = "bookmarks"
 const LAYOUTS_DN string = "layouts"
 const TMP_CBXS_PREFIX string = "cbxv-"
-const DEBUG = true
+const DEBUG = false
 
 const HELP_TXT = `<tt>
 Command             Key         Mouse
