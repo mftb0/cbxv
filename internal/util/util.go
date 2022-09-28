@@ -40,6 +40,7 @@ rightPage           d           Click right (side of) page
 leftPage            a           Click left (side of) page
 firstPage           w           NA
 lastPage            s           NA
+lastBookmark        L           NA
 help                ?           Click Question Mark Button
 Direction           Back Tick   Click Direction Button
 1-Page Layout       1           NA

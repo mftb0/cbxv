@@ -198,7 +198,7 @@ func (u *UI) initKBHandler(m *model.Model) {
             u.initCanvas(m)
         } else if keyVal == gdk.KEY_space {
             u.sendMessage(util.Message{TypeName: "toggleBookmark"})
-        } else if keyVal == gdk.KEY_l {
+        } else if keyVal == gdk.KEY_L {
             u.sendMessage(util.Message{TypeName: "lastBookmark"})
         } else if keyVal == gdk.KEY_question {
             dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow, 
