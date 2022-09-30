@@ -22,14 +22,15 @@ type Model struct {
 	Bookmarks       *BookmarkList
 	ImgPaths        []string
 	Pages           []Page
-	SelectedPage    int
+	PageIndex       int
 	Spreads         []*Spread
-	CurrentSpread   int
+	SpreadIndex     int
 	Direction       Direction
 	LayoutMode      LayoutMode
 	SeriesList      []string
 	SeriesIndex     int
 	BrowseDirectory string
+    HiddenPages     bool
 	Fullscreen      bool
 	Loading         bool
 	ProgramName     string
@@ -229,6 +230,7 @@ const (
 // see at a given time
 type Spread struct {
 	Pages []*Page
+    PageIdxs []int
 }
 
 // Creates spread slice based on pg slice and layout mode
@@ -240,7 +242,12 @@ func (m *Model) NewSpreads() {
 		for i := range pages {
 			spread := &Spread{}
 			p := &pages[i]
+            if p.Hidden {
+                m.HiddenPages = true
+                continue
+            }
 			spread.Pages = append(spread.Pages, p)
+            spread.PageIdxs = append(spread.PageIdxs, i)
 			spreads = append(spreads, spread)
 		}
 	} else if m.LayoutMode == TWO_PAGE {
@@ -248,7 +255,12 @@ func (m *Model) NewSpreads() {
 			// create spread add a page
 			spread := &Spread{}
 			p := &pages[i]
+            if p.Hidden {
+                m.HiddenPages = true
+                continue
+            }
 			spread.Pages = append(spread.Pages, p)
+            spread.PageIdxs = append(spread.PageIdxs, i)
 
 			// if pg is landscape, spread done
 			if p.Orientation == LANDSCAPE {
@@ -263,19 +275,31 @@ func (m *Model) NewSpreads() {
 
 			// on to the next page
 			i++
-			p = &pages[i]
+
+            // skip hidden
+            for ; i < len(pages); i++ {
+			    p = &pages[i]
+                if p.Hidden {
+                    m.HiddenPages = true
+                    continue
+                } else {
+                    break;
+                }
+            }
 
 			// if pg is landscape, make a new spread, spread done
 			if p.Orientation == LANDSCAPE {
 				spreads = append(spreads, spread)
 				spread = &Spread{}
 				spread.Pages = append(spread.Pages, p)
+                spread.PageIdxs = append(spread.PageIdxs, i)
 				spreads = append(spreads, spread)
 				continue
 			}
 
 			// No special cases, so spread with 2 pages
 			spread.Pages = append(spread.Pages, p)
+            spread.PageIdxs = append(spread.PageIdxs, i)
 			spreads = append(spreads, spread)
 		}
 	} else {
@@ -283,12 +307,25 @@ func (m *Model) NewSpreads() {
 		spread := &Spread{}
 		for i := range pages {
 			p := &pages[i]
+            if p.Hidden {
+                m.HiddenPages = true
+                continue
+            }
 			spread.Pages = append(spread.Pages, p)
+            spread.PageIdxs = append(spread.PageIdxs, i)
 		}
 		spreads = append(spreads, spread)
 	}
 
 	m.Spreads = spreads
+}
+
+func (s *Spread) VersoPage() int {
+    return s.PageIdxs[0]
+}
+
+func (s *Spread) RectoPage() int {
+    return s.PageIdxs[1]
 }
 
 // Layout mode determines the max pages per spread
@@ -364,7 +401,7 @@ func (m *Model) LoadSeriesList() {
 			m.SeriesIndex = i
 		}
 	}
-	m.SelectedPage = m.CalcVersoPage()
+	m.PageIndex = m.CalcVersoPage()
 }
 
 func (m *Model) LoadCbxFile() {
@@ -381,8 +418,8 @@ func (m *Model) LoadCbxFile() {
 	}
 	m.ImgPaths = ip
 	m.NewPages()
-	m.CurrentSpread = 0
-	m.SelectedPage = 0
+	m.SpreadIndex = 0
+	m.PageIndex = 0
 	m.joinAll()
     lo := m.loadLayout(m.Hash)
     if lo != nil {
@@ -400,8 +437,8 @@ func (m *Model) CloseCbxFile() {
 	m.ImgPaths = nil
 	m.Pages = nil
 	m.Spreads = nil
-	m.CurrentSpread = 0
-	m.SelectedPage = 0
+	m.SpreadIndex = 0
+	m.PageIndex = 0
 	m.Bookmarks = nil
 	m.SeriesList = nil
 	m.SeriesIndex = 0
@@ -410,8 +447,8 @@ func (m *Model) CloseCbxFile() {
 // Walk the layout and load/unload pages as needed
 func (m *Model) RefreshPages() {
 	if m.LayoutMode != LONG_STRIP {
-		start := int(math.Max(0, float64(m.CurrentSpread-(MAX_LOAD/2)+1)))
-		end := int(math.Min(float64(m.CurrentSpread+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
+		start := int(math.Max(0, float64(m.SpreadIndex-(MAX_LOAD/2)+1)))
+		end := int(math.Min(float64(m.SpreadIndex+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
 
 		// iterate over all spreads 
         // load/unload pgs as needed
@@ -449,18 +486,18 @@ func (m *Model) RefreshPages() {
 func (m *Model) CalcVersoPage() int {
 	r := 0
 	if m.LayoutMode == ONE_PAGE {
-		r = m.CurrentSpread
+		r = m.SpreadIndex
 	} else if m.LayoutMode == TWO_PAGE {
 		if m.Spreads == nil {
 			return 0
 		}
 
-		for i := 0; i < m.CurrentSpread; i++ {
+		for i := 0; i < m.SpreadIndex; i++ {
 			spread := m.Spreads[i]
 			r += len(spread.Pages)
 		}
 	} else {
-		r = m.CurrentSpread
+		r = m.SpreadIndex
 	}
 
 	return r
@@ -479,6 +516,10 @@ func (m *Model) PageToSpread(n int) int {
 				return i
 			}
 		}
+        // Couldn't find out of bounds
+        if n > len(m.Spreads) - 1 {
+            n = len(m.Spreads) - 1
+        }
 	}
 	return n
 }
@@ -547,7 +588,7 @@ func (m *Model) printLoaded() {
 		if !m.Pages[i].Loaded {
 			buf += "0"
 		} else {
-            if i == m.SelectedPage {
+            if i == m.PageIndex {
                 buf += "_"
             } else {
     			buf += "1"

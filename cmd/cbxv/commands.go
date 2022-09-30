@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+    "strconv"
 	"time"
 
 	"example.com/cbxv-gotk3/internal/model"
@@ -26,9 +27,9 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Next Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.CurrentSpread < len(m.Spreads) - 1 {
-            m.CurrentSpread++
-            m.SelectedPage = m.CalcVersoPage()
+        if m.SpreadIndex < len(m.Spreads) - 1 {
+            m.SpreadIndex++
+            m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
             go m.RefreshPages()
         } else {
             cmds.Commands["nextFile"]("")
@@ -40,9 +41,9 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Previous Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        if m.CurrentSpread > 0 {
-            m.CurrentSpread--
-            m.SelectedPage = m.CalcVersoPage()
+        if m.SpreadIndex > 0 {
+            m.SpreadIndex--
+            m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
             go m.RefreshPages()
         } else {
             cmds.Commands["previousFile"]("")
@@ -54,8 +55,8 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "First Page",
     }
     cmds.Commands [cmd.Name] = func(data string) {
-        m.CurrentSpread = 0
-        m.SelectedPage = m.CalcVersoPage()
+        m.SpreadIndex = 0
+        m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
@@ -64,8 +65,8 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Last Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        m.CurrentSpread = (len(m.Spreads) - 1)
-        m.SelectedPage = m.CalcVersoPage()
+        m.SpreadIndex = (len(m.Spreads) - 1)
+        m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
@@ -78,8 +79,8 @@ func NewCommands(m *model.Model) *CommandList {
         if blen > -1 {
             bkmk := m.Bookmarks.Model.Bookmarks[blen]
             if bkmk.PageIndex > 0 && bkmk.PageIndex < len(m.Pages) {
-                m.CurrentSpread = m.PageToSpread(bkmk.PageIndex)
-                m.SelectedPage = bkmk.PageIndex 
+                m.SpreadIndex = m.PageToSpread(bkmk.PageIndex)
+                m.PageIndex = bkmk.PageIndex 
             }
             m.RefreshPages()
         }
@@ -91,10 +92,10 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
-            if m.SelectedPage == m.CalcVersoPage() {
-                m.SelectedPage++
+            if m.PageIndex == m.Spreads[m.SpreadIndex].VersoPage() {
+                m.PageIndex++
             } else {
-                m.SelectedPage = m.CalcVersoPage()
+                m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
             }
         }
     }
@@ -105,10 +106,10 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
-        m.CurrentSpread = m.PageToSpread(m.SelectedPage)
+        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
-        if m.CurrentSpread > len(m.Spreads) - 1 {
-            m.CurrentSpread = len(m.Spreads) - 1
+        if m.SpreadIndex > len(m.Spreads) - 1 {
+            m.SpreadIndex = len(m.Spreads) - 1
         }
         m.RefreshPages()
     }
@@ -119,10 +120,10 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
-        m.CurrentSpread = m.PageToSpread(m.SelectedPage)
+        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
-        if m.CurrentSpread > len(m.Spreads) - 1 {
-            m.CurrentSpread = len(m.Spreads) - 1
+        if m.SpreadIndex > len(m.Spreads) - 1 {
+            m.SpreadIndex = len(m.Spreads) - 1
         }
         m.RefreshPages()
     }
@@ -133,8 +134,8 @@ func NewCommands(m *model.Model) *CommandList {
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.LONG_STRIP
-        m.CurrentSpread = 0
-        m.SelectedPage = m.CalcVersoPage()
+        m.SpreadIndex = 0
+        m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.NewSpreads()
         m.RefreshPages()
     }
@@ -188,7 +189,7 @@ func NewCommands(m *model.Model) *CommandList {
         go m.LoadCbxFile()
         go m.LoadSeriesList()
 
-        m.SelectedPage = m.CalcVersoPage()
+        m.PageIndex = 0
     }
 
     cmd = Command {
@@ -230,7 +231,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Export File",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        srcPath := m.Pages[m.SelectedPage].FilePath
+        srcPath := m.Pages[m.PageIndex].FilePath
         dstPath := data
         m.BrowseDirectory = filepath.Dir(dstPath)
         util.ExportFile(srcPath, dstPath)
@@ -241,7 +242,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Toggle Bookmark",
     }
     cmds.Commands[cmd.Name] = func(data string) {
-        p := m.SelectedPage
+        p := m.PageIndex
         b := m.Bookmarks.Find(p)
         if b != nil {
             m.Bookmarks.Remove(*b)
@@ -252,13 +253,13 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command {
-        Name: "toggleSpread",
-        DisplayName: "toggleSpread",
+        Name: "toggleJoin",
+        DisplayName: "toggleJoin",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
-            spg := m.SelectedPage
-            p := &m.Pages[spg]
+            pi := m.PageIndex
+            p := &m.Pages[pi]
             if p.Orientation == model.PORTRAIT {
                 p.Orientation = model.LANDSCAPE
             } else {
@@ -267,14 +268,51 @@ func NewCommands(m *model.Model) *CommandList {
             m.RefreshPages()
             m.NewSpreads()
             m.StoreLayout()
-            m.CurrentSpread = m.PageToSpread(spg)
-            vpg := m.CalcVersoPage() 
-            if m.SelectedPage == vpg + 1 {
-                m.SelectedPage = vpg + 1
-            } else {
-                m.SelectedPage = m.CalcVersoPage()
-            }
+            m.SpreadIndex = m.PageToSpread(pi)
+            m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage() 
         }
+    }
+
+    cmd = Command {
+        Name: "hidePage",
+        DisplayName: "Hide Page",
+    }
+    cmds.Commands[cmd.Name] = func(data string) {
+        pi := m.PageIndex
+        p := &m.Pages[pi]
+        p.Hidden = true
+        m.RefreshPages()
+        m.NewSpreads()
+        m.StoreLayout()
+        m.SpreadIndex = m.PageToSpread(pi)
+    }
+
+    cmd = Command {
+        Name: "showPage",
+        DisplayName: "Show Page",
+    }
+    cmds.Commands[cmd.Name] = func(data string) {
+        i, err := strconv.Atoi(data)
+        if err != nil {
+            return
+        }
+
+        if i < 0 || i > len(m.Pages) - 1 {
+            return 
+        }
+
+        pi := m.PageIndex
+
+        if i < pi {
+            pi++
+        }
+
+        p := &m.Pages[i]
+        p.Hidden = false
+        m.RefreshPages()
+        m.NewSpreads()
+        m.StoreLayout()
+        m.SpreadIndex = m.PageToSpread(pi)
     }
 
     cmd = Command {

@@ -97,7 +97,6 @@ func NewHdrControl(m *model.Model, u *UI) *HdrControl {
 }
 
 func (c *HdrControl) Render(m *model.Model) {
-    vpn := m.CalcVersoPage()
     css, _ := c.leftBookmark.GetStyleContext()
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
@@ -117,11 +116,11 @@ func (c *HdrControl) Render(m *model.Model) {
     } else {
         lbkmkcss, _ := c.leftBookmark.GetStyleContext()
         rbkmkcss, _ := c.rightBookmark.GetStyleContext()
-        spread := m.Spreads[m.CurrentSpread]
+        spread := m.Spreads[m.SpreadIndex]
         title := strings.TrimSuffix(filepath.Base(m.FilePath), filepath.Ext(m.FilePath))
 
         if m.Direction == model.RTL {
-            b := m.Bookmarks.Find(vpn)
+            b := m.Bookmarks.Find(spread.VersoPage())
             if b != nil {
                 if len(spread.Pages) > 1 {
                     rbkmkcss.AddClass("marked")
@@ -132,13 +131,13 @@ func (c *HdrControl) Render(m *model.Model) {
             } 
 
             if len(spread.Pages) > 1 {
-                b = m.Bookmarks.Find(vpn+1)
+                b = m.Bookmarks.Find(spread.RectoPage())
                 if b != nil {
                     lbkmkcss.AddClass("marked")
                 }
             }
         } else {
-            b := m.Bookmarks.Find(vpn)
+            b := m.Bookmarks.Find(spread.VersoPage())
             if b != nil {
                 if len(spread.Pages) > 1 {
                     lbkmkcss.AddClass("marked")
@@ -149,7 +148,7 @@ func (c *HdrControl) Render(m *model.Model) {
             } 
 
             if len(spread.Pages) > 1 {
-                b = m.Bookmarks.Find(vpn+1)
+                b = m.Bookmarks.Find(spread.RectoPage())
                 if b != nil {
                     rbkmkcss.AddClass("marked")
                 }

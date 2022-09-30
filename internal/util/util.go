@@ -46,7 +46,8 @@ Direction           Back Tick   Click Direction Button
 1-Page Layout       1           NA
 2-Page Layout       2           NA
 stripLayout         3           NA
-toggleSpread        r           Click Spread Toggle
+hidePage            -           NA
+toggleJoin          r           Click Join Toggle
 toggleFullscreen    f           Click Fullscreen Toggle
 Export Page         e           NA
 

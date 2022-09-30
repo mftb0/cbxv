@@ -3,9 +3,10 @@ package ui
 import (
 	"fmt"
 
+	"example.com/cbxv-gotk3/internal/model"
+	"example.com/cbxv-gotk3/internal/util"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
-    "example.com/cbxv-gotk3/internal/model"
-    "example.com/cbxv-gotk3/internal/util"
 )
 
 const (
@@ -21,20 +22,24 @@ const (
 )
 
 type NavControl struct {
+    ui *UI
     container *gtk.Grid
     navBar *gtk.ProgressBar
     rightPageNum *gtk.Label
     progName *gtk.Label
     progVersion *gtk.Label
-    spreadControl *gtk.Button
     DirectionControl *gtk.Button
-    displayModeControl *gtk.Label
+    layoutModeControl *gtk.Label
+    spreadControl *gtk.Button
+    hiddenPageControl *gtk.ComboBoxText
+    hpcSignalHandle *glib.SignalHandle
     fullscreenControl *gtk.Button
     leftPageNum *gtk.Label
 }
 
 func NewNavControl(m *model.Model, u *UI) *NavControl {
     nc := &NavControl{}
+    nc.ui = u
 
 	nbc, err := gtk.ProgressBarNew()
 	if err != nil {
@@ -56,8 +61,16 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     pv.SetHExpand(true)
 
 	dc := util.CreateButton(DIR_LTR_ICN, "nav-btn", util.S("Direction Toggle"))
-    dmc := util.CreateLabel("Layout", "nav-btn", util.S("Layout"))
-	sc := util.CreateButton("Spread", "nav-btn", util.S("Spread Toggle"))
+    lmc := util.CreateLabel("Layout", "nav-btn", util.S("Layout"))
+	jc := util.CreateButton("Join", "nav-btn", util.S("Join Toggle"))
+
+	hpc, err := gtk.ComboBoxTextNew()
+	if err != nil {
+		fmt.Printf("Error creating control %s\n", err)
+	}
+	css, _ = hpc.GetStyleContext()
+	css.AddClass("nav-btn")
+
 	fsc := util.CreateButton(FS_MAX_ICN, "nav-btn", util.S("Fullscreen Toggle"))
 
     rpn := util.CreateLabel("1", "nav-btn", nil)
@@ -73,8 +86,8 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 	css, _ = container.GetStyleContext()
 	css.AddClass("nav-ctrl")
 
-    sc.Connect("clicked", func() { 
-        u.sendMessage(util.Message{TypeName: "spread"})
+    jc.Connect("clicked", func() { 
+        u.sendMessage(util.Message{TypeName: "toggleJoin"})
     })
 
     dc.Connect("clicked", func() { 
@@ -95,10 +108,11 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     container.Attach(pn, 2, 1, 1, 1)
     container.Attach(pv, 3, 1, 1, 1)
     container.Attach(dc, 4, 1, 1, 1)
-    container.Attach(dmc, 5, 1, 1, 1)
-    container.Attach(sc, 6, 1, 1, 1)
-    container.Attach(fsc, 7, 1, 1, 1)
-    container.Attach(rpn, 8, 1, 1, 1)
+    container.Attach(lmc, 5, 1, 1, 1)
+    container.Attach(jc, 6, 1, 1, 1)
+    container.Attach(hpc, 7, 1, 1, 1)
+    container.Attach(fsc, 8, 1, 1, 1)
+    container.Attach(rpn, 9, 1, 1, 1)
 	container.SetSizeRequest(1000, 8)
     nc.container = container
     nc.navBar = nbc
@@ -106,8 +120,9 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
     nc.progName = pn
     nc.progVersion = pv
     nc.DirectionControl = dc
-    nc.displayModeControl = dmc
-    nc.spreadControl = sc
+    nc.layoutModeControl = lmc
+    nc.spreadControl = jc
+    nc.hiddenPageControl = hpc
     nc.fullscreenControl = fsc
     nc.rightPageNum = rpn
     
@@ -126,11 +141,11 @@ func (c *NavControl) Render(m *model.Model) {
         }
 
         if m.LayoutMode == model.ONE_PAGE {
-            c.displayModeControl.SetText("1-Page")
+            c.layoutModeControl.SetText("1-Page")
         } else if m.LayoutMode == model.TWO_PAGE {
-            c.displayModeControl.SetText("2-Page")
+            c.layoutModeControl.SetText("2-Page")
         } else {
-            c.displayModeControl.SetText("Strip")
+            c.layoutModeControl.SetText("Strip")
         }
 
         if m.Fullscreen {
@@ -143,9 +158,8 @@ func (c *NavControl) Render(m *model.Model) {
 
         return 
     } else {
-        spread := m.Spreads[m.CurrentSpread]
-        vpn := m.CalcVersoPage()
-        np := len(m.ImgPaths)
+        spread := m.Spreads[m.SpreadIndex]
+        np := len(m.Spreads)
         c.leftPageNum.SetText("")
         c.rightPageNum.SetText("")
         lpncss, _ := c.leftPageNum.GetStyleContext()
@@ -160,51 +174,83 @@ func (c *NavControl) Render(m *model.Model) {
         if m.Direction == model.RTL {
             if np > 0 {
                 c.navBar.SetInverted(true)
-                c.navBar.SetFraction((float64(vpn)+float64(len(spread.Pages)))/float64(np))
+                c.navBar.SetFraction((float64(m.SpreadIndex)+1)/float64(np))
             }
 
             if len(spread.Pages) > 1 {
-                c.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
-                c.leftPageNum.SetText(fmt.Sprintf("%d", vpn+1))
-                if m.SelectedPage == vpn {
+                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
+                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.RectoPage()))
+                if m.PageIndex == spread.VersoPage() {
                     rpncss.AddClass("bordered")
-                } else if m.SelectedPage == vpn+1 {
+                } else if m.PageIndex == spread.RectoPage() {
                     lpncss.AddClass("bordered")
                 }
             } else {
                 rpncss.AddClass("transparent")
-                c.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
+                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
                 lpncss.AddClass("bordered")
             }
             c.DirectionControl.SetLabel(DIR_RTL_ICN)
         } else {
             if np > 0 {
                 c.navBar.SetInverted(false)
-                c.navBar.SetFraction((float64(vpn)+float64(len(spread.Pages)))/float64(np))
+                c.navBar.SetFraction((float64(m.SpreadIndex)+1)/float64(np))
             }
 
             if len(spread.Pages) > 1 {
-                c.leftPageNum.SetText(fmt.Sprintf("%d", vpn))
-                c.rightPageNum.SetText(fmt.Sprintf("%d", vpn+1))
-                if m.SelectedPage == vpn {
+                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
+                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.RectoPage()))
+                if m.PageIndex == spread.VersoPage() {
                     lpncss.AddClass("bordered")
-                } else if m.SelectedPage == vpn+1 {
+                } else if m.PageIndex == spread.RectoPage() {
                     rpncss.AddClass("bordered")
                 }
             } else {
                 lpncss.AddClass("transparent")
-                c.rightPageNum.SetText(fmt.Sprintf("%d", vpn))
+                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
                 rpncss.AddClass("bordered")
             }
             c.DirectionControl.SetLabel(DIR_LTR_ICN)
         }
 
         if m.LayoutMode == model.ONE_PAGE {
-            c.displayModeControl.SetText("1-Page")
+            c.layoutModeControl.SetText("1-Page")
         } else if m.LayoutMode == model.TWO_PAGE {
-            c.displayModeControl.SetText("2-Page")
+            c.layoutModeControl.SetText("2-Page")
         } else {
-            c.displayModeControl.SetText("Strip")
+            c.layoutModeControl.SetText("Strip")
+        }
+
+        // If there was a hpc signal handler clean it out
+        // and disconnect
+        if c.hpcSignalHandle != nil {
+            c.hiddenPageControl.HandlerDisconnect(*c.hpcSignalHandle)
+            c.hiddenPageControl.RemoveAll()
+        }
+
+        // If an hpc control is needed populate and
+        // hook it up
+        if m.HiddenPages == true {
+            for i := len(m.Pages)-1; i > -1; i-- {
+                p := m.Pages[i]
+                if p.Hidden {
+                    v := fmt.Sprintf("%d", i)
+                    id := fmt.Sprintf("Page %d", i)
+                    c.hiddenPageControl.Append(id, v)
+                    c.hiddenPageControl.SetActiveID(id)
+                }
+            }
+            c.hiddenPageControl.Append("hidden", "Hidden")
+            c.hiddenPageControl.SetActiveID("hidden")
+
+            hndl := c.hiddenPageControl.Connect("changed", func() {
+                v := c.hiddenPageControl.GetActiveText()
+                if v == "Hidden" {
+                    return
+                }
+                c.ui.sendMessage(util.Message{TypeName: "showPage", Data: v })
+            })
+            c.hpcSignalHandle = &hndl
         }
 
         if m.Fullscreen {
@@ -223,6 +269,4 @@ func (c *NavControl) Render(m *model.Model) {
         }
     }
 }
-
-
 

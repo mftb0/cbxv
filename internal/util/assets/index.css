@@ -31,6 +31,62 @@ button {
     font-size: 14px;
 }
 
+menuitem {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    padding: 3px 19px 3px 19px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+menuitem:hover {
+    background: #00ff00;
+    color: #000000;
+}
+
+menu {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+button.combo {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    margin: 0px;
+    border: none;
+    padding: 0px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+combobox {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    border:none;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 .msg-dlg {
     background-image:none;
     background-color:#000000;
