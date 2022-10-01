@@ -178,6 +178,7 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Open File",
     }
     cmds.Commands[cmd.Name] = func(data string) {
+        cmds.Commands["closeFile"]("")
         m.FilePath = data
         m.BrowseDirectory = filepath.Dir(data)
 
@@ -328,6 +329,11 @@ func NewCommands(m *model.Model) *CommandList {
         DisplayName: "Quit",
     }
     cmds.Commands[cmd.Name] = func(data string) {
+        // because of orchestration with gtk's 
+        // thread this no longer works at shutdown
+        // Mostly doesn't matter, but we do need
+        // to clean up the last tmpDir, moved to
+        // end of main
         cmds.Commands["closeFile"]("")
     }
 

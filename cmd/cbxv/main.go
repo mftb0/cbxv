@@ -54,6 +54,12 @@ func main() {
     }
 
     u.Run()
-    u.Dispose()
+
+    // At the end of all things the closeFile command
+    // can't work because we've orchestrated for it only
+    // to be run on the UI thread and the UI thread is dead so
+    // we have to close the last cbx file here, to get
+    // rid of any tmpDir
+    m.CloseCbxFile()
 }
 
