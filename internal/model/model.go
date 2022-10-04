@@ -434,6 +434,7 @@ func (m *Model) LoadCbxFile() {
 func (m *Model) CloseCbxFile() {
     m.StoreLayout()
 	os.RemoveAll(m.TmpDir)
+    m.Hash = ""
 	m.ImgPaths = nil
 	m.Pages = nil
 	m.Spreads = nil
