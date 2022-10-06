@@ -8,8 +8,6 @@ import (
 
 	_ "golang.org/x/image/colornames"
 
-	"github.com/gotk3/gotk3/cairo"
-	_ "github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -23,7 +21,7 @@ type StripView struct {
 	container   *gtk.Box
 	scrollbars  *gtk.ScrolledWindow
 	canvas      []*gtk.DrawingArea
-    rendered    bool
+	keyPressSignalHandle *glib.SignalHandle
 }
 
 func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
@@ -46,6 +44,22 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 }
 
 func (v *StripView) Connect(m *model.Model, u *UI) {
+	sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+		keyEvent := gdk.EventKeyNewFromEvent(event)
+		keyVal := keyEvent.KeyVal()
+		if keyVal == gdk.KEY_w {
+			v.sendMessage(util.Message{TypeName: "top"})
+		} else if keyVal == gdk.KEY_s {
+			v.sendMessage(util.Message{TypeName: "bottom"})
+		} else if keyVal == gdk.KEY_n {
+			v.sendMessage(util.Message{TypeName: "nextFile"})
+		} else if keyVal == gdk.KEY_p {
+			v.sendMessage(util.Message{TypeName: "previousFile"})
+		}
+
+	})
+	v.keyPressSignalHandle = &sigH
+
 	u.mainWindow.Add(v.scrollbars)
     v.container.ShowAll()
     v.scrollbars.ShowAll()
@@ -54,21 +68,23 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 }
 
 func (v *StripView) Disconnect(m *model.Model, u *UI) {
+	if v.keyPressSignalHandle != nil {
+		u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
+	}
 	u.mainWindow.Remove(v.scrollbars)
 }
 
 func (v *StripView) Render(m *model.Model) {
 	glib.IdleAdd(func() {
-		v.RenderHud(m)
+		v.renderHud(m)
 	    v.renderSpreads(m)
 	})
 }
 
-func (v *StripView) RenderHud(m *model.Model) {
+func (v *StripView) renderHud(m *model.Model) {
 }
 
 func (v *StripView) renderSpreads(m *model.Model) {
-    fmt.Printf("strip\n")
     if m.Spreads == nil {
         return
     }
@@ -98,20 +114,6 @@ func (v *StripView) renderSpreads(m *model.Model) {
     runtime.GC()
 }
 
-type LongStripSpread struct {
-	canvas *gtk.DrawingArea
-	cr     *cairo.Context
-	pages  []*model.Page
-}
-
-func newLongStripSpread(canvas *gtk.DrawingArea, cr *cairo.Context, spread *model.Spread) *LongStripSpread {
-	s := &LongStripSpread{}
-	s.canvas = canvas
-	s.cr = cr
-	s.pages = spread.Pages
-	return s
-}
-
 func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	cW := float64(w)
 	pW := float64(p.GetWidth())
@@ -128,12 +130,4 @@ func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 
 	return p, nil
 }
-
-func positionLongStripPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf) (x int) {
-	cW := canvas.GetAllocatedWidth()
-	pW := p.GetWidth()
-	x = (cW - pW) / 2
-	return x
-}
-
 

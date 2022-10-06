@@ -26,14 +26,14 @@ const (
 const TICK = 5000
 
 type PageView struct {
-	sendMessage      util.Messenger
-	hud              *gtk.Overlay
-	hudHidden        bool
-	hudKeepAlive     bool
-	canvas           *gtk.DrawingArea
-	drawSignalHandle *glib.SignalHandle
-	hdrControl       *HdrControl
-	navControl       *NavControl
+	sendMessage          util.Messenger
+	hud                  *gtk.Overlay
+	hudHidden            bool
+	hudKeepAlive         bool
+	canvas               *gtk.DrawingArea
+	keyPressSignalHandle *glib.SignalHandle
+	hdrControl           *HdrControl
+	navControl           *NavControl
 }
 
 func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
@@ -91,7 +91,7 @@ func (v *PageView) renderHud(m *model.Model) {
 
 func (v *PageView) Connect(m *model.Model, u *UI) {
 	u.mainWindow.Add(v.hud)
-    sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+	sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
 		if keyVal == gdk.KEY_d {
@@ -124,15 +124,15 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
 		v.hudHidden = false
 		v.hudKeepAlive = true
 	})
-    v.drawSignalHandle = &sigH
-    u.mainWindow.ShowAll()
+	v.keyPressSignalHandle = &sigH
+	u.mainWindow.ShowAll()
 }
 
 func (v *PageView) Disconnect(m *model.Model, u *UI) {
-    if v.drawSignalHandle != nil {
-        u.mainWindow.HandlerDisconnect(*v.drawSignalHandle)
-    }
-    u.mainWindow.Remove(v.hud)
+	if v.keyPressSignalHandle != nil {
+		u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
+	}
+	u.mainWindow.Remove(v.hud)
 }
 
 func (v *PageView) initRenderer(m *model.Model) {

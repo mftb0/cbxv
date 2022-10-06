@@ -89,10 +89,14 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.sendMessage(util.Message{TypeName: "quit"})
 			u.Quit()
 		} else if keyVal == gdk.KEY_1 {
+            u.View.Disconnect(m, u)
 			u.View = u.pageView
+            u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
 		} else if keyVal == gdk.KEY_2 {
+            u.View.Disconnect(m, u)
 			u.View = u.pageView
+            u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
 		} else if keyVal == gdk.KEY_3 {
 			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
