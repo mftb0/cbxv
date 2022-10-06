@@ -14,15 +14,16 @@ import (
 )
 
 type View interface {
-	Init(m *model.Model, u *UI)
+    Connect(m *model.Model, u *UI)
+    Disconnect(m *model.Model, u *UI)
 	Render(m *model.Model)
-	RenderHud(m *model.Model)
 }
 
 type UI struct {
 	sendMessage util.Messenger
 	mainWindow  *gtk.Window
 	pageView    View
+	stripView   View
 	View        View
 }
 
@@ -94,12 +95,13 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.View = u.pageView
 			u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
 		} else if keyVal == gdk.KEY_3 {
-			//u.View = u.stripView
-            //if u.StripView == nil {
-            //    u.pageView = NewPageView(m, u, messenger)
-            //    u.View = u.pageView
-            //}
 			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
+            if u.stripView == nil {
+                u.stripView = NewStripView(m, u, u.sendMessage)
+            }
+            u.View.Disconnect(m, u)
+			u.View = u.stripView
+            u.View.Connect(m, u)
 		} else if keyVal == gdk.KEY_f {
 			if m.Fullscreen {
 				u.mainWindow.Unfullscreen()
@@ -116,10 +118,8 @@ func (u *UI) initKBHandler(m *model.Model) {
 				m := &util.Message{TypeName: "openFile", Data: f}
 				u.sendMessage(*m)
 			}
-			u.View.Init(m, u)
 		} else if keyVal == gdk.KEY_c {
 			u.sendMessage(util.Message{TypeName: "closeFile"})
-			u.View.Init(m, u)
 		} else if keyVal == gdk.KEY_e {
 			dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
 			base := filepath.Base(m.Pages[m.PageIndex].FilePath)

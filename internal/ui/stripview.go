@@ -20,9 +20,10 @@ import (
 
 type StripView struct {
 	sendMessage util.Messenger
-	container   *gtk.Grid
+	container   *gtk.Box
 	scrollbars  *gtk.ScrolledWindow
 	canvas      []*gtk.DrawingArea
+    rendered    bool
 }
 
 func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
@@ -31,70 +32,70 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 
 	v.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
 
-	v.Init(m, u)
-
-
-	return v
-}
-
-func (v *StripView) Init(m *model.Model, u *UI) {
-
     var err error
-    v.container, err  = gtk.GridNew()
+    v.container, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		fmt.Printf("Error creating container %s\n", err)
 	}
 	v.container.SetHExpand(true)
+	v.container.SetVExpand(true)
 
-	for i := range m.Pages {
-		page := m.Pages[i]
-        if !page.Loaded {
-            page.Load()
-        }
-        c, _ := gtk.DrawingAreaNew()
-        v.canvas = append(v.canvas, c)
-	    v.container.Attach(c, i, 0, 1, 1)
-	}
+    v.scrollbars.Add(v.container)
 
-	v.initRenderer(m)
-	u.mainWindow.ShowAll()
+	return v
 }
 
 func (v *StripView) Connect(m *model.Model, u *UI) {
-//	u.mainWindow.Add(v.container)
+	u.mainWindow.Add(v.scrollbars)
+    v.container.ShowAll()
+    v.scrollbars.ShowAll()
+	u.mainWindow.ShowAll()
+    fmt.Printf("connect\n")
 }
 
 func (v *StripView) Disconnect(m *model.Model, u *UI) {
-	u.mainWindow.Remove(v.container)
+	u.mainWindow.Remove(v.scrollbars)
 }
 
 func (v *StripView) Render(m *model.Model) {
 	glib.IdleAdd(func() {
 		v.RenderHud(m)
+	    v.renderSpreads(m)
 	})
 }
 
 func (v *StripView) RenderHud(m *model.Model) {
 }
 
-func (v *StripView) initRenderer(m *model.Model) {
-    if m.LayoutMode == model.LONG_STRIP {
-        if m.Spreads == nil {
-            return
-        }
-
-        for i := range m.Spreads {
-            v.canvas[i].Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
-                cr.SetSourceRGB(0, 0, 0)
-                cr.Rectangle(0, 0, float64(v.canvas[i].GetAllocatedWidth()), float64(v.canvas[i].GetAllocatedHeight()))
-                cr.Fill()
-                spread := m.Spreads[i]
-                s := newLongStripSpread(canvas, cr, spread)
-                renderLongStripSpread(m, s)
-                runtime.GC()
-            })
-        }
+func (v *StripView) renderSpreads(m *model.Model) {
+    fmt.Printf("strip\n")
+    if m.Spreads == nil {
+        return
     }
+
+    v.scrollbars.Remove(v.container)
+    var err error
+    v.container, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		fmt.Printf("Error creating container %s\n", err)
+	}
+	v.container.SetHExpand(true)
+	v.container.SetVExpand(true)
+    v.scrollbars.Add(v.container)
+    v.scrollbars.ShowAll()
+    
+    x := v.scrollbars.GetAllocatedWidth() 
+    for _, page := range m.Spreads[0].Pages {
+        if !page.Loaded {
+            page.Load()
+        }
+        p, _ := scalePixbufToWidth(page.Image, x)
+        c, _ := gtk.ImageNewFromPixbuf(p) 
+        v.container.PackStart(c, false, false, 0)
+        v.scrollbars.ShowAll()
+    }
+
+    runtime.GC()
 }
 
 type LongStripSpread struct {
@@ -111,18 +112,20 @@ func newLongStripSpread(canvas *gtk.DrawingArea, cr *cairo.Context, spread *mode
 	return s
 }
 
-func scalePixbufToWidth(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
+func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	cW := float64(w)
 	pW := float64(p.GetWidth())
 	pH := float64(p.GetHeight())
 	var err error
-	if pW > cW {
-		scale := cW / pW
-		p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
-		if err != nil {
-			return nil, err
-		}
-	}
+
+    if pW > cW {
+        scale := cW / pW
+        p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
+        if err != nil {
+            return nil, err
+        }
+    }
+
 	return p, nil
 }
 
@@ -133,18 +136,4 @@ func positionLongStripPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf) (x int) {
 	return x
 }
 
-func renderLongStripSpread(m *model.Model, s *LongStripSpread) error {
-	var x, y int
-    cW := s.canvas.GetAllocatedWidth()
 
-    page := s.pages[0]
-    p, err := scalePixbufToWidth(s.canvas, page.Image, cW)
-    if err != nil {
-        return err
-    }
-    x = positionLongStripPixbuf(s.canvas, p)
-    renderPixbuf(s.cr, p, x, y)
-    s.canvas.SetSizeRequest(x, y)
-
-    return nil
-}

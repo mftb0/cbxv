@@ -42,9 +42,13 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
 
 	v.hud = v.newHUD(m, u, "")
 
-	v.Init(m, u)
+	v.Connect(m, u)
+	v.canvas, _ = gtk.DrawingAreaNew()
+	v.hud.Add(v.canvas)
+	v.initRenderer(m)
+	v.hud.ShowAll()
 
-	u.mainWindow.Add(v.hud)
+	//u.mainWindow.Add(v.hud)
 
 	v.hudKeepAlive = false
 	glib.TimeoutAdd(TICK, func() bool {
@@ -62,25 +66,9 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
 	return v
 }
 
-// This is safe to call multiple times
-func (v *PageView) Init(m *model.Model, u *UI) {
-	v.initKBHandler(m, u)
-
-	if v.canvas != nil {
-		v.hud.Remove(v.canvas)
-		v.canvas.Destroy()
-		v.canvas = nil
-	}
-
-	v.canvas, _ = gtk.DrawingAreaNew()
-	v.hud.Add(v.canvas)
-	v.initRenderer(m)
-	v.hud.ShowAll()
-}
-
 func (v *PageView) Render(m *model.Model) {
 	glib.IdleAdd(func() {
-		v.RenderHud(m)
+		v.renderHud(m)
 	})
 }
 
@@ -96,15 +84,13 @@ func (v *PageView) newHUD(m *model.Model, u *UI, title string) *gtk.Overlay {
 	return o
 }
 
-func (v *PageView) RenderHud(m *model.Model) {
+func (v *PageView) renderHud(m *model.Model) {
 	v.hdrControl.Render(m)
 	v.navControl.Render(m)
 }
 
-func (v *PageView) initKBHandler(m *model.Model, u *UI) {
-    //if v.drawSignalHandle != nil {
-    //    u.mainWindow.HandlerDisconnect(*v.drawSignalHandle)
-    //}
+func (v *PageView) Connect(m *model.Model, u *UI) {
+	u.mainWindow.Add(v.hud)
     sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
@@ -125,11 +111,9 @@ func (v *PageView) initKBHandler(m *model.Model, u *UI) {
 		} else if keyVal == gdk.KEY_minus {
 			v.sendMessage(util.Message{TypeName: "hidePage"})
 		} else if keyVal == gdk.KEY_n {
-			v.Init(m, u)
 			v.sendMessage(util.Message{TypeName: "nextFile"})
 		} else if keyVal == gdk.KEY_p {
 			v.sendMessage(util.Message{TypeName: "previousFile"})
-			v.Init(m, u)
 		} else if keyVal == gdk.KEY_space {
 			v.sendMessage(util.Message{TypeName: "toggleBookmark"})
 		} else if keyVal == gdk.KEY_L {
@@ -141,6 +125,14 @@ func (v *PageView) initKBHandler(m *model.Model, u *UI) {
 		v.hudKeepAlive = true
 	})
     v.drawSignalHandle = &sigH
+    u.mainWindow.ShowAll()
+}
+
+func (v *PageView) Disconnect(m *model.Model, u *UI) {
+    if v.drawSignalHandle != nil {
+        u.mainWindow.HandlerDisconnect(*v.drawSignalHandle)
+    }
+    u.mainWindow.Remove(v.hud)
 }
 
 func (v *PageView) initRenderer(m *model.Model) {
