@@ -536,7 +536,6 @@ func (m *Model) joinAll() {
 }
 
 func (m *Model) applyLayout(layout *Layout) {
-    m.LayoutMode = layout.Mode
 	for i := range layout.Pages {
 		p := layout.Pages[i]
 		mp := m.Pages[i]
