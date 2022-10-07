@@ -1,4 +1,21 @@
 #!/bin/sh
 
-go build -ldflags -H=windowsgui -o out/cbxv.exe
+DST=dist/cbxv_win_x86_64
+
+# build
+go build -ldflags -H=windowsgui -o out/cbxv.exe cmd/cbxv/*.go 
+
+# mk dst
+mkdir -p $DST
+mkdir -p $DST/lib
+
+# copy stuff
+cp out/cbxv.exe $DST
+ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" $DST
+cp /c/tools/msys64/mingw64/bin/libgif-7.dll $DST
+cp /c/tools/msys64/mingw64/bin/libjpeg-8.dll $DST
+cp /c/tools/msys64/mingw64/bin/gdbus.exe $DST
+cp -r windows/etc $DST
+cp -r '/c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0' $DST/lib
+cp -r windows/share $DST
 
