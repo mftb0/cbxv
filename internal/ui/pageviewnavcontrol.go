@@ -13,7 +13,8 @@ const (
 	DIR_LTR_ICN = "⯈"  // u+2bc8
 	DIR_RTL_ICN = "⯇"  // u+2bc7
 	FS_MAX_ICN  = "⛶ " // u+26f6 - square four corners
-	FS_RES_ICN  = "🮻 " // u+1fbbb
+//	FS_RES_ICN  = "🮻 " // u+1fbbb
+	FS_RES_ICN  = "╬"  // u+256c
 	SD_ONE_ICN  = "Ⅰ"  // u+2160 - roman numeral 1
 	SD_TWO_ICN  = "Ⅱ"  // u+2161 - roman numeral 2
 	SD_DBL_ICN  = "█"  // u+2588
