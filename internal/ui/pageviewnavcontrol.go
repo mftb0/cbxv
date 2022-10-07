@@ -21,7 +21,7 @@ const (
 	CBX_CLS_ICN = "⮾ " // u+2bbe
 )
 
-type NavControl struct {
+type PageViewNavControl struct {
 	ui                *UI
 	container         *gtk.Grid
 	navBar            *gtk.ProgressBar
@@ -37,8 +37,8 @@ type NavControl struct {
 	leftPageNum       *gtk.Label
 }
 
-func NewNavControl(m *model.Model, u *UI) *NavControl {
-	nc := &NavControl{}
+func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
+	nc := &PageViewNavControl{}
 	nc.ui = u
 
 	nbc, err := gtk.ProgressBarNew()
@@ -129,7 +129,7 @@ func NewNavControl(m *model.Model, u *UI) *NavControl {
 	return nc
 }
 
-func (c *NavControl) Render(m *model.Model) {
+func (c *PageViewNavControl) Render(m *model.Model) {
 	if len(m.Spreads) < 1 {
 		c.navBar.SetFraction(0)
 		c.leftPageNum.SetText("")
@@ -260,7 +260,7 @@ func (c *NavControl) Render(m *model.Model) {
 			c.fullscreenControl.SetLabel(FS_MAX_ICN)
 		}
 
-		if spread.Pages[0].Orientation == model.LANDSCAPE {
+		if spread.Pages[0].Span == model.DOUBLE {
 			c.spreadControl.SetLabel(SD_DBL_ICN)
 		} else {
 			c.spreadControl.SetLabel(SD_ONE_ICN)

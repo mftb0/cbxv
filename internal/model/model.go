@@ -30,7 +30,7 @@ type Model struct {
 	SeriesList      []string
 	SeriesIndex     int
 	BrowseDirectory string
-    HiddenPages     bool
+	HiddenPages     bool
 	Fullscreen      bool
 	Loading         bool
 	ProgramName     string
@@ -75,9 +75,9 @@ type ComicData struct {
 
 // Type used for serialization/deserialization of the BookmarkList
 type BookmarkListModel struct {
-	FormatVersion string            `json:"formatVersion"`
-	Comic         ComicData         `json:"comic"`
-	Bookmarks     []Bookmark        `json:"bookmarks"`
+	FormatVersion string     `json:"formatVersion"`
+	Comic         ComicData  `json:"comic"`
+	Bookmarks     []Bookmark `json:"bookmarks"`
 }
 
 // Manage a list of bookmarks
@@ -167,13 +167,13 @@ func (l *BookmarkList) Load(hash string) {
 // A page in this case is generally analogous to an image
 // They are grouped on Spreads
 type Page struct {
-	FilePath    string      `json:"filePath"`
-	Width       int         `json:"width"`
-	Height      int         `json:"height"`
-	Orientation int         `json:"orientation"`
-    Hidden      bool        `json:"hidden"`
-	Loaded      bool        `json:"loaded"`
-	Image       *gdk.Pixbuf `json:"-"`
+	FilePath string      `json:"filePath"`
+	Width    int         `json:"width"`
+	Height   int         `json:"height"`
+	Span     int         `json:"span"`
+	Hidden   bool        `json:"hidden"`
+	Loaded   bool        `json:"loaded"`
+	Image    *gdk.Pixbuf `json:"-"`
 }
 
 func (p *Page) Load() {
@@ -204,7 +204,7 @@ func (m *Model) NewPages() {
 
 	for i := range m.ImgPaths {
 		pages[i].FilePath = m.ImgPaths[i]
-		pages[i].Orientation = PORTRAIT
+		pages[i].Span = SINGLE
 		pages[i].Loaded = false
 		if i < MAX_LOAD {
 			pages[i].Load()
@@ -218,19 +218,19 @@ func (m *Model) NewPages() {
 }
 
 // How a page is oriented
-type Orientation int
+type Span int
 
 const (
-	PORTRAIT = iota
-	LANDSCAPE
+	SINGLE = iota
+	DOUBLE
 )
 
 // A Spread is an element of a layout
 // It's essentially the pages you can
 // see at a given time
 type Spread struct {
-	Pages []*Page
-    PageIdxs []int
+	Pages    []*Page
+	PageIdxs []int
 }
 
 // Creates spread slice based on pg slice and layout mode
@@ -242,12 +242,12 @@ func (m *Model) NewSpreads() {
 		for i := range pages {
 			spread := &Spread{}
 			p := &pages[i]
-            if p.Hidden {
-                m.HiddenPages = true
-                continue
-            }
+			if p.Hidden {
+				m.HiddenPages = true
+				continue
+			}
 			spread.Pages = append(spread.Pages, p)
-            spread.PageIdxs = append(spread.PageIdxs, i)
+			spread.PageIdxs = append(spread.PageIdxs, i)
 			spreads = append(spreads, spread)
 		}
 	} else if m.LayoutMode == TWO_PAGE {
@@ -255,15 +255,15 @@ func (m *Model) NewSpreads() {
 			// create spread add a page
 			spread := &Spread{}
 			p := &pages[i]
-            if p.Hidden {
-                m.HiddenPages = true
-                continue
-            }
+			if p.Hidden {
+				m.HiddenPages = true
+				continue
+			}
 			spread.Pages = append(spread.Pages, p)
-            spread.PageIdxs = append(spread.PageIdxs, i)
+			spread.PageIdxs = append(spread.PageIdxs, i)
 
 			// if pg is landscape, spread done
-			if p.Orientation == LANDSCAPE {
+			if p.Span == DOUBLE {
 				spreads = append(spreads, spread)
 				continue
 			}
@@ -276,30 +276,30 @@ func (m *Model) NewSpreads() {
 			// on to the next page
 			i++
 
-            // skip hidden
-            for ; i < len(pages); i++ {
-			    p = &pages[i]
-                if p.Hidden {
-                    m.HiddenPages = true
-                    continue
-                } else {
-                    break;
-                }
-            }
+			// skip hidden
+			for ; i < len(pages); i++ {
+				p = &pages[i]
+				if p.Hidden {
+					m.HiddenPages = true
+					continue
+				} else {
+					break
+				}
+			}
 
 			// if pg is landscape, make a new spread, spread done
-			if p.Orientation == LANDSCAPE {
+			if p.Span == DOUBLE {
 				spreads = append(spreads, spread)
 				spread = &Spread{}
 				spread.Pages = append(spread.Pages, p)
-                spread.PageIdxs = append(spread.PageIdxs, i)
+				spread.PageIdxs = append(spread.PageIdxs, i)
 				spreads = append(spreads, spread)
 				continue
 			}
 
 			// No special cases, so spread with 2 pages
 			spread.Pages = append(spread.Pages, p)
-            spread.PageIdxs = append(spread.PageIdxs, i)
+			spread.PageIdxs = append(spread.PageIdxs, i)
 			spreads = append(spreads, spread)
 		}
 	} else {
@@ -307,12 +307,12 @@ func (m *Model) NewSpreads() {
 		spread := &Spread{}
 		for i := range pages {
 			p := &pages[i]
-            if p.Hidden {
-                m.HiddenPages = true
-                continue
-            }
+			if p.Hidden {
+				m.HiddenPages = true
+				continue
+			}
 			spread.Pages = append(spread.Pages, p)
-            spread.PageIdxs = append(spread.PageIdxs, i)
+			spread.PageIdxs = append(spread.PageIdxs, i)
 		}
 		spreads = append(spreads, spread)
 	}
@@ -321,11 +321,11 @@ func (m *Model) NewSpreads() {
 }
 
 func (s *Spread) VersoPage() int {
-    return s.PageIdxs[0]
+	return s.PageIdxs[0]
 }
 
 func (s *Spread) RectoPage() int {
-    return s.PageIdxs[1]
+	return s.PageIdxs[1]
 }
 
 // Layout mode determines the max pages per spread
@@ -343,8 +343,8 @@ const (
 type Layout struct {
 	FormatVersion string     `json:"formatVersion"`
 	Comic         ComicData  `json:"comic"`
-    Mode          LayoutMode `json:"mode"`
-    Pages         []Page     `json:"pages"`
+	Mode          LayoutMode `json:"mode"`
+	Pages         []Page     `json:"pages"`
 }
 
 /*
@@ -375,9 +375,9 @@ func (m *Model) loadLayout(hash string) *Layout {
 		if err != nil {
 			fmt.Printf("e:%s\n", err)
 		}
-        return &lo
+		return &lo
 	}
-    return nil
+	return nil
 }
 
 func (m *Model) LoadHash() {
@@ -421,20 +421,20 @@ func (m *Model) LoadCbxFile() {
 	m.SpreadIndex = 0
 	m.PageIndex = 0
 	m.joinAll()
-    lo := m.loadLayout(m.Hash)
-    if lo != nil {
-        util.Log("Applying layout\n")
-	    m.applyLayout(lo)
-    }
+	lo := m.loadLayout(m.Hash)
+	if lo != nil {
+		util.Log("Applying layout\n")
+		m.applyLayout(lo)
+	}
 	m.NewSpreads()
 
 	m.SendMessage(util.Message{TypeName: "render"})
 }
 
 func (m *Model) CloseCbxFile() {
-    m.StoreLayout()
+	m.StoreLayout()
 	os.RemoveAll(m.TmpDir)
-    m.Hash = ""
+	m.Hash = ""
 	m.ImgPaths = nil
 	m.Pages = nil
 	m.Spreads = nil
@@ -451,10 +451,10 @@ func (m *Model) RefreshPages() {
 		start := int(math.Max(0, float64(m.SpreadIndex-(MAX_LOAD/2)+1)))
 		end := int(math.Min(float64(m.SpreadIndex+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
 
-		// iterate over all spreads 
-        // load/unload pgs as needed
+		// iterate over all spreads
+		// load/unload pgs as needed
 		for i := range m.Spreads {
-		    spread := m.Spreads[i]
+			spread := m.Spreads[i]
 			if i < start || i > end {
 				for j := range spread.Pages {
 					if spread.Pages[j].Loaded {
@@ -463,12 +463,12 @@ func (m *Model) RefreshPages() {
 					}
 				}
 			} else {
-                for j := range spread.Pages {
-                    if !spread.Pages[j].Loaded {
-                        spread.Pages[j].Load()
-                    }
-                }
-            }
+				for j := range spread.Pages {
+					if !spread.Pages[j].Loaded {
+						spread.Pages[j].Load()
+					}
+				}
+			}
 		}
 
 		if util.DEBUG {
@@ -517,10 +517,10 @@ func (m *Model) PageToSpread(n int) int {
 				return i
 			}
 		}
-        // Couldn't find out of bounds
-        if n > len(m.Spreads) - 1 {
-            n = len(m.Spreads) - 1
-        }
+		// Couldn't find out of bounds
+		if n > len(m.Spreads)-1 {
+			n = len(m.Spreads) - 1
+		}
 	}
 	return n
 }
@@ -529,9 +529,9 @@ func (m *Model) joinAll() {
 	for i := range m.Pages {
 		p := m.Pages[i]
 		if p.Width >= p.Height {
-			p.Orientation = LANDSCAPE
+			p.Span = DOUBLE
 		}
-        m.Pages[i] = p
+		m.Pages[i] = p
 	}
 }
 
@@ -539,9 +539,9 @@ func (m *Model) applyLayout(layout *Layout) {
 	for i := range layout.Pages {
 		p := layout.Pages[i]
 		mp := m.Pages[i]
-        mp.Orientation = p.Orientation
-        mp.Hidden = p.Hidden
-        m.Pages[i] = mp
+		mp.Span = p.Span
+		mp.Hidden = p.Hidden
+		m.Pages[i] = mp
 	}
 }
 
@@ -553,8 +553,8 @@ func (m *Model) StoreLayout() error {
 	c.Hash = m.Hash
 	c.FilePath = m.FilePath
 	layout.Comic = c
-    layout.Mode = m.LayoutMode
-    layout.Pages = m.Pages
+	layout.Mode = m.LayoutMode
+	layout.Pages = m.Pages
 
 	data, err := json.Marshal(layout)
 	if err != nil {
@@ -588,14 +588,12 @@ func (m *Model) printLoaded() {
 		if !m.Pages[i].Loaded {
 			buf += "0"
 		} else {
-            if i == m.PageIndex {
-                buf += "_"
-            } else {
-    			buf += "1"
-            }
+			if i == m.PageIndex {
+				buf += "_"
+			} else {
+				buf += "1"
+			}
 		}
 	}
 	fmt.Printf("%s\n", buf)
 }
-
-

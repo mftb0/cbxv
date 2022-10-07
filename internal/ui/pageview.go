@@ -32,8 +32,8 @@ type PageView struct {
 	hudKeepAlive         bool
 	canvas               *gtk.DrawingArea
 	keyPressSignalHandle *glib.SignalHandle
-	hdrControl           *HdrControl
-	navControl           *NavControl
+	hdrControl           *PageViewHdrControl
+	navControl           *PageViewNavControl
 }
 
 func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {

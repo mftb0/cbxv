@@ -261,10 +261,10 @@ func NewCommands(m *model.Model) *CommandList {
         if m.LayoutMode == model.TWO_PAGE {
             pi := m.PageIndex
             p := &m.Pages[pi]
-            if p.Orientation == model.PORTRAIT {
-                p.Orientation = model.LANDSCAPE
+            if p.Span == model.SINGLE {
+                p.Span = model.DOUBLE
             } else {
-                p.Orientation = model.PORTRAIT
+                p.Span = model.SINGLE
             }
             m.RefreshPages()
             m.NewSpreads()

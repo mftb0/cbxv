@@ -15,7 +15,7 @@ const (
 	APP_HLP_ICN = "?"
 )
 
-type HdrControl struct {
+type PageViewHdrControl struct {
 	container     *gtk.Grid
 	leftBookmark  *gtk.Label
 	spinner       *gtk.Spinner
@@ -24,8 +24,8 @@ type HdrControl struct {
 	rightBookmark *gtk.Label
 }
 
-func NewHdrControl(m *model.Model, u *UI) *HdrControl {
-	c := &HdrControl{}
+func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
+	c := &PageViewHdrControl{}
 
 	lbkmk := util.CreateLabel("", "bkmk-btn", nil)
 	lbkmk.SetHAlign(gtk.ALIGN_START)
@@ -96,7 +96,7 @@ func NewHdrControl(m *model.Model, u *UI) *HdrControl {
 	return c
 }
 
-func (c *HdrControl) Render(m *model.Model) {
+func (c *PageViewHdrControl) Render(m *model.Model) {
 	css, _ := c.leftBookmark.GetStyleContext()
 	css.RemoveClass("marked")
 	css.RemoveClass("transparent")
