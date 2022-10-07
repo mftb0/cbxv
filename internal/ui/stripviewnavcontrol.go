@@ -58,7 +58,7 @@ func NewStripViewNavControl(m *model.Model, u *UI) *StripViewNavControl {
 	container.Attach(pv, 1, 0, 1, 1)
 	container.Attach(lmc, 2, 0, 1, 1)
 	container.Attach(fsc, 3, 0, 1, 1)
-	container.SetSizeRequest(1000, 8)
+	container.SetSizeRequest(1024, 8)
 	nc.container = container
 	nc.progName = pn
 	nc.progVersion = pv
@@ -98,6 +98,7 @@ func (c *StripViewNavControl) Render(m *model.Model) {
 	        c.container.SetSizeRequest(1400, 8)
 			c.fullscreenControl.SetLabel(FS_RES_ICN)
 		} else {
+	        c.container.SetSizeRequest(1024, 8)
 			c.fullscreenControl.SetLabel(FS_MAX_ICN)
 		}
 	}
