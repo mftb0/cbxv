@@ -90,22 +90,22 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.Quit()
 		} else if keyVal == gdk.KEY_1 {
             u.View.Disconnect(m, u)
-			u.View = u.pageView
+            u.View = u.pageView
             u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
 		} else if keyVal == gdk.KEY_2 {
             u.View.Disconnect(m, u)
-			u.View = u.pageView
+            u.View = u.pageView
             u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
 		} else if keyVal == gdk.KEY_3 {
-			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
+            u.View.Disconnect(m, u)
             if u.stripView == nil {
                 u.stripView = NewStripView(m, u, u.sendMessage)
             }
-            u.View.Disconnect(m, u)
-			u.View = u.stripView
+            u.View = u.stripView
             u.View.Connect(m, u)
+			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
 		} else if keyVal == gdk.KEY_f {
 			if m.Fullscreen {
 				u.mainWindow.Unfullscreen()

@@ -48,15 +48,17 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
 		if keyVal == gdk.KEY_w {
-			v.sendMessage(util.Message{TypeName: "top"})
+            // scroll to top, no msg to send, doesn't affect model
+            v.scrollbars.GetVAdjustment().SetValue(0)
 		} else if keyVal == gdk.KEY_s {
-			v.sendMessage(util.Message{TypeName: "bottom"})
+            // scroll to bottom, no msg to send, doesn't affect model
+            b := v.scrollbars.GetVAdjustment().GetUpper()
+            v.scrollbars.GetVAdjustment().SetValue(b)
 		} else if keyVal == gdk.KEY_n {
 			v.sendMessage(util.Message{TypeName: "nextFile"})
 		} else if keyVal == gdk.KEY_p {
 			v.sendMessage(util.Message{TypeName: "previousFile"})
 		}
-
 	})
 	v.keyPressSignalHandle = &sigH
 
@@ -105,9 +107,13 @@ func (v *StripView) renderSpreads(m *model.Model) {
         if !page.Loaded {
             page.Load()
         }
-        p, _ := scalePixbufToWidth(page.Image, x)
+
+        // fixme: Shouldn't be needed but actually
+        // lower mem use
+        p, _ := gdk.PixbufCopy(page.Image)
+        p, _ = scalePixbufToWidth(p, x)
         c, _ := gtk.ImageNewFromPixbuf(p) 
-        v.container.PackStart(c, false, false, 0)
+        v.container.PackStart(c, true, true, 0)
         v.scrollbars.ShowAll()
     }
 

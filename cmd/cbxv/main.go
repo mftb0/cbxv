@@ -49,7 +49,6 @@ func main() {
     if len(os.Args) > 1 {
         u.RunFunc(func(){
             commands.Commands["openFile"](os.Args[1])
-            u.Render(m)
         })
     }
 
