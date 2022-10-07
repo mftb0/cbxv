@@ -23,7 +23,7 @@ const (
 	ALIGN_CENTER
 )
 
-const TICK = 5000
+const TICK = 3000
 
 type PageView struct {
 	sendMessage          util.Messenger
@@ -40,15 +40,13 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
 	v := &PageView{}
 	v.sendMessage = messenger
 
-	v.hud = v.newHUD(m, u, "")
+	v.hud = v.newHUD(m, u)
 
 	v.Connect(m, u)
 	v.canvas, _ = gtk.DrawingAreaNew()
 	v.hud.Add(v.canvas)
 	v.initRenderer(m)
 	v.hud.ShowAll()
-
-	//u.mainWindow.Add(v.hud)
 
 	v.hudKeepAlive = false
 	glib.TimeoutAdd(TICK, func() bool {
@@ -72,7 +70,7 @@ func (v *PageView) Render(m *model.Model) {
 	})
 }
 
-func (v *PageView) newHUD(m *model.Model, u *UI, title string) *gtk.Overlay {
+func (v *PageView) newHUD(m *model.Model, u *UI) *gtk.Overlay {
 	o, _ := gtk.OverlayNew()
 
 	v.hdrControl = NewHdrControl(m, u)
@@ -352,3 +350,4 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	}
 	return nil
 }
+

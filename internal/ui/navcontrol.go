@@ -149,6 +149,7 @@ func (c *NavControl) Render(m *model.Model) {
 		}
 
 		if m.Fullscreen {
+	        c.container.SetSizeRequest(1400, 8)
 			c.fullscreenControl.SetLabel(FS_MAX_ICN)
 		} else {
 			c.fullscreenControl.SetLabel(FS_RES_ICN)
