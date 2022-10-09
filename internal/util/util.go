@@ -256,6 +256,8 @@ func extractRar(filePath string, tmpDir string) ([]string, error) {
         url := fp
         urls = append(urls, url)
     }
+
+    sort.Strings(urls)
     return urls, nil
 }
 
