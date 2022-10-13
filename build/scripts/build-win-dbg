@@ -15,7 +15,5 @@ ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" $DST
 cp /c/tools/msys64/mingw64/bin/libgif-7.dll $DST
 cp /c/tools/msys64/mingw64/bin/libjpeg-8.dll $DST
 cp /c/tools/msys64/mingw64/bin/gdbus.exe $DST
-cp -r windows/etc $DST
-cp -r '/c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0' $DST/lib
-cp -r windows/share $DST
+cp -r /c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0 $DST/lib
 
