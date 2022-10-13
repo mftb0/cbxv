@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# This script is optional. Really all you need is the cbxv executable, but
+# if you use a traditional desktop, this will put a basic desktop file and
+# icon in the standard places for convenience
+
+DST=$HOME/.local/share
+mkdir -p $DST/applications
+mkdir -p $DST/icons/hicolor/1024x1024
+
+cat ./com.sierrawhiskeybravodelta.cbxv.desktop | envsubst \
+> $DST/applications/com.sierrawhiskeybravodelta.cbxv.desktop
+chmod +x $DST/applications/com.sierrawhiskeybravodelta.cbxv.desktop 
+update-desktop-database $DST/applications
+
+cp ./logo_x.png $DST/icons/hicolor/1024x1024
+
