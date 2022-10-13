@@ -125,10 +125,39 @@ combobox {
     padding-bottom: 8px;
 }
 
-progressbar trough progress {
-    background-color: #00ff00;
-    color: #ffffff;
-    border: solid 1px #00ff00;
+progressbar {
+  padding: 0;
+  border: none;
+  color: white;
+  background-color: transparent; 
+}
+
+progressbar progress {
+    border: none;
+    border-radius: 0px;
+    background-color: #06B025; 
+}
+
+progressbar progress:backdrop {
+      background-color: #06B025; 
+}
+
+progressbar trough {
+    border: 1px solid #2b2b2b;
+    border-radius: 0px;
+    background-color: rgba(0, 0, 0, 0.25); 
+}
+
+progressbar trough:backdrop {
+      background-color: #252525; 
+}
+
+progressbar.horizontal trough, progressbar.horizontal progress {
+    min-height: 4px; 
+}
+
+progressbar.vertical trough, progressbar.vertical progress {
+    min-width: 4px; 
 }
 
 .nav-ctrl {
