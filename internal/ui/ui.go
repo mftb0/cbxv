@@ -115,7 +115,7 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
 		} else if keyVal == gdk.KEY_o {
 			dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-			dlg.SetCurrentFolder(m.BrowseDirectory)
+			dlg.SetCurrentFolder(m.BrowseDir)
 			output := dlg.NativeDialog.Run()
 			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 				f := dlg.GetFilename()
@@ -127,14 +127,13 @@ func (u *UI) initKBHandler(m *model.Model) {
 		} else if keyVal == gdk.KEY_e {
 			dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
 			base := filepath.Base(m.Pages[m.PageIndex].FilePath)
-			dlg.SetCurrentFolder(m.BrowseDirectory)
+			dlg.SetCurrentFolder(m.ExportDir)
 			dlg.SetCurrentName(base)
 			output := dlg.NativeDialog.Run()
 			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 				f := dlg.GetFilename()
 				m := &util.Message{TypeName: "exportFile", Data: f}
 				u.sendMessage(*m)
-			} else {
 			}
 		} else if keyVal == gdk.KEY_question {
 			dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow,

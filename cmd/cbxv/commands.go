@@ -180,7 +180,7 @@ func NewCommands(m *model.Model) *CommandList {
     cmds.Commands[cmd.Name] = func(data string) {
         cmds.Commands["closeFile"]("")
         m.FilePath = data
-        m.BrowseDirectory = filepath.Dir(data)
+        m.BrowseDir = filepath.Dir(data)
 
         // Start loading stuff
         // See the model for details about
@@ -234,7 +234,7 @@ func NewCommands(m *model.Model) *CommandList {
     cmds.Commands[cmd.Name] = func(data string) {
         srcPath := m.Pages[m.PageIndex].FilePath
         dstPath := data
-        m.BrowseDirectory = filepath.Dir(dstPath)
+        m.ExportDir = filepath.Dir(dstPath)
         util.ExportFile(srcPath, dstPath)
     }
 

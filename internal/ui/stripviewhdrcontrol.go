@@ -35,7 +35,7 @@ func NewStripViewHdrControl(m *model.Model, u *UI) *StripViewHdrControl {
 		// fixme: this code just copy/pasted from UI
 		// should add a concept of UICommand
 		dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-		dlg.SetCurrentFolder(m.BrowseDirectory)
+		dlg.SetCurrentFolder(m.BrowseDir)
 		output := dlg.NativeDialog.Run()
 		if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 			f := dlg.GetFilename()
