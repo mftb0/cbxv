@@ -15,32 +15,33 @@ import (
 // Data model of a cbx application
 // Composed of a handful of sub-models, collections and other standard types
 type Model struct {
-	SendMessage     util.Messenger
-	FilePath        string
-	TmpDir          string
-	Hash            string
-	Bookmarks       *BookmarkList
-	ImgPaths        []string
-	Pages           []Page
-	PageIndex       int
-	Spreads         []*Spread
-	SpreadIndex     int
-	Direction       Direction
-	LayoutMode      LayoutMode
-	SeriesList      []string
-	SeriesIndex     int
-	BrowseDirectory string
-	HiddenPages     bool
-	Fullscreen      bool
-	Loading         bool
-	ProgramName     string
-	ProgramVersion  string
+	SendMessage    util.Messenger
+	FilePath       string
+	TmpDir         string
+	Hash           string
+	Bookmarks      *BookmarkList
+	ImgPaths       []string
+	Pages          []Page
+	PageIndex      int
+	Spreads        []*Spread
+	SpreadIndex    int
+	Direction      Direction
+	LayoutMode     LayoutMode
+	SeriesList     []string
+	SeriesIndex    int
+	BrowseDir      string
+	ExportDir      string
+	HiddenPages    bool
+	Fullscreen     bool
+	Loading        bool
+	ProgramName    string
+	ProgramVersion string
 }
 
 func NewModel(messenger util.Messenger) *Model {
 	m := &Model{}
 	m.SendMessage = messenger
-	m.BrowseDirectory, _ = os.Getwd()
+	m.BrowseDir, _ = os.Getwd()
 	return m
 }
 

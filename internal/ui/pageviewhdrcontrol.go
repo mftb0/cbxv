@@ -46,14 +46,13 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
 		// fixme: this code just copy/pasted from UI
 		// should add a concept of UICommand
 		dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-		dlg.SetCurrentFolder(m.BrowseDirectory)
+		dlg.SetCurrentFolder(m.BrowseDir)
 		output := dlg.NativeDialog.Run()
 		if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 			f := dlg.GetFilename()
 			m := &util.Message{TypeName: "openFile", Data: f}
 			u.sendMessage(*m)
 		}
-		//u.PageView.Init(m)
 		return true
 	})
 
