@@ -94,7 +94,6 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 	v.container.ShowAll()
 	v.scrollbars.ShowAll()
 	u.mainWindow.ShowAll()
-	fmt.Printf("connect\n")
 }
 
 func (v *StripView) Disconnect(m *model.Model, u *UI) {
