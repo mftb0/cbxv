@@ -98,7 +98,7 @@ func dataPath() (string, error) {
     dataHome := filepath.Join(".local", "share")
     if strings.Contains(runtime.GOOS, "windows") {
         dataHome = filepath.Join("AppData", "Roaming")
-    } else if strings.Contains(runtime.GOOS, "mac") {
+    } else if strings.Contains(runtime.GOOS, "darwin") {
         dataHome = filepath.Join("Library", "Application Support")
     }
 
@@ -127,6 +127,36 @@ func layoutsPath() (string, error) {
         return p, err
     }
     return filepath.Join(p, LAYOUTS_DN), nil
+}
+
+func FullscreenIcon() string {
+    // "⛶ "  u+26f6 - square four corners
+    // "⤢ "  u+2922 - NE/SW Arrows
+    // "[ ]" Regular square brackets
+
+    r := "⛶ "  // u+26f6 - square four corners
+    if strings.Contains(runtime.GOOS, "windows") {
+        //noop
+    } else if strings.Contains(runtime.GOOS, "darwin") {
+        r = "[ ]" // Regular square brackets
+    } else {
+        r = "[ ]" // Regular square brackets
+    }
+
+    return r
+}
+
+func RestoreIcon() string {
+    r := "🮻 "  // u+1fbbb - voided greek cross
+    if strings.Contains(runtime.GOOS, "windows") {
+        r = "╬"   // line-drawing voided cross
+    } else if strings.Contains(runtime.GOOS, "darwin") {
+        r = "╬"   // line-drawing voided cross
+    } else {
+        r = "╬"   // line-drawing voided cross
+    }
+
+    return r
 }
 
 func createRandomString(n int) string {

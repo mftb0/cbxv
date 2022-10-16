@@ -33,7 +33,7 @@ func NewStripViewNavControl(m *model.Model, u *UI) *StripViewNavControl {
 
 	lmc := util.CreateLabel("Layout", "nav-btn", util.S("Layout"))
 
-	fsc := util.CreateButton(FS_MAX_ICN, "nav-btn", util.S("Fullscreen Toggle"))
+	fsc := util.CreateButton(util.FullscreenIcon(), "nav-btn", util.S("Fullscreen Toggle"))
 
 	container, err := gtk.GridNew()
 	if err != nil {
@@ -79,9 +79,9 @@ func (c *StripViewNavControl) Render(m *model.Model) {
 		}
 
 		if m.Fullscreen {
-			c.fullscreenControl.SetLabel(FS_MAX_ICN)
+			c.fullscreenControl.SetLabel(util.FullscreenIcon())
 		} else {
-			c.fullscreenControl.SetLabel(FS_RES_ICN)
+			c.fullscreenControl.SetLabel(util.RestoreIcon())
 		}
 
 		return
@@ -96,10 +96,10 @@ func (c *StripViewNavControl) Render(m *model.Model) {
 
 		if m.Fullscreen {
 	        c.container.SetSizeRequest(1400, 8)
-			c.fullscreenControl.SetLabel(FS_RES_ICN)
+			c.fullscreenControl.SetLabel(util.RestoreIcon())
 		} else {
 	        c.container.SetSizeRequest(1024, 8)
-			c.fullscreenControl.SetLabel(FS_MAX_ICN)
+			c.fullscreenControl.SetLabel(util.FullscreenIcon())
 		}
 	}
 }

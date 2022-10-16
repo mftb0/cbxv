@@ -1,12 +1,20 @@
 #!/bin/sh
 
-DST=dist/cbxv_mac_x86_64
+GOOS=`go env GOOS`
+GOARCH=`go env GOARCH`
 
+# build
+echo "building ${GOOS} ${GOARCH}"
 go build -o out/cbxv cmd/cbxv/*.go
 
 # mk dst
+DST="dist/cbxv_${GOOS}_${GOARCH}/cbxv.app"
 mkdir -p $DST
-mkdir -p $DST/lib
+
+# pkg
+cp -r build/assets/mac/Contents $DST
+
+DST=$DST/Contents/MacOS
 
 cp out/cbxv $DST
 
