@@ -1,4 +1,4 @@
-module example.com/cbxv-gotk3
+module github.com/mftb0/cbxv-gotk3
 
 go 1.18
 
@@ -8,6 +8,6 @@ require (
 	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69
 )
 
-replace example.com/cbxv-gotk3/internal/util => ../cbxv-gotk3
-replace example.com/cbxv-gotk3/internal/ui => ../cbxv-gotk3
-replace example.com/cbxv-gotk3/internal/model => ../cbxv-gotk3
+replace github.com/mftb0/cbxv-gotk3/internal/util => ../cbxv-gotk3
+replace github.com/mftb0/cbxv-gotk3/internal/ui => ../cbxv-gotk3
+replace github.com/mftb0/cbxv-gotk3/internal/model => ../cbxv-gotk3

@@ -12,8 +12,8 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type StripView struct {
@@ -32,7 +32,7 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 	v := &StripView{}
 	v.sendMessage = messenger
 
-    v.hud = v.newHUD(m, u)
+	v.hud = v.newHUD(m, u)
 	v.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
 
 	var err error
@@ -44,13 +44,13 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 	v.container.SetVExpand(true)
 
 	v.scrollbars.Add(v.container)
-    v.hud.Add(v.scrollbars)
+	v.hud.Add(v.scrollbars)
 
-    v.scrollbars.Connect("scroll-event", func() {
-        v.hud.ShowAll()
+	v.scrollbars.Connect("scroll-event", func() {
+		v.hud.ShowAll()
 		v.hudHidden = false
 		v.hudKeepAlive = true
-    })
+	})
 
 	v.hudKeepAlive = false
 	glib.TimeoutAdd(TICK, func() bool {

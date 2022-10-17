@@ -3,10 +3,10 @@ package ui
 import (
 	"fmt"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type StripViewNavControl struct {
@@ -42,7 +42,7 @@ func NewStripViewNavControl(m *model.Model, u *UI) *StripViewNavControl {
 	container.SetHAlign(gtk.ALIGN_CENTER)
 	container.SetVAlign(gtk.ALIGN_END)
 	container.SetHExpand(true)
-    css, _ := container.GetStyleContext()
+	css, _ := container.GetStyleContext()
 	css.AddClass("nav-ctrl")
 
 	fsc.Connect("clicked", func() {
@@ -95,10 +95,10 @@ func (c *StripViewNavControl) Render(m *model.Model) {
 		}
 
 		if m.Fullscreen {
-	        c.container.SetSizeRequest(1400, 8)
+			c.container.SetSizeRequest(1400, 8)
 			c.fullscreenControl.SetLabel(util.RestoreIcon())
 		} else {
-	        c.container.SetSizeRequest(1024, 8)
+			c.container.SetSizeRequest(1024, 8)
 			c.fullscreenControl.SetLabel(util.FullscreenIcon())
 		}
 	}

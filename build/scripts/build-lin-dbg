@@ -1,4 +1,21 @@
 #!/bin/sh
 
+GOOS=`go env GOOS`
+GOARCH=`go env GOARCH`
+
+# build
+echo "building ${GOOS} ${GOARCH}"
 go build -o out/cbxv cmd/cbxv/*.go
+
+# package
+NM="cbxv_${GOOS}_${GOARCH}"
+DST="dist/${NM}"
+mkdir -p $DST
+
+cp out/cbxv $DST
+cp build/assets/lin/* $DST
+
+cd dist
+tar -czvf "${NM}.gz" "${NM}/"
+cd -
 

@@ -3,25 +3,25 @@ package ui
 import (
 	"fmt"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 const (
-//	DIR_LTR_ICN = "⯈"   // u+2bc8
-//	DIR_RTL_ICN = "⯇"   // u+2bc7
-	DIR_LTR_ICN = "▶"   // u+25b6
-	DIR_RTL_ICN = "◀"   // u+25c0
-//	FS_MAX_ICN  = "⛶ "  // u+26f6 - square four corners
-//	FS_MAX_ICN  = "⤢ "  // u+2922 - NE/SW Arrows
-//	FS_MAX_ICN  = "[ ]" // Regular square brackets
-//	FS_RES_ICN  = "🮻 "  // u+1fbbb - voided greek cross
-//	FS_RES_ICN  = "╬"   // u+256c
-	SD_ONE_ICN  = "Ⅰ"   // u+2160 - roman numeral 1
-	SD_TWO_ICN  = "Ⅱ"   // u+2161 - roman numeral 2
-	SD_DBL_ICN  = "█"   // u+2588
+	//	DIR_LTR_ICN = "⯈"   // u+2bc8
+	//	DIR_RTL_ICN = "⯇"   // u+2bc7
+	DIR_LTR_ICN = "▶" // u+25b6
+	DIR_RTL_ICN = "◀" // u+25c0
+	//	FS_MAX_ICN  = "⛶ "  // u+26f6 - square four corners
+	//	FS_MAX_ICN  = "⤢ "  // u+2922 - NE/SW Arrows
+	//	FS_MAX_ICN  = "[ ]" // Regular square brackets
+	//	FS_RES_ICN  = "🮻 "  // u+1fbbb - voided greek cross
+	//	FS_RES_ICN  = "╬"   // u+256c
+	SD_ONE_ICN = "Ⅰ" // u+2160 - roman numeral 1
+	SD_TWO_ICN = "Ⅱ" // u+2161 - roman numeral 2
+	SD_DBL_ICN = "█" // u+2588
 )
 
 type PageViewNavControl struct {
@@ -152,7 +152,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
 		}
 
 		if m.Fullscreen {
-	        c.container.SetSizeRequest(1400, 8)
+			c.container.SetSizeRequest(1400, 8)
 			c.fullscreenControl.SetLabel(util.FullscreenIcon())
 		} else {
 			c.fullscreenControl.SetLabel(util.RestoreIcon())

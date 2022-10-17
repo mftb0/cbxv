@@ -13,8 +13,8 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 const (
@@ -350,4 +350,3 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
 	}
 	return nil
 }
-
