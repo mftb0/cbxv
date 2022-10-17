@@ -14,17 +14,17 @@ import (
 )
 
 type View interface {
-    Connect(m *model.Model, u *UI)
-    Disconnect(m *model.Model, u *UI)
+	Connect(m *model.Model, u *UI)
+	Disconnect(m *model.Model, u *UI)
 	Render(m *model.Model)
 }
 
 type UI struct {
-	sendMessage util.Messenger
-	mainWindow  *gtk.Window
-	pageView    View
-	stripView   View
-	View        View
+	sendMessage    util.Messenger
+	mainWindow     *gtk.Window
+	pageView       View
+	stripView      View
+	View           View
 }
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {
@@ -33,14 +33,13 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	u.sendMessage = messenger
 	u.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	u.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
-	u.mainWindow.SetTitle("cbxv")
+	u.mainWindow.SetTitle(m.ProgramName)
 	u.mainWindow.Connect("destroy", func() {
 		gtk.MainQuit()
 	})
 	u.mainWindow.SetSizeRequest(1024, 768)
 
-	if m.LayoutMode == model.LONG_STRIP {
-	} else {
+	if m.LayoutMode != model.LONG_STRIP {
 		u.pageView = NewPageView(m, u, messenger)
 		u.View = u.pageView
 	}
@@ -72,7 +71,7 @@ func (u *UI) RunFunc(f interface{}) {
 
 func (u *UI) Render(m *model.Model) {
 	glib.IdleAdd(func() {
-	    u.View.Render(m)
+		u.View.Render(m)
 
 		// causes the draw event to fire
 		// which gets the canvas to Render
@@ -89,22 +88,22 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.sendMessage(util.Message{TypeName: "quit"})
 			u.Quit()
 		} else if keyVal == gdk.KEY_1 {
-            u.View.Disconnect(m, u)
-            u.View = u.pageView
-            u.View.Connect(m, u)
+			u.View.Disconnect(m, u)
+			u.View = u.pageView
+			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
 		} else if keyVal == gdk.KEY_2 {
-            u.View.Disconnect(m, u)
-            u.View = u.pageView
-            u.View.Connect(m, u)
+			u.View.Disconnect(m, u)
+			u.View = u.pageView
+			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
 		} else if keyVal == gdk.KEY_3 {
-            u.View.Disconnect(m, u)
-            if u.stripView == nil {
-                u.stripView = NewStripView(m, u, u.sendMessage)
-            }
-            u.View = u.stripView
-            u.View.Connect(m, u)
+			u.View.Disconnect(m, u)
+			if u.stripView == nil {
+				u.stripView = NewStripView(m, u, u.sendMessage)
+			}
+			u.View = u.stripView
+			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
 		} else if keyVal == gdk.KEY_f {
 			if m.Fullscreen {

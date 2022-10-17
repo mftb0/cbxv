@@ -38,11 +38,18 @@ type Model struct {
 	ProgramVersion string
 }
 
-func NewModel(messenger util.Messenger) *Model {
+func NewModel(md ProgramMetadata, messenger util.Messenger) *Model {
 	m := &Model{}
+    m.ProgramName = md.Name
+    m.ProgramVersion = md.Version
 	m.SendMessage = messenger
 	m.BrowseDir, _ = os.Getwd()
 	return m
+}
+
+type ProgramMetadata struct {
+    Name string
+    Version string
 }
 
 // Direction of the model is either

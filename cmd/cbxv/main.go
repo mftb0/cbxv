@@ -10,6 +10,11 @@ import (
 
 // Simple cbx application with a gui provided by gtk
 
+const (
+    NAME = "cbxv"
+    VERSION = "0.0.2"
+)
+
 // Update listens for message on the message channel and
 // handles messages by invoking commands which update the model
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *CommandList) {
@@ -38,8 +43,9 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *Comma
 // Exit
 func main() {
     msgChan := make(chan util.Message)
+    md := model.ProgramMetadata{ Name: NAME, Version: VERSION }
     messenger := func (m util.Message) { msgChan <- m }
-    m := model.NewModel(messenger)
+    m := model.NewModel(md, messenger)
     commands := NewCommands(m)
 
     u := ui.NewUI(m, messenger)
@@ -48,6 +54,8 @@ func main() {
 
     if len(os.Args) > 1 {
         u.RunFunc(func(){
+            //default to 2-page display
+            commands.Commands["setDisplayModeTwoPage"]("")
             commands.Commands["openFile"](os.Args[1])
         })
     }

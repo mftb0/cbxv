@@ -187,3 +187,16 @@ progressbar.vertical trough, progressbar.vertical progress {
 box { 
     padding: 4px;
 }
+
+link {
+    color: #00ff00;
+}
+
+link:visited {
+    color: #009900;
+}
+
+link:active {
+    color: #009900;
+}
+
