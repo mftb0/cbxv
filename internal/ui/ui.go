@@ -6,11 +6,11 @@ import (
 	_ "image/color"
 	"path/filepath"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type View interface {
@@ -20,11 +20,11 @@ type View interface {
 }
 
 type UI struct {
-	sendMessage    util.Messenger
-	mainWindow     *gtk.Window
-	pageView       View
-	stripView      View
-	View           View
+	sendMessage util.Messenger
+	mainWindow  *gtk.Window
+	pageView    View
+	stripView   View
+	View        View
 }
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {

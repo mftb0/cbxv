@@ -7,15 +7,15 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 
-	"example.com/cbxv-gotk3/internal/model"
-	"example.com/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type StripViewHdrControl struct {
-	container     *gtk.Grid
-	spinner       *gtk.Spinner
-	title         *gtk.Button
-	helpControl   *gtk.Button
+	container   *gtk.Grid
+	spinner     *gtk.Spinner
+	title       *gtk.Button
+	helpControl *gtk.Button
 }
 
 func NewStripViewHdrControl(m *model.Model, u *UI) *StripViewHdrControl {

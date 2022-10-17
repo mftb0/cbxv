@@ -8,8 +8,8 @@ import (
 	"os"
 	"sort"
 
-	"example.com/cbxv-gotk3/internal/util"
 	"github.com/gotk3/gotk3/gdk"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 // Data model of a cbx application
@@ -40,16 +40,16 @@ type Model struct {
 
 func NewModel(md ProgramMetadata, messenger util.Messenger) *Model {
 	m := &Model{}
-    m.ProgramName = md.Name
-    m.ProgramVersion = md.Version
+	m.ProgramName = md.Name
+	m.ProgramVersion = md.Version
 	m.SendMessage = messenger
 	m.BrowseDir, _ = os.Getwd()
 	return m
 }
 
 type ProgramMetadata struct {
-    Name string
-    Version string
+	Name    string
+	Version string
 }
 
 // Direction of the model is either
