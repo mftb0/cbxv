@@ -8,9 +8,9 @@ DST=$HOME/.local/share
 mkdir -p $DST/applications
 mkdir -p $DST/icons/hicolor/1024x1024
 
-cat ./com.sierrawhiskeybravodelta.cbxv.desktop | envsubst \
-> $DST/applications/com.sierrawhiskeybravodelta.cbxv.desktop
-chmod +x $DST/applications/com.sierrawhiskeybravodelta.cbxv.desktop 
+cat ./wtf.swbd.cbxv.desktop | envsubst \
+> $DST/applications/wtf.swbd.cbxv.desktop
+chmod +x $DST/applications/wtf.swbd.cbxv.desktop 
 update-desktop-database $DST/applications
 
 cp ./logo_x.png $DST/icons/hicolor/1024x1024

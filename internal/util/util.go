@@ -51,7 +51,7 @@ toggleJoin          r           Click Join Toggle
 toggleFullscreen    f           Click Fullscreen Toggle
 Export Page         e           NA
 
-<a href="http://www.sierrawhiskeybravodelta.com">Additional Help</a>
+<a href="https://www.github.com/mftb0/cbxv-gotk3">Additional Help</a>
 </tt>`
 
 //go:embed assets
@@ -135,7 +135,9 @@ func FullscreenIcon() string {
     // "[ ]" Regular square brackets
 
     r := "⛶ "  // u+26f6 - square four corners
-    if strings.Contains(runtime.GOOS, "windows") {
+    if strings.Contains(runtime.GOOS, "linux") {
+        //noop
+    } else if strings.Contains(runtime.GOOS, "windows") {
         //noop
     } else if strings.Contains(runtime.GOOS, "darwin") {
         r = "[ ]" // Regular square brackets
@@ -148,7 +150,9 @@ func FullscreenIcon() string {
 
 func RestoreIcon() string {
     r := "🮻 "  // u+1fbbb - voided greek cross
-    if strings.Contains(runtime.GOOS, "windows") {
+    if strings.Contains(runtime.GOOS, "linux") {
+        //noop
+    } else if strings.Contains(runtime.GOOS, "windows") {
         r = "╬"   // line-drawing voided cross
     } else if strings.Contains(runtime.GOOS, "darwin") {
         r = "╬"   // line-drawing voided cross

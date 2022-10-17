@@ -56,10 +56,10 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
 	lpn.SetHAlign(gtk.ALIGN_START)
 	css.AddClass("page-num")
 
-	pn := util.CreateLabel("cbxv", "nav-btn", nil)
+	pn := util.CreateLabel(m.ProgramName, "nav-btn", nil)
 	pn.SetHAlign(gtk.ALIGN_START)
 
-	pv := util.CreateLabel("v0.0.1", "nav-btn", nil)
+	pv := util.CreateLabel(m.ProgramVersion, "nav-btn", nil)
 	pv.SetHAlign(gtk.ALIGN_START)
 	pv.SetHExpand(true)
 
