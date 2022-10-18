@@ -6,18 +6,21 @@ cbxv is a native, desktop, application for viewing comic book (.cbz and .cbr)
 files. It's focus is manipulating the layout so that the art and story can be
 appreciated closer to the original intent.
 
+<br />
+<br />
+
 ## Features
-    *   Auto-joining and manual joining of pages
-    *   Auto-layout "reflow"
-    *   Page hiding
-    *   Bi-directional layout
-    *   Layout Persistence
-    *   2-Page, 1-Page and Strip Layouts
-    *   Fullscreen View
-    *   Page Export
-    *   Never alters original files
-    *   Unique HUD Interface
-    *   Native performance
+- Auto-joining and manual joining of pages
+- Auto-layout "reflow"
+- Page hiding
+- Bi-directional layout
+- Layout Persistence
+- 2-Page, 1-Page and Strip Layouts
+- Fullscreen View
+- Page Export
+- Never alters original files
+- Unique HUD Interface
+- Native performance
 
 ## Dependencies
     *   Linux
