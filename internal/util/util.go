@@ -32,24 +32,26 @@ const TMP_CBXS_PREFIX string = "cbxv-"
 const DEBUG = false
 
 const HELP_TXT = `<tt>
-Command             Key         Mouse
-quit                q           Click Window Close Button 
-openFile            o           Click Title Button
-closeFile           c           NA
-rightPage           d           Click right (side of) page
-leftPage            a           Click left (side of) page
-firstPage           w           NA
-lastPage            s           NA
-lastBookmark        L           NA
-help                ?           Click Question Mark Button
-Direction           Back Tick   Click Direction Button
-1-Page Layout       1           NA
-2-Page Layout       2           NA
-stripLayout         3           NA
-hidePage            -           NA
-toggleJoin          r           Click Join Toggle
-toggleFullscreen    f           Click Fullscreen Toggle
-Export Page         e           NA
+Command             Key             Mouse
+quit                q               Window Close Button 
+openFile            o               Title Button
+closeFile           c               NA
+rightPage           d|l|RightArrow  right side
+leftPage            a|h|LeftArrow   left side
+firstPage           w|k|UpArrow     NA
+lastPage            s|j|DownArrow   NA
+nextFile            n               NA
+previousFile        p               NA
+lastBookmark        L               NA
+help                ?               Question Mark Button
+Direction           Back Tick       Direction Button
+1-Page Layout       1               NA
+2-Page Layout       2               NA
+stripLayout         3               NA
+hidePage            -               NA
+toggleJoin          r               Join Toggle
+toggleFullscreen    f               Fullscreen Toggle
+Export Page         e               NA
 
 <a href="https://www.github.com/mftb0/cbxv-gotk3">Additional Help</a>
 </tt>`

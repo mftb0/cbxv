@@ -72,16 +72,17 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 	sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
-		if keyVal == gdk.KEY_w {
+        switch keyVal {
+        case gdk.KEY_w, gdk.KEY_Up, gdk.KEY_k:
 			// scroll to top, no msg to send, doesn't affect model
 			v.scrollbars.GetVAdjustment().SetValue(0)
-		} else if keyVal == gdk.KEY_s {
+        case gdk.KEY_s, gdk.KEY_Down, gdk.KEY_j:
 			// scroll to bottom, no msg to send, doesn't affect model
 			b := v.scrollbars.GetVAdjustment().GetUpper()
 			v.scrollbars.GetVAdjustment().SetValue(b)
-		} else if keyVal == gdk.KEY_n {
+        case gdk.KEY_n:
 			v.sendMessage(util.Message{TypeName: "nextFile"})
-		} else if keyVal == gdk.KEY_p {
+        case gdk.KEY_p:
 			v.sendMessage(util.Message{TypeName: "previousFile"})
 		}
 		v.hud.ShowAll()
