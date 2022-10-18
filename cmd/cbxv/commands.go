@@ -23,8 +23,8 @@ func NewCommands(m *model.Model) *CommandList {
 	cmds := &CommandList{Commands: make(map[string]func(data string))}
 
 	cmd := Command{
-		Name:        "nextPage",
-		DisplayName: "Next Page",
+		Name:        "rightPage",
+		DisplayName: "Right Page",
 	}
 	cmds.Commands[cmd.Name] = func(data string) {
 		if m.SpreadIndex < len(m.Spreads)-1 {
@@ -37,8 +37,8 @@ func NewCommands(m *model.Model) *CommandList {
 	}
 
 	cmd = Command{
-		Name:        "previousPage",
-		DisplayName: "Previous Page",
+		Name:        "leftPage",
+		DisplayName: "Left Page",
 	}
 	cmds.Commands[cmd.Name] = func(data string) {
 		if m.SpreadIndex > 0 {
@@ -152,13 +152,11 @@ func NewCommands(m *model.Model) *CommandList {
 			m.Direction = model.LTR
 		}
 
-		// Swap the keys
-		// fixme: This means in rtl things are
-		// named backward
-		n := cmds.Commands["nextPage"]
-		p := cmds.Commands["previousPage"]
-		cmds.Commands["nextPage"] = p
-		cmds.Commands["previousPage"] = n
+		// Swap what these do, so they continue to do what they say 0_o
+		r := cmds.Commands["rightPage"]
+		l := cmds.Commands["leftPage"]
+		cmds.Commands["rightPage"] = l
+		cmds.Commands["leftPage"] = r
 	}
 
 	cmd = Command{

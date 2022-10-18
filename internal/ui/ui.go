@@ -84,20 +84,21 @@ func (u *UI) initKBHandler(m *model.Model) {
 	u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
-		if keyVal == gdk.KEY_q {
+        switch keyVal {
+        case gdk.KEY_q:
 			u.sendMessage(util.Message{TypeName: "quit"})
 			u.Quit()
-		} else if keyVal == gdk.KEY_1 {
+        case gdk.KEY_1: 
 			u.View.Disconnect(m, u)
 			u.View = u.pageView
 			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
-		} else if keyVal == gdk.KEY_2 {
+        case gdk.KEY_2:
 			u.View.Disconnect(m, u)
 			u.View = u.pageView
 			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
-		} else if keyVal == gdk.KEY_3 {
+        case gdk.KEY_3:
 			u.View.Disconnect(m, u)
 			if u.stripView == nil {
 				u.stripView = NewStripView(m, u, u.sendMessage)
@@ -105,14 +106,14 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.View = u.stripView
 			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
-		} else if keyVal == gdk.KEY_f {
+        case gdk.KEY_f:
 			if m.Fullscreen {
 				u.mainWindow.Unfullscreen()
 			} else {
 				u.mainWindow.Fullscreen()
 			}
 			u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
-		} else if keyVal == gdk.KEY_o {
+        case gdk.KEY_o:
 			dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
 			dlg.SetCurrentFolder(m.BrowseDir)
 			output := dlg.NativeDialog.Run()
@@ -121,9 +122,9 @@ func (u *UI) initKBHandler(m *model.Model) {
 				m := &util.Message{TypeName: "openFile", Data: f}
 				u.sendMessage(*m)
 			}
-		} else if keyVal == gdk.KEY_c {
+        case gdk.KEY_c:
 			u.sendMessage(util.Message{TypeName: "closeFile"})
-		} else if keyVal == gdk.KEY_e {
+        case gdk.KEY_e:
 			dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
 			base := filepath.Base(m.Pages[m.PageIndex].FilePath)
 			dlg.SetCurrentFolder(m.ExportDir)
@@ -134,7 +135,7 @@ func (u *UI) initKBHandler(m *model.Model) {
 				m := &util.Message{TypeName: "exportFile", Data: f}
 				u.sendMessage(*m)
 			}
-		} else if keyVal == gdk.KEY_question {
+        case gdk.KEY_question:
 			dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow,
 				gtk.DialogFlags(gtk.DIALOG_MODAL),
 				gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")

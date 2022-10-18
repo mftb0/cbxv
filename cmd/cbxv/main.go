@@ -12,7 +12,7 @@ import (
 
 const (
 	NAME    = "cbxv"
-	VERSION = "0.0.2"
+	VERSION = "0.0.3"
 )
 
 // Update listens for message on the message channel and
@@ -51,13 +51,13 @@ func main() {
 
 	go update(m, u, msgChan, commands)
 
-	if len(os.Args) > 1 {
-		u.RunFunc(func() {
-			//default to 2-page display
-			commands.Commands["setDisplayModeTwoPage"]("")
-			commands.Commands["openFile"](os.Args[1])
-		})
-	}
+    u.RunFunc(func() {
+        //default to 2-page display
+        commands.Commands["setDisplayModeTwoPage"]("")
+        if len(os.Args) > 1 {
+            commands.Commands["openFile"](os.Args[1])
+        }
+    })
 
 	u.Run()
 

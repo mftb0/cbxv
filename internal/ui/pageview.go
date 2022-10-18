@@ -92,29 +92,30 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
 	sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
-		if keyVal == gdk.KEY_d {
-			v.sendMessage(util.Message{TypeName: "nextPage"})
-		} else if keyVal == gdk.KEY_a {
-			v.sendMessage(util.Message{TypeName: "previousPage"})
-		} else if keyVal == gdk.KEY_w {
+        switch keyVal {
+        case gdk.KEY_d, gdk.KEY_Right, gdk.KEY_l:
+			v.sendMessage(util.Message{TypeName: "rightPage"})
+        case gdk.KEY_a, gdk.KEY_Left, gdk.KEY_h:
+			v.sendMessage(util.Message{TypeName: "leftPage"})
+        case gdk.KEY_w, gdk.KEY_Up, gdk.KEY_k:
 			v.sendMessage(util.Message{TypeName: "firstPage"})
-		} else if keyVal == gdk.KEY_s {
+        case gdk.KEY_s, gdk.KEY_Down, gdk.KEY_j:
 			v.sendMessage(util.Message{TypeName: "lastPage"})
-		} else if keyVal == gdk.KEY_Tab {
+        case gdk.KEY_Tab:
 			v.sendMessage(util.Message{TypeName: "selectPage"})
-		} else if keyVal == gdk.KEY_grave {
+        case gdk.KEY_grave:
 			v.sendMessage(util.Message{TypeName: "toggleDirection"})
-		} else if keyVal == gdk.KEY_r {
+        case gdk.KEY_r:
 			v.sendMessage(util.Message{TypeName: "toggleJoin"})
-		} else if keyVal == gdk.KEY_minus {
+        case gdk.KEY_minus:
 			v.sendMessage(util.Message{TypeName: "hidePage"})
-		} else if keyVal == gdk.KEY_n {
+        case gdk.KEY_n:
 			v.sendMessage(util.Message{TypeName: "nextFile"})
-		} else if keyVal == gdk.KEY_p {
+        case gdk.KEY_p:
 			v.sendMessage(util.Message{TypeName: "previousFile"})
-		} else if keyVal == gdk.KEY_space {
+        case gdk.KEY_space:
 			v.sendMessage(util.Message{TypeName: "toggleBookmark"})
-		} else if keyVal == gdk.KEY_L {
+        case gdk.KEY_L:
 			v.sendMessage(util.Message{TypeName: "lastBookmark"})
 		}
 
@@ -171,12 +172,10 @@ func (v *PageView) initRenderer(m *model.Model) {
 		w := v.hud.GetAllocatedWidth()
 		half := float64(w / 2)
 		e := &gdk.EventButton{Event: event}
-		// fixme: Don't have to deal w/rtl here because it's dealt with
-		// in the app
 		if e.X() < half {
-			v.sendMessage(util.Message{TypeName: "previousPage"})
+			v.sendMessage(util.Message{TypeName: "leftPage"})
 		} else {
-			v.sendMessage(util.Message{TypeName: "nextPage"})
+			v.sendMessage(util.Message{TypeName: "rightPage"})
 		}
 		//reset the hud hiding
 		v.hud.ShowAll()
