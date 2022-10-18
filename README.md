@@ -1,4 +1,4 @@
-# cbxv - The high fidelity comic book viewer
+## cbxv - The high fidelity comic book viewer
 
 <img width="128" height="128" align="left" src="build/assets/lin/logo_x.png">
 
@@ -31,10 +31,10 @@ appreciated closer to the original intent.
     don't have it already installed you must install the appropriate package 
     for your distro.
 
-    Arch    - gtk3
-    Fedora  - gtk3
-    Debian  - libgtk-3-0
-    Ubuntu  - libgtk-3-0
+    - Arch    - gtk3
+    - Fedora  - gtk3
+    - Debian  - libgtk-3-0
+    - Ubuntu  - libgtk-3-0
 
 - Windows and Mac
     Everything that you need is in the archive available under the releases 
