@@ -2,20 +2,21 @@
 
 GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
+VERSION=`rg --no-line-number --trim --replace '$1' 'VERSION = "([^\s]*)"' cmd/cbxv/main.go`
 
 # build
-echo "building ${GOOS} ${GOARCH}"
+echo "building ${GOOS} ${GOARCH} ${VERSION}"
 go build -o out/cbxv cmd/cbxv/*.go
 
 # package
-NM="cbxv_${GOOS}_${GOARCH}"
+NM="cbxv_${GOOS}_${GOARCH}-${VERSION}"
 DST="dist/${NM}"
-mkdir -p $DST
+mkdir -p "$DST"
 
-cp out/cbxv $DST
-cp build/assets/lin/* $DST
+cp out/cbxv "$DST"
+cp build/assets/lin/* "$DST"
 
 cd dist
-tar -czvf "${NM}.gz" "${NM}/"
+tar -czvf "${NM}.tar.gz" "${NM}/"
 cd -
 
