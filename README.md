@@ -38,30 +38,25 @@ are.
 - Native performance
 
 ## Dependencies
-- Linux
-    You must have Gtk3 installed. This is very common on Linux. If you 
+- Linux - You must have Gtk3 installed. This is very common on Linux. If you 
     don't have it already you must install the appropriate package for your 
     distro.
 
     - Arch and Fedora   - gtk3
     - Debian and Ubuntu - libgtk-3-0
 
-- Windows and Mac
-    Everything that you need is in the archive available under the releases 
-    section.
+- Windows and Mac - Everything that you need is in the archive available under 
+    the releases section.
 
 ## Installation
--   Linux
-    Download the Linux build from the release area and unarchive it. On Linux cbxv 
-    is a single executable, put it wherever you like and run it. For your 
-    convenience a simple script is provided to put a desktop file and icon in the 
-    appropriate places for your user.
+-   Linux - Download the Linux build from the release area and unarchive it. 
+    On Linux cbxv is a single executable, put it wherever you like and run it. 
+    For your convenience a simple script is provided to put a desktop file and 
+    icon in the appropriate places for your user.
 
--   Windows
-    Download the Windows build from the release area and unarchive it. Copy the 
-    resulting directory to program files or wherever you like and run it.
+-   Windows - Download the Windows build from the release area and unarchive it. 
+    Copy the resulting directory to program files or wherever you like and run it.
 
--   Mac
-    Download the Mac build from the release area and unarchive it. Copy the 
+-   Mac - Download the Mac build from the release area and unarchive it. Copy the 
     cbxv.app directory to Applications and double-click on it.
 
