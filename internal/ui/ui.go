@@ -1,16 +1,18 @@
 package ui
 
 import (
-    "fmt"
-    _ "golang.org/x/image/colornames"
-    _ "image/color"
-    "path/filepath"
+	"fmt"
+	_ "image/color"
+	"path/filepath"
+	"runtime"
 
-    "github.com/gotk3/gotk3/gdk"
-    "github.com/gotk3/gotk3/glib"
-    "github.com/gotk3/gotk3/gtk"
-    "github.com/mftb0/cbxv-gotk3/internal/model"
-    "github.com/mftb0/cbxv-gotk3/internal/util"
+	_ "golang.org/x/image/colornames"
+
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type View interface {
@@ -38,6 +40,11 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
         gtk.MainQuit()
     })
     u.mainWindow.SetSizeRequest(1024, 768)
+
+    if runtime.GOOS == "linux" {
+        ip, _ := util.AppIconPath()
+        u.mainWindow.SetIconFromFile(ip)
+    }
 
     if m.LayoutMode != model.LONG_STRIP {
         u.pageView = NewPageView(m, u, messenger)

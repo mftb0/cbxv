@@ -131,6 +131,17 @@ func layoutsPath() (string, error) {
     return filepath.Join(p, LAYOUTS_DN), nil
 }
 
+// Currently only needed on linux, so linux specific
+func AppIconPath() (string, error) {
+    p, err := homePath()
+    if err != nil {
+        return "", err
+    }
+    iHome := filepath.Join(".local", "share", "icons", "hicolor", "1024x1024")
+    iPath := filepath.Join(iHome, "logo_x.png")
+    return filepath.Join(p, iPath), nil
+}
+
 func FullscreenIcon() string {
     // "⛶ "  u+26f6 - square four corners
     // "⤢ "  u+2922 - NE/SW Arrows
