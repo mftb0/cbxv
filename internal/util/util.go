@@ -131,15 +131,28 @@ func layoutsPath() (string, error) {
     return filepath.Join(p, LAYOUTS_DN), nil
 }
 
-// Currently only needed on linux, so linux specific
-func AppIconPath() (string, error) {
-    p, err := homePath()
-    if err != nil {
-        return "", err
+// Get a string that points to an icon for our executables use at runtime
+// Linux - find the icon in the standard directory
+// Windows - find the icon relative to the executable
+func AppIconPath() (*string, error) {
+    var p string
+    if runtime.GOOS == "linux" {
+        hPath, err := homePath()
+        if err != nil {
+            return nil, err
+        }
+        iDir := filepath.Join(".local", "share", "icons", "hicolor", "1024x1024")
+        iPath := filepath.Join(iDir, "logo_x.png")
+        p = filepath.Join(hPath, iPath)
+    } else if runtime.GOOS == "windows" {
+        ePath, err := os.Executable()
+        if err != nil {
+            return nil, err
+        }
+	eDir := filepath.Dir(ePath)
+	p = filepath.Join(eDir, "logo_x.png")
     }
-    iHome := filepath.Join(".local", "share", "icons", "hicolor", "1024x1024")
-    iPath := filepath.Join(iHome, "logo_x.png")
-    return filepath.Join(p, iPath), nil
+    return &p, nil
 }
 
 func FullscreenIcon() string {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	_ "image/color"
 	"path/filepath"
-	"runtime"
 
 	_ "golang.org/x/image/colornames"
 
@@ -41,9 +40,10 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
     })
     u.mainWindow.SetSizeRequest(1024, 768)
 
-    if runtime.GOOS == "linux" {
-        ip, _ := util.AppIconPath()
-        u.mainWindow.SetIconFromFile(ip)
+    iPath, _ := util.AppIconPath()
+    if iPath != nil {
+	fmt.Printf("iconPath:%s\n", iPath)
+        u.mainWindow.SetIconFromFile(*iPath)
     }
 
     if m.LayoutMode != model.LONG_STRIP {

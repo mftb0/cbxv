@@ -1,19 +1,29 @@
 #!/bin/sh
 
-DST=dist/cbxv_win_x86_64
+GOOS=`go env GOOS`
+GOARCH=`go env GOARCH`
+VERSION='0.0.0'
 
 # build
+echo "building ${GOOS} ${GOARCH} ${VERSION}"
 go build -ldflags -H=windowsgui -o out/cbxv.exe cmd/cbxv/*.go 
 
-# mk dst
-mkdir -p $DST
-mkdir -p $DST/lib
+# package
+NM="cbxv_${GOOS}_${GOARCH}-${VERSION}"
+DST="dist/${NM}"
+mkdir -p "$DST"
+mkdir -p "$DST/lib"
 
-# copy stuff
-cp out/cbxv.exe $DST
-ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" $DST
-cp /c/tools/msys64/mingw64/bin/libgif-7.dll $DST
-cp /c/tools/msys64/mingw64/bin/libjpeg-8.dll $DST
-cp /c/tools/msys64/mingw64/bin/gdbus.exe $DST
-cp -r /c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0 $DST/lib
+cp out/cbxv.exe "$DST"
+ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" "$DST"
+cp /c/tools/msys64/mingw64/bin/libgif-7.dll "$DST"
+cp /c/tools/msys64/mingw64/bin/libjpeg-8.dll "$DST"
+cp /c/tools/msys64/mingw64/bin/gdbus.exe "$DST"
+cp -r /c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0 "$DST/lib"
+cp build/assets/win/logo_x.png "$DST"
+
+# fixme: no point until ver set
+# cd dist
+# zip "${NM}.zip" "${NM}/"
+# cd -
 
