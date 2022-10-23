@@ -35,6 +35,7 @@ are.
 - Fullscreen View
 - Unique HUD Interface
 - Never alters original files
+- Supports most common formats; .cbz, .cbr, .cb7, .cbt
 - Native performance
 
 ## Dependencies
