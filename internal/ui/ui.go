@@ -42,7 +42,6 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 
     iPath, _ := util.AppIconPath()
     if iPath != nil {
-	fmt.Printf("iconPath:%s\n", iPath)
         u.mainWindow.SetIconFromFile(*iPath)
     }
 
