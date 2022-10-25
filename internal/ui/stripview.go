@@ -133,6 +133,11 @@ func (v *StripView) renderSpreads(m *model.Model) {
         return
     }
 
+    if len(m.Spreads[0].Pages) < len(m.Pages) {
+        v.sendMessage(util.Message{TypeName: "loadAllPages"})
+        return 
+    }
+
     v.scrollbars.Remove(v.container)
     var err error
     v.container, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
@@ -145,11 +150,8 @@ func (v *StripView) renderSpreads(m *model.Model) {
     v.scrollbars.ShowAll()
 
     x := v.scrollbars.GetAllocatedWidth()
-    for _, page := range m.Spreads[0].Pages {
-        if !page.Loaded {
-            page.Load()
-        }
-
+    for i := range m.Spreads[0].Pages {
+        page := m.Spreads[0].Pages[i]
         // fixme: Shouldn't be needed but actually
         // lower mem use
         p, _ := gdk.PixbufCopy(page.Image)

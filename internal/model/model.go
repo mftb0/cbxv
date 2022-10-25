@@ -315,10 +315,15 @@ func (m *Model) NewSpreads() {
         spread := &Spread{}
         for i := range pages {
             p := &pages[i]
+            if !p.Loaded {
+                p.Load()
+            }
+
             if p.Hidden {
                 m.HiddenPages = true
                 continue
             }
+
             spread.Pages = append(spread.Pages, p)
             spread.PageIdxs = append(spread.PageIdxs, i)
         }
@@ -485,7 +490,10 @@ func (m *Model) RefreshPages() {
     } else {
         // load all pages
         for i := range m.Pages {
-            m.Pages[i].Load()
+            page := &m.Pages[i]
+            if !page.Loaded {
+                page.Load()
+            }
         }
     }
 }

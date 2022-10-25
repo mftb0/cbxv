@@ -315,6 +315,15 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command{
+        Name:        "loadAllPages",
+        DisplayName: "Load All Pages",
+    }
+    cmds.Commands[cmd.Name] = func(data string) {
+        m.RefreshPages()
+        m.NewSpreads()
+    }
+
+    cmd = Command{
         Name:        "render",
         DisplayName: "Render",
     }
