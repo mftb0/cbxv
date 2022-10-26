@@ -106,7 +106,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
         u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
     })
 
-    container.Attach(nbc, 0, 0, 9, 1)
+    container.Attach(nbc, 0, 0, 10, 1)
     container.Attach(lpn, 1, 1, 1, 1)
     container.Attach(pn, 2, 1, 1, 1)
     container.Attach(pv, 3, 1, 1, 1)

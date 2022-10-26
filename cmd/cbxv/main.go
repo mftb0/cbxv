@@ -53,7 +53,7 @@ func main() {
 
     u.RunFunc(func() {
         //default to 2-page display
-        commands.Commands["setDisplayModeTwoPage"]("")
+        commands.Commands["setLayoutModeTwoPage"]("")
         if len(os.Args) > 1 {
             commands.Commands["openFile"](os.Args[1])
         }

@@ -130,6 +130,7 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
 func (v *PageView) Disconnect(m *model.Model, u *UI) {
     if v.keyPressSignalHandle != nil {
         u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
+        v.keyPressSignalHandle = nil
     }
     u.mainWindow.Remove(v.hud)
 }

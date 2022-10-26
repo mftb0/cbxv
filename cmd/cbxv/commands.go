@@ -101,8 +101,8 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command{
-        Name:        "setDisplayModeOnePage",
-        DisplayName: "Display Mode One Page",
+        Name:        "setLayoutModeOnePage",
+        DisplayName: "Layout Mode One Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
@@ -115,8 +115,8 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command{
-        Name:        "setDisplayModeTwoPage",
-        DisplayName: "Display Mode Two Page",
+        Name:        "setLayoutModeTwoPage",
+        DisplayName: "Layout Mode Two Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
@@ -129,8 +129,8 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command{
-        Name:        "setDisplayModeLongStrip",
-        DisplayName: "Display Mode Long Strip",
+        Name:        "setLayoutModeLongStrip",
+        DisplayName: "Layout Mode Long Strip",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         m.LayoutMode = model.LONG_STRIP

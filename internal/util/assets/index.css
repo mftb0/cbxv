@@ -20,6 +20,10 @@ button {
     border: solid 1px rgba(0,0,0,0);
 }
 
+box {
+    background-color: #000000;
+}
+
 .nav-btn {
     background-image:none;
     background-color: rgba(0,0,0,0.49); 

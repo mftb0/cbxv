@@ -97,17 +97,17 @@ func (u *UI) initKBHandler(m *model.Model) {
             u.View.Disconnect(m, u)
             u.View = u.pageView
             u.View.Connect(m, u)
-            u.sendMessage(util.Message{TypeName: "setDisplayModeOnePage"})
+            u.sendMessage(util.Message{TypeName: "setLayoutModeOnePage"})
         case gdk.KEY_2:
             u.View.Disconnect(m, u)
             u.View = u.pageView
             u.View.Connect(m, u)
-            u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
+            u.sendMessage(util.Message{TypeName: "setLayoutModeTwoPage"})
         case gdk.KEY_3:
             u.View.Disconnect(m, u)
             u.View = u.stripView
             u.View.Connect(m, u)
-            u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
+            u.sendMessage(util.Message{TypeName: "setLayoutModeLongStrip"})
         case gdk.KEY_f:
             if m.Fullscreen {
                 u.mainWindow.Unfullscreen()
