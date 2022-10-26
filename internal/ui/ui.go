@@ -45,10 +45,9 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
         u.mainWindow.SetIconFromFile(*iPath)
     }
 
-    if m.LayoutMode != model.LONG_STRIP {
-        u.pageView = NewPageView(m, u, messenger)
-        u.View = u.pageView
-    }
+    u.pageView = NewPageView(m, u, messenger)
+    u.stripView = NewStripView(m, u, u.sendMessage)
+    u.View = u.pageView
 
     initCss()
 
@@ -106,9 +105,6 @@ func (u *UI) initKBHandler(m *model.Model) {
             u.sendMessage(util.Message{TypeName: "setDisplayModeTwoPage"})
         case gdk.KEY_3:
             u.View.Disconnect(m, u)
-            if u.stripView == nil {
-                u.stripView = NewStripView(m, u, u.sendMessage)
-            }
             u.View = u.stripView
             u.View.Connect(m, u)
             u.sendMessage(util.Message{TypeName: "setDisplayModeLongStrip"})
