@@ -1,32 +1,18 @@
-.body {
-    background-color: #00ff00;
-    margin: 0px;
-    padding :0px;
-    border: 0px;
+box {
+    background-color: #000000;
+    padding: 4px;
 }
 
-.image {
-    border: 0px;
-    margin: 0px;
-    padding: 0px;
-}
-
-
-.bordered {
-    border: solid 1px #00ff00;
+label {
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
 }
 
 button {
-    border: solid 1px rgba(0,0,0,0);
-}
-
-box {
-    background-color: #000000;
-}
-
-.nav-btn {
     background-image:none;
     background-color: rgba(0,0,0,0.49); 
+    border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
@@ -36,6 +22,41 @@ box {
     font-size: 14px;
 }
 
+headerbar {
+    background-image:none;
+    background-color: rgba(0,0,0,0.49); 
+    border: solid 1px rgba(0,0,0,0);
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+}
+
+list {
+    background-image:none;
+    background-color: rgba(0,0,0,1); 
+    border: solid 1px rgba(0,0,0,0);
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+}
+
+treeview {
+    background-image:none;
+    background-color: rgba(0,0,0,1); 
+    color: #00ff00;
+    border: solid 1px rgba(0,0,0,0);
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+treeview:hover {
+    background-color: #00ff00; 
+    color: #000000;
+}
+
 menuitem {
     background-image:none;
     background-color:#000000;
@@ -43,7 +64,6 @@ menuitem {
     box-shadow: none;
     text-shadow: none;
     color: #00ff00;
-    padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
 }
@@ -64,6 +84,20 @@ menu {
     font-size: 14px;
 }
 
+combobox {
+    background-image:none;
+    background-color:#000000;
+    border-radius: 0px;
+    border:none;
+    box-shadow: none;
+    text-shadow: none;
+    color: #00ff00;
+    margin: 0px;
+    padding: 0px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 button.combo {
     background-image:none;
     background-color: rgba(0, 0, 0, 0.49); 
@@ -78,16 +112,78 @@ button.combo {
     font-size: 14px;
 }
 
-combobox {
-    background-image:none;
-    background-color:#000000;
+progressbar {
+  padding: 0;
+  border: none;
+  color: white;
+  background-color: transparent; 
+}
+
+progressbar progress {
+    border: none;
     border-radius: 0px;
-    border:none;
+    background-color: #00ff00; 
+}
+
+progressbar progress:backdrop {
+    background-color: #00ff00; 
+}
+
+progressbar trough {
+    border: solid 1px rgba(0,0,0,0);
+    border-radius: 0px;
+    background-color: rgba(0, 0, 0, 0.49); 
+}
+
+progressbar trough:backdrop {
+      background-color: #252525; 
+}
+
+progressbar.horizontal trough, progressbar.horizontal progress {
+    min-height: 4px; 
+}
+
+progressbar.vertical trough, progressbar.vertical progress {
+    min-width: 4px; 
+}
+
+link {
+    color: #00ff00;
+}
+
+link:visited {
+    color: #009900;
+}
+
+link:active {
+    color: #009900;
+}
+
+.body {
+    background-color: #00ff00;
+    margin: 0px;
+    padding :0px;
+    border: 0px;
+}
+
+.image {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.bordered {
+    border: solid 1px #00ff00;
+}
+
+.nav-btn {
+    background-image:none;
+    background-color: rgba(0,0,0,0.49); 
+    border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
     color: #00ff00;
-    margin: 0px;
-    padding: 0px;
+    padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
 }
@@ -130,41 +226,6 @@ combobox {
     padding-bottom: 8px;
 }
 
-progressbar {
-  padding: 0;
-  border: none;
-  color: white;
-  background-color: transparent; 
-}
-
-progressbar progress {
-    border: none;
-    border-radius: 0px;
-    background-color: #06B025; 
-}
-
-progressbar progress:backdrop {
-      background-color: #06B025; 
-}
-
-progressbar trough {
-    border: solid 1px rgba(0,0,0,0);
-    border-radius: 0px;
-    background-color: rgba(0, 0, 0, 0.49); 
-}
-
-progressbar trough:backdrop {
-      background-color: #252525; 
-}
-
-progressbar.horizontal trough, progressbar.horizontal progress {
-    min-height: 4px; 
-}
-
-progressbar.vertical trough, progressbar.vertical progress {
-    min-width: 4px; 
-}
-
 .nav-ctrl {
     padding-bottom: 8px;
 }
@@ -186,21 +247,5 @@ progressbar.vertical trough, progressbar.vertical progress {
 
 .transparent {
     background-color: transparent;
-}
-
-box { 
-    padding: 4px;
-}
-
-link {
-    color: #00ff00;
-}
-
-link:visited {
-    color: #009900;
-}
-
-link:active {
-    color: #009900;
 }
 
