@@ -1,12 +1,17 @@
+*:selected {
+    border:solid 1px @green;
+    color: @green;
+}
+
 box {
-    background-color: #000000;
+    background-color: @black;
     padding: 4px;
 }
 
 label {
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
 }
 
 button {
@@ -16,7 +21,7 @@ button {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
@@ -24,74 +29,82 @@ button {
 
 headerbar {
     background-image:none;
-    background-color: rgba(0,0,0,0.49); 
+    background-color: @black; 
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
+}
+
+headerbar button {
+    background-image:none;
+    background-color: @black; 
+    border: solid 1px @crt_green;
+    border-radius: 0px;
+    box-shadow: none;
+    text-shadow: none;
+    color: @crt_green;
+    padding: 3px 19px 3px 19px;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 list {
     background-image:none;
-    background-color: rgba(0,0,0,1); 
+    background-color: @black; 
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
 }
 
 treeview {
     background-image:none;
-    background-color: rgba(0,0,0,1); 
-    color: #00ff00;
+    background-color: @black; 
+    color: @crt_green;
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
 }
 
-treeview:hover {
-    background-color: #00ff00; 
-    color: #000000;
-}
-
 menuitem {
     background-image:none;
-    background-color:#000000;
+    background-color: @black;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     font-weight: bold;
     font-size: 14px;
 }
 
 menuitem:hover {
-    background: #00ff00;
-    color: #000000;
+    background: @green;
+    color: @black;
 }
 
 menu {
     background-image:none;
-    background-color:#000000;
+    background-color: @black;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     font-weight: bold;
     font-size: 14px;
 }
 
 combobox {
     background-image:none;
-    background-color:#000000;
+    background-color: @black;
     border-radius: 0px;
     border:none;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     margin: 0px;
     padding: 0px;
     font-weight: bold;
@@ -104,7 +117,7 @@ button.combo {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     margin: 0px;
     border: none;
     padding: 0px;
@@ -122,11 +135,11 @@ progressbar {
 progressbar progress {
     border: none;
     border-radius: 0px;
-    background-color: #00ff00; 
+    background-color: @green; 
 }
 
 progressbar progress:backdrop {
-    background-color: #00ff00; 
+    background-color: @green; 
 }
 
 progressbar trough {
@@ -148,19 +161,19 @@ progressbar.vertical trough, progressbar.vertical progress {
 }
 
 link {
-    color: #00ff00;
+    color: @green;
 }
 
 link:visited {
-    color: #009900;
+    color: @crt_green;
 }
 
 link:active {
-    color: #009900;
+    color: @crt_green;
 }
 
 .body {
-    background-color: #00ff00;
+    background-color: @crt_green;
     margin: 0px;
     padding :0px;
     border: 0px;
@@ -173,7 +186,7 @@ link:active {
 }
 
 .bordered {
-    border: solid 1px #00ff00;
+    border: solid 1px @green;
 }
 
 .nav-btn {
@@ -182,7 +195,7 @@ link:active {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
@@ -190,34 +203,34 @@ link:active {
 
 .msg-dlg {
     background-image:none;
-    background-color:#000000;
+    background-color: @black;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     font-weight: bold;
     font-size: 14px;
 }
 
 .msg-dlg button {
     background-image:none;
-    background-color:#000000;
-    border: solid 1px #00ff00;
+    background-color: @black;
+    border: solid 1px @crt_green;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     font-weight: bold;
     font-size: 14px;
 }
 
 .msg-dlg .titlebar {
     background-image:none;
-    background-color:#000000;
+    background-color: @black;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: #00ff00;
+    color: @crt_green;
     font-weight: bold;
     font-size: 14px;
 }
@@ -242,10 +255,14 @@ link:active {
 }
 
 .marked {
-    background-color: #00ff00;
+    background-color: @green;
 }
 
 .transparent {
     background-color: transparent;
 }
+
+@define-color black #010901;
+@define-color green #00ff00;
+@define-color crt_green #22dd22;
 
