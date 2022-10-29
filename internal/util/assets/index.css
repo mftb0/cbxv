@@ -22,7 +22,8 @@ button {
     box-shadow: none;
     text-shadow: none;
     color: @crt_green;
-    padding: 3px 19px 3px 19px;
+    padding: 0px;
+    margin: 0px;
     font-weight: bold;
     font-size: 14px;
 }
@@ -111,15 +112,14 @@ combobox {
     font-size: 14px;
 }
 
-button.combo {
-    background-image:none;
-    background-color: rgba(0, 0, 0, 0.49); 
+combobox box {
+    background-image: none;
+    background-color: transparent; 
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
     color: @crt_green;
     margin: 0px;
-    border: none;
     padding: 0px;
     font-weight: bold;
     font-size: 14px;
