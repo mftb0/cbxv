@@ -633,13 +633,24 @@ func CreateButton(text string, cssClass string, toolTip *string) *gtk.Button {
 }
 
 func parseFileUrl(fileUrl string) *string {
+    var r string
     if strings.HasPrefix(fileUrl, "file:///") {
-        uri,_ := url.ParseRequestURI(strings.Trim(fileUrl, "\r\n\t"))
+        uri, err := url.ParseRequestURI(strings.Trim(fileUrl, "\r\n\t"))
+        if err != nil {
+            fmt.Printf("Error parsing file url - %s", err)
+            return &r
+        }
+
         if uri != nil {
-            return &uri.Path
+            // For windows a forward slash precedes the drive leter o_0
+            if runtime.GOOS == "windows" {
+                r = uri.Path[1:]
+            } else {
+                r = uri.Path
+            }
         }
     }
-    return nil
+    return &r
 }
 
 func HandleDropData(buf []byte, sendMessage Messenger) {
