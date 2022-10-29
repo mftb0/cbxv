@@ -1,20 +1,20 @@
 package ui
 
 import (
-    "fmt"
-    _ "image/color"
-    "math"
-    "runtime"
+	"fmt"
+	_ "image/color"
+	"math"
+	"runtime"
 
-    _ "golang.org/x/image/colornames"
+	_ "golang.org/x/image/colornames"
 
-    "github.com/gotk3/gotk3/cairo"
-    "github.com/gotk3/gotk3/gdk"
-    "github.com/gotk3/gotk3/glib"
-    "github.com/gotk3/gotk3/gtk"
+	"github.com/gotk3/gotk3/cairo"
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
 
-    "github.com/mftb0/cbxv-gotk3/internal/model"
-    "github.com/mftb0/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 const (
@@ -47,6 +47,15 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
     v.hud.Add(v.canvas)
     v.initRenderer(m)
     v.hud.ShowAll()
+
+    // DND
+    target,_ := gtk.TargetEntryNew("text/uri-list", gtk.TargetFlags(0), 0)
+    v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
+    v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
+        if selData != nil {
+            util.HandleDropData(selData.GetData(), u.sendMessage)
+        }
+    })
 
     v.hudKeepAlive = false
     glib.TimeoutAdd(TICK, func() bool {

@@ -1,27 +1,28 @@
 package util
 
 import (
-    "archive/zip"
-    "crypto/md5"
-    "embed"
-    "fmt"
-    "image"
-    _ "image/gif"
-    _ "image/jpeg"
-    _ "image/png"
-    "io"
-    "io/fs"
-    "io/ioutil"
-    "math/rand"
-    "os"
-    "path/filepath"
-    "runtime"
-    "sort"
-    "strings"
-    "time"
+	"archive/zip"
+	"crypto/md5"
+	"embed"
+	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io"
+	"io/fs"
+	"io/ioutil"
+	"math/rand"
+	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"strings"
+	"time"
 
-    "github.com/gen2brain/go-unarr"
-    "github.com/gotk3/gotk3/gtk"
+	"github.com/gen2brain/go-unarr"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 const RENDERERSTATE_FN string = "rendererstate.json"
@@ -631,8 +632,30 @@ func CreateButton(text string, cssClass string, toolTip *string) *gtk.Button {
     return c
 }
 
+func parseFileUrl(fileUrl string) *string {
+    if strings.HasPrefix(fileUrl, "file:///") {
+        uri,_ := url.ParseRequestURI(strings.Trim(fileUrl, "\r\n\t"))
+        if uri != nil {
+            return &uri.Path
+        }
+    }
+    return nil
+}
+
+func HandleDropData(buf []byte, sendMessage Messenger) {
+    uris := strings.Split(string(buf), "\n")
+    if len(uris) > 0 {
+        p := parseFileUrl(strings.Trim(uris[0], "\r\n\t"))
+        if p != nil {
+            m := &Message{TypeName: "openFile", Data: *p}
+            sendMessage(*m)
+        }
+    }
+}
+
 func Log(format string, a ...any) {
     if DEBUG == true {
         fmt.Fprintf(os.Stdout, format, a...)
     }
 }
+

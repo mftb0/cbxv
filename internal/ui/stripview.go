@@ -55,6 +55,15 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 		v.hudKeepAlive = true
 	})
 
+    // DND
+    target,_ := gtk.TargetEntryNew("text/uri-list", gtk.TargetFlags(0), 0)
+    v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
+    v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
+        if selData != nil {
+            util.HandleDropData(selData.GetData(), u.sendMessage)
+        }
+    })
+
 	v.hudKeepAlive = false
 	glib.TimeoutAdd(TICK, func() bool {
 		if !v.hudHidden && !v.hudKeepAlive {
