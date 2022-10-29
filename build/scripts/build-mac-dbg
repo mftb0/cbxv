@@ -3,20 +3,25 @@
 GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
 
+#
 # build
+#
 echo "building ${GOOS} ${GOARCH}"
 go build -o out/cbxv cmd/cbxv/*.go
 
 # mk dst
 DST="dist/cbxv_${GOOS}_${GOARCH}/cbxv.app"
-mkdir -p $DST
+mkdir -p "$DST"
 
+#
 # pkg
-cp -r build/assets/mac/Contents $DST
+#
+cp -r build/assets/mac/Contents "$DST"
 
 DST=$DST/Contents/MacOS
+mkdir -p "$DST"
 
-cp out/cbxv $DST
+cp out/cbxv "$DST"/
 
 # List generated with otool -L
 cp /usr/local/opt/glib/lib/libgmodule-2.0.0.dylib $DST/
