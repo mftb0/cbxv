@@ -226,14 +226,14 @@ func NewCommands(m *model.Model) *CommandList {
     }
 
     cmd = Command{
-        Name:        "exportFile",
-        DisplayName: "Export File",
+        Name:        "exportPage",
+        DisplayName: "Export Page",
     }
     cmds.Commands[cmd.Name] = func(data string) {
         srcPath := m.Pages[m.PageIndex].FilePath
         dstPath := data
         m.ExportDir = filepath.Dir(dstPath)
-        util.ExportFile(srcPath, dstPath)
+        util.ExportPage(srcPath, dstPath)
     }
 
     cmd = Command{

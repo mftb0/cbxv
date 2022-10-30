@@ -116,8 +116,12 @@ func (u *UI) initKBHandler(m *model.Model) {
             }
             u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
         case gdk.KEY_o:
-            dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+            dlg, _ := gtk.FileChooserNativeDialogNew("Open", 
+                u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+            defer dlg.Destroy()
+
             dlg.SetCurrentFolder(m.BrowseDir)
+
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
@@ -127,26 +131,33 @@ func (u *UI) initKBHandler(m *model.Model) {
         case gdk.KEY_c:
             u.sendMessage(util.Message{TypeName: "closeFile"})
         case gdk.KEY_e:
-            dlg, _ := gtk.FileChooserNativeDialogNew("Save", u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+            dlg, _ := gtk.FileChooserNativeDialogNew("Save", 
+                u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+            defer dlg.Destroy()
+
             base := filepath.Base(m.Pages[m.PageIndex].FilePath)
             dlg.SetCurrentFolder(m.ExportDir)
             dlg.SetCurrentName(base)
+            dlg.SetDoOverwriteConfirmation(true)
+
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
-                m := &util.Message{TypeName: "exportFile", Data: f}
+                m := &util.Message{TypeName: "exportPage", Data: f}
                 u.sendMessage(*m)
             }
-        case gdk.KEY_question:
+        case gdk.KEY_question, gdk.KEY_F1:
             dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow,
                 gtk.DialogFlags(gtk.DIALOG_MODAL),
                 gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
+            defer dlg.Destroy()
+
             dlg.SetTitle("Help")
             dlg.SetMarkup(util.HELP_TXT)
             css, _ := dlg.GetStyleContext()
             css.AddClass("msg-dlg")
+
             dlg.Run()
-            dlg.Destroy()
         }
     })
 }

@@ -44,7 +44,7 @@ lastPage            s|j|DownArrow   NA
 nextFile            n               NA
 previousFile        p               NA
 lastBookmark        L               NA
-help                ?               Question Mark Button
+help                ?|F1            Question Mark Button
 Direction           Back Tick       Direction Button
 1-Page Layout       1               NA
 2-Page Layout       2               NA
@@ -52,7 +52,7 @@ stripLayout         3               NA
 hidePage            -               NA
 toggleJoin          r               Join Toggle
 toggleFullscreen    f               Fullscreen Toggle
-Export Page         e               NA
+exportPage          e               NA
 
 <a href="https://www.github.com/mftb0/cbxv-gotk3">Additional Help</a>
 </tt>`
@@ -373,7 +373,7 @@ func GetImagePaths(filePath string, tmpDir string) ([]string, error) {
     return extract(filePath, tmpDir)
 }
 
-func ExportFile(srcPath string, dstPath string) error {
+func ExportPage(srcPath string, dstPath string) error {
     src, err := os.Open(srcPath)
     if err != nil {
         return err
