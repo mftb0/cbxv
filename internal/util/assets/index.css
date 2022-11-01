@@ -1,17 +1,17 @@
 *:selected {
-    border:solid 1px @green;
-    color: @green;
+    border:solid 1px @fg_color;
+    color: @fg_color;
 }
 
 box {
-    background-color: @black;
+    background-color: @bg_color;
     padding: 4px;
 }
 
 label {
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
 }
 
 button {
@@ -21,7 +21,7 @@ button {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     padding: 0px;
     margin: 0px;
     font-weight: bold;
@@ -30,22 +30,22 @@ button {
 
 headerbar {
     background-image:none;
-    background-color: @black; 
+    background-color: @bg_color; 
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
 }
 
 headerbar button {
     background-image:none;
-    background-color: @black; 
-    border: solid 1px @crt_green;
+    background-color: @bg_color; 
+    border: solid 1px @hi_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
@@ -53,59 +53,64 @@ headerbar button {
 
 list {
     background-image:none;
-    background-color: @black; 
+    background-color: @bg_color; 
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
 }
 
 treeview {
     background-image:none;
-    background-color: @black; 
-    color: @crt_green;
+    background-color: @bg_color; 
+    color: @hi_color;
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
 }
 
+.sidebar-row {
+    background-color: @bg_color; 
+    color: @hi_color;
+}
+
 menuitem {
     background-image:none;
-    background-color: @black;
+    background-color: @bg_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     font-weight: bold;
     font-size: 14px;
 }
 
 menuitem:hover {
-    background: @green;
-    color: @black;
+    background: @fg_color;
+    color: @bg_color;
 }
 
 menu {
     background-image:none;
-    background-color: @black;
+    background-color: @bg_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     font-weight: bold;
     font-size: 14px;
 }
 
 combobox {
     background-image:none;
-    background-color: @black;
+    background-color: @bg_color;
     border-radius: 0px;
     border:none;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     margin: 0px;
     padding: 0px;
     font-weight: bold;
@@ -118,7 +123,7 @@ combobox box {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     margin: 0px;
     padding: 0px;
     font-weight: bold;
@@ -135,11 +140,11 @@ progressbar {
 progressbar progress {
     border: none;
     border-radius: 0px;
-    background-color: @green; 
+    background-color: @fg_color; 
 }
 
 progressbar progress:backdrop {
-    background-color: @green; 
+    background-color: @fg_color; 
 }
 
 progressbar trough {
@@ -161,19 +166,19 @@ progressbar.vertical trough, progressbar.vertical progress {
 }
 
 link {
-    color: @green;
+    color: @fg_color;
 }
 
 link:visited {
-    color: @crt_green;
+    color: @hi_color;
 }
 
 link:active {
-    color: @crt_green;
+    color: @hi_color;
 }
 
 .body {
-    background-color: @crt_green;
+    background-color: @hi_color;
     margin: 0px;
     padding :0px;
     border: 0px;
@@ -186,7 +191,7 @@ link:active {
 }
 
 .bordered {
-    border: solid 1px @green;
+    border: solid 1px @fg_color;
 }
 
 .nav-btn {
@@ -195,7 +200,7 @@ link:active {
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     padding: 3px 19px 3px 19px;
     font-weight: bold;
     font-size: 14px;
@@ -203,34 +208,34 @@ link:active {
 
 .msg-dlg {
     background-image:none;
-    background-color: @black;
+    background-color: @bg_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     font-weight: bold;
     font-size: 14px;
 }
 
 .msg-dlg button {
     background-image:none;
-    background-color: @black;
-    border: solid 1px @crt_green;
+    background-color: @bg_color;
+    border: solid 1px @hi_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     font-weight: bold;
     font-size: 14px;
 }
 
 .msg-dlg .titlebar {
     background-image:none;
-    background-color: @black;
+    background-color: @bg_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
-    color: @crt_green;
+    color: @hi_color;
     font-weight: bold;
     font-size: 14px;
 }
@@ -255,14 +260,14 @@ link:active {
 }
 
 .marked {
-    background-color: @green;
+    background-color: @fg_color;
 }
 
 .transparent {
     background-color: transparent;
 }
 
-@define-color black #010901;
-@define-color green #00ff00;
-@define-color crt_green #22dd22;
+@define-color bg_color #010901;
+@define-color fg_color #00ff00;
+@define-color hi_color #22dd22;
 
