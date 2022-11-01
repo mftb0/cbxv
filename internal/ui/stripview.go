@@ -107,6 +107,10 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
     confsH := u.mainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
 		e := &gdk.EventConfigure{Event: event}
 
+        if v.width == e.Width() {
+            return
+        }
+
 		v.Render(m)
 		v.width = e.Width()
 	})
