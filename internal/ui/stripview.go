@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	_ "image/color"
-	"math"
 	"runtime"
 	_ "runtime"
 
@@ -197,6 +196,39 @@ func (v *StripView) renderSpreads(m *model.Model) {
 	runtime.GC()
 }
 
+// In strip mode it's possible for the images to be very tall
+// Allow some scaling up, but with a couple constraints:
+// gtk won't display anything greater than 32kx32k, so
+// prevent that
+// On a landscape monitor if the scale is valid but quite large
+// you still could be left looking at just a small horizontal 
+// slice so prevent scaling larger than 1.5x
+func clampScale(scale, pW float64, pH float64) float64 {
+    maxPix := float64(32000)
+
+    maxFactor := float64(1.5)
+    if scale > maxFactor {
+        if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+            return maxFactor
+        }
+    }
+
+    maxFactor = 1.25
+    if scale > maxFactor {
+        if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+            return maxFactor
+        }
+    }
+
+    maxFactor = scale
+    if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+        return maxFactor
+    }
+
+    // Never could find anything acceptable, just skip scaling
+    return 1
+}
+
 func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	cW := float64(w)
 	pW := float64(p.GetWidth())
@@ -205,7 +237,10 @@ func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 
 	if pW != cW {
 		scale := cW / pW
-        scale = math.Min(scale, 1.10)
+        if scale > 1 {
+            scale = clampScale(scale, pW, pH)
+        }
+
 		p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
 		if err != nil {
 			return nil, err
