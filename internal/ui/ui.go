@@ -121,6 +121,18 @@ func (u *UI) initKBHandler(m *model.Model) {
             defer dlg.Destroy()
 
             dlg.SetCurrentFolder(m.BrowseDir)
+            fltr, _ := gtk.FileFilterNew()
+            fltr.AddPattern("*.cbz")
+            fltr.AddPattern("*.cbr")
+            fltr.AddPattern("*.cb7")
+            fltr.AddPattern("*.cbt")
+            fltr.SetName("cbx files")
+            dlg.AddFilter(fltr)
+            fltr, _ = gtk.FileFilterNew()
+            fltr.AddPattern("*")
+            fltr.SetName("All files")
+            dlg.AddFilter(fltr)
+
 
             output := dlg.NativeDialog.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
