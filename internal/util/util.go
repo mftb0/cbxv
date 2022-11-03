@@ -38,9 +38,9 @@ quit                q                   Window Close Button
 openFile            o                   Title Button
 closeFile           c                   NA
 rightPage           d|l|[RightArrow]    right side
-leftPage            a|h|LeftArrow       left side
-firstPage           w|k|UpArrow         NA
-lastPage            s|j|DownArrow       NA
+leftPage            a|h|[LeftArrow]     left side
+firstPage           w|k|[UpArrow]       NA
+lastPage            s|j|[DownArrow]     NA
 nextFile            n                   NA
 previousFile        p                   NA
 addBookmark         [Space]             NA

@@ -16,7 +16,7 @@ label {
 
 button {
     background-image:none;
-    background-color: rgba(0,0,0,0.49); 
+    background-color: @bga_color; 
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
     box-shadow: none;
@@ -150,7 +150,7 @@ progressbar progress:backdrop {
 progressbar trough {
     border: solid 1px rgba(0,0,0,0);
     border-radius: 0px;
-    background-color: rgba(0, 0, 0, 0.49); 
+    background-color: @bga_color; 
 }
 
 progressbar trough:backdrop {
@@ -196,7 +196,7 @@ link:active {
 
 .nav-btn {
     background-image:none;
-    background-color: rgba(0,0,0,0.49); 
+    background-color: @bga_color; 
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
@@ -208,7 +208,7 @@ link:active {
 
 .msg-dlg {
     background-image:none;
-    background-color: @bg_color;
+    background-color: @bga_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
@@ -217,9 +217,14 @@ link:active {
     font-size: 14px;
 }
 
+.msg-dlg box {
+    background-image:none;
+    background-color: transparent;
+}
+
 .msg-dlg button {
     background-image:none;
-    background-color: @bg_color;
+    background-color: transparent;
     border: solid 1px @hi_color;
     border-radius: 0px;
     box-shadow: none;
@@ -231,7 +236,7 @@ link:active {
 
 .msg-dlg .titlebar {
     background-image:none;
-    background-color: @bg_color;
+    background-color: @bga_color;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
@@ -267,7 +272,8 @@ link:active {
     background-color: transparent;
 }
 
-@define-color bg_color #010901;
-@define-color fg_color #00ff00;
-@define-color hi_color #22dd22;
+@define-color bg_color  #010901;
+@define-color bga_color rgba(0,0,0,0.49);
+@define-color fg_color  #00ff00;
+@define-color hi_color  #22dd22;
 
