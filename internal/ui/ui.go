@@ -38,7 +38,7 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
     u.mainWindow.Connect("destroy", func() {
         gtk.MainQuit()
     })
-    u.mainWindow.SetSizeRequest(1024, 768)
+    u.mainWindow.SetDefaultSize(1024, 768)
 
     iPath, _ := util.AppIconPath()
     if iPath != nil {
