@@ -1,5 +1,3 @@
-# cbxv - The high fidelity comic book viewer
+# {{ site.title }}
 
-
-## cbxv User Manual
 
