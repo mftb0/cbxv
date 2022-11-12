@@ -1,5 +1,5 @@
 title: cbxv user manual
-logo: ../build/assets/lin/logo_x.png
+logo: /build/assets/lin/logo_x.png
 description: The High Fidelity Comic Book Viewer
 remote_theme: pages-themes/minimal@v0.2.0
 plugins:
