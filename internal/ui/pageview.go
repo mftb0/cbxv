@@ -2,11 +2,8 @@ package ui
 
 import (
 	"fmt"
-	_ "image/color"
 	"math"
 	"runtime"
-
-	_ "golang.org/x/image/colornames"
 
 	"github.com/gotk3/gotk3/cairo"
 	"github.com/gotk3/gotk3/gdk"

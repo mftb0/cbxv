@@ -3,7 +3,6 @@ package model
 import (
     "encoding/json"
     "fmt"
-    _ "image"
     "math"
     "os"
     "sort"
@@ -185,7 +184,6 @@ type Page struct {
 }
 
 func (p *Page) Load() {
-    //    f, frmt, err := util.LoadImageFile(p.FilePath)
     f, err := gdk.PixbufNewFromFile(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)

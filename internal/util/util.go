@@ -5,10 +5,6 @@ import (
 	"crypto/md5"
 	"embed"
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -573,35 +569,6 @@ func LoadTextFile(filePath string) (*string, error) {
 
     s := string(b)
     return &s, nil
-}
-
-// Utility for pages to load images
-func LoadImageFile(filePath string) (image.Image, string, error) {
-    f, err := os.Open(filePath)
-    if err != nil {
-        return nil, "", err
-    }
-    defer f.Close()
-
-    img, frmt, err := image.Decode(f)
-    if err != nil {
-        return nil, "", err
-    }
-    return img, frmt, nil
-}
-
-func LoadImageFileMeta(filePath string) (*image.Config, string, error) {
-    f, err := os.Open(filePath)
-    if err != nil {
-        return nil, "", err
-    }
-    defer f.Close()
-
-    img, frmt, err := image.DecodeConfig(f)
-    if err != nil {
-        return nil, "", err
-    }
-    return &img, frmt, nil
 }
 
 func S(str string) *string { return &str }

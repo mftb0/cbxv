@@ -2,16 +2,11 @@ package ui
 
 import (
 	"fmt"
-	_ "image/color"
 	"runtime"
-	_ "runtime"
-
-	_ "golang.org/x/image/colornames"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
-
 	"github.com/mftb0/cbxv-gotk3/internal/model"
 	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
@@ -54,14 +49,14 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 		v.hudKeepAlive = true
 	})
 
-    // DND
-    target,_ := gtk.TargetEntryNew("text/uri-list", gtk.TargetFlags(0), 0)
-    v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
-    v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
-        if selData != nil {
-            util.HandleDropData(selData.GetData(), u.sendMessage)
-        }
-    })
+	// DND
+	target, _ := gtk.TargetEntryNew("text/uri-list", gtk.TargetFlags(0), 0)
+	v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
+	v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
+		if selData != nil {
+			util.HandleDropData(selData.GetData(), u.sendMessage)
+		}
+	})
 
 	v.hudKeepAlive = false
 	glib.TimeoutAdd(TICK, func() bool {
@@ -76,7 +71,7 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 		return true
 	})
 
-    v.width = u.mainWindow.GetAllocatedWidth()
+	v.width = u.mainWindow.GetAllocatedWidth()
 	return v
 }
 
@@ -103,12 +98,12 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 	})
 	v.keyPressSignalHandle = &kpsH
 
-    confsH := u.mainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
+	confsH := u.mainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
 		e := &gdk.EventConfigure{Event: event}
 
-        if v.width == e.Width() {
-            return
-        }
+		if v.width == e.Width() {
+			return
+		}
 
 		v.Render(m)
 		v.width = e.Width()
@@ -124,11 +119,11 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 func (v *StripView) Disconnect(m *model.Model, u *UI) {
 	if v.keyPressSignalHandle != nil {
 		u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
-        v.keyPressSignalHandle = nil
+		v.keyPressSignalHandle = nil
 	}
 	if v.configSignalHandle != nil {
 		u.mainWindow.HandlerDisconnect(*v.configSignalHandle)
-        v.configSignalHandle = nil
+		v.configSignalHandle = nil
 	}
 	u.mainWindow.Remove(v.hud)
 }
@@ -167,9 +162,9 @@ func (v *StripView) renderSpreads(m *model.Model) {
 		return
 	}
 
-    v.container.GetChildren().FreeFull(func (item any) {
-        v.container.Remove(item.(gtk.IWidget))
-    })
+	v.container.GetChildren().FreeFull(func(item any) {
+		v.container.Remove(item.(gtk.IWidget))
+	})
 	v.scrollbars.Remove(v.container)
 
 	var err error
@@ -201,32 +196,32 @@ func (v *StripView) renderSpreads(m *model.Model) {
 // gtk won't display anything greater than 32kx32k, so
 // prevent that
 // On a landscape monitor if the scale is valid but quite large
-// you still could be left looking at just a small horizontal 
+// you still could be left looking at just a small horizontal
 // slice so prevent scaling larger than 1.5x
 func clampScale(scale, pW float64, pH float64) float64 {
-    maxPix := float64(32000)
+	maxPix := float64(32000)
 
-    maxFactor := float64(1.5)
-    if scale > maxFactor {
-        if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-            return maxFactor
-        }
-    }
+	maxFactor := float64(1.5)
+	if scale > maxFactor {
+		if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+			return maxFactor
+		}
+	}
 
-    maxFactor = 1.25
-    if scale > maxFactor {
-        if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-            return maxFactor
-        }
-    }
+	maxFactor = 1.25
+	if scale > maxFactor {
+		if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+			return maxFactor
+		}
+	}
 
-    maxFactor = scale
-    if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-        return maxFactor
-    }
+	maxFactor = scale
+	if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
+		return maxFactor
+	}
 
-    // Never could find anything acceptable, just skip scaling
-    return 1
+	// Never could find anything acceptable, just skip scaling
+	return 1
 }
 
 func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
@@ -237,9 +232,9 @@ func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 
 	if pW != cW {
 		scale := cW / pW
-        if scale > 1 {
-            scale = clampScale(scale, pW, pH)
-        }
+		if scale > 1 {
+			scale = clampScale(scale, pW, pH)
+		}
 
 		p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
 		if err != nil {
