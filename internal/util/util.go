@@ -49,9 +49,10 @@ stripLayout         3                   NA
 hidePage            -                   NA
 toggleJoin          r                   Join Toggle
 toggleFullscreen    f                   Fullscreen Toggle
+selectPage          [Tab]               NA
 exportPage          e                   NA
 
-<a href="https://www.github.com/mftb0/cbxv-gotk3">Additional Help</a>
+<a href="https://mftb0.github.io/cbxv-gotk3">Additional Help</a>
 </tt>`
 
 //go:embed assets
