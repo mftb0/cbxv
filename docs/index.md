@@ -1,3 +1,3 @@
-# {{ site.title }}
+# user manual
 
 
