@@ -26,7 +26,7 @@ are.
 ## Features
 - Auto-joining and manual joining of pages
 - Auto-layout "reflow"
-- Bi-directional layout
+- Bi-directional layout (Left-To-Right and Right-To-Left reading)
 - Layout Persistence
 - 2-Page, 1-Page and Strip Layouts
 - Page hiding

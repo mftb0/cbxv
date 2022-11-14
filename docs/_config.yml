@@ -2,6 +2,7 @@ title: cbxv
 logo: logo_x.png
 description: The High Fidelity Comic Book Viewer
 remote_theme: pages-themes/minimal@v0.2.0
+show_downloads: true
 plugins:
   - jekyll-remote-theme
 
