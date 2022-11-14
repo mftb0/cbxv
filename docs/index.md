@@ -28,10 +28,11 @@ adjusted in the layout. Hit the "Right Arrow" key and you'll see:
 
 <img align="center" width="496" src="cbxv_ss_05.png">
 
-In this case of a good cover-to-cover scan, you're all set. If the book you're reading
-has other pages that are out of place you can join them or hide them as necessary
-until the layout is correct. cbxv will remember the layout so the next time you open
-the book it will be correct.
+The inside front cover is now on the left and the first page on the right, just 
+as it should be. If the book you're reading has other pages that are out of 
+place you can join them or hide them as necessary until the layout is correct. 
+cbxv will remember the layout so the next time you open the book it will be 
+correct.
 
 Excelsior!
 
