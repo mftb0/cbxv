@@ -77,6 +77,7 @@ are.
         |lastPage           |s|j|DownArrow  |NA                  |
         |nextFile           |n              |NA                  |
         |previousFile       |p              |NA                  |
+        |addBookmark        |[Space]        |NA
         |lastBookmark       |L              |NA                  |
         |help               |?              |Question Mark Button|
         |toggleDirection    |Back Tick      |Direction Toggle    |
@@ -85,6 +86,7 @@ are.
         |stripLayout        |3              |NA                  |
         |hidePage           |-              |NA                  |
         |toggleJoin         |r              |Join Toggle         |
-        |toggleFullscreen   |f              |Fullscreen Toggle   |
-        |Export Page        |e              |NA                  |
+        |toggleFullscreen   |f|[F11]        |Fullscreen Toggle   |
+        |selectPage         |[Tab]          |NA                  |
+        |export Page        |e              |NA                  |
 

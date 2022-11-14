@@ -42,13 +42,13 @@ previousFile        p                   NA
 addBookmark         [Space]             NA
 lastBookmark        L                   NA
 help                ?|[F1]              Question Mark Button
-Direction           [BackTick]          Direction Button
+toggleDirection     [BackTick]          Direction Button
 1-Page Layout       1                   NA
 2-Page Layout       2                   NA
 stripLayout         3                   NA
 hidePage            -                   NA
 toggleJoin          r                   Join Toggle
-toggleFullscreen    f                   Fullscreen Toggle
+toggleFullscreen    f|[F11]             Fullscreen Toggle
 selectPage          [Tab]               NA
 exportPage          e                   NA
 

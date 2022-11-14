@@ -66,35 +66,57 @@ Excelsior!
 ## Commands
 
 ### File Commands
-openFile            o                   File Button
-closeFile           c                   NA
+- openFile            
+    The openFile command when given no arguments will prompt you with the 
+    fileOpen dialog to provide a file path. After a path is provided any file
+    open in the UI will be closed and the new file will be opened and loaded
+    into the interface.
+
+    Invocation:
+
+    Keys: o
+    Button: The File Button
+    CLI: If you start cbxv from the command line you can provide a path and it 
+        will be opened.
+    Notes: The fileOpen dialog by default is configured to restrict choosing 
+    only files that start with an appropriate extension, but you can change it
+    to all files. Whatever file you specify either with the fileDialog or from
+    the command line cbxv will try to open it. If it's a valid file with an 
+    inappropriate extension like .zip it may very well succeed. If it's simply
+    an invalid file it will fail.
+
+- closeFile           
+    The closeFile command will close any open file and unload it
+
+    Invocation:
+    Keys: c
 
 ### Navigation Commands
-rightPage           d|l|[RightArrow]    right side
-leftPage            a|h|[LeftArrow]     left side
-firstPage           w|k|[UpArrow]       NA
-lastPage            s|j|[DownArrow]     NA
-nextFile            n                   NA
-previousFile        p                   NA
+- rightPage           d|l|[RightArrow]    right side
+- leftPage            a|h|[LeftArrow]     left side
+- firstPage           w|k|[UpArrow]       NA
+- lastPage            s|j|[DownArrow]     NA
+- nextFile            n                   NA
+- previousFile        p                   NA
 
 ### Page Commands
-selectPage          [Tab]               NA
-exportPage          e                   NA
+- selectPage          [Tab]               NA
+- exportPage          e                   NA
 
 ### Bookmark Commands
-addBookmark         [Space]             NA
-lastBookmark        L                   NA
+- addBookmark         [Space]             NA
+- lastBookmark        L                   NA
 
 ### Layout Commands
-Direction           [BackTick]          Direction Button
-1-Page Layout       1                   NA
-2-Page Layout       2                   NA
-stripLayout         3                   NA
-hidePage            -                   NA
-toggleJoin          r                   Join Toggle
+- Direction           [BackTick]          Direction Button
+- 1-Page Layout       1                   NA
+- 2-Page Layout       2                   NA
+- stripLayout         3                   NA
+- hidePage            -                   NA
+- toggleJoin          r                   Join Toggle
 
 ### General Commands
-quit                q                   Window Close Button 
-help                ?|[F1]              Question Mark Button
-toggleFullscreen    f                   Fullscreen Toggle
+- quit                q                   Window Close Button 
+- help                ?|[F1]              Question Mark Button
+- toggleFullscreen    f                   Fullscreen Toggle
 

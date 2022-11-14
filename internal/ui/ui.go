@@ -105,7 +105,7 @@ func (u *UI) initKBHandler(m *model.Model) {
 			u.View = u.stripView
 			u.View.Connect(m, u)
 			u.sendMessage(util.Message{TypeName: "setLayoutModeLongStrip"})
-		case gdk.KEY_f:
+		case gdk.KEY_f, gdk.KEY_F11:
 			if m.Fullscreen {
 				u.mainWindow.Unfullscreen()
 			} else {
