@@ -6,23 +6,23 @@ Open the archive (.tar.gz, .zip, .dmg), usually by dobule-clicking on it
 Locate the executable (cbxv, cbxv.exe, cbxv.app), double-click on it
 
 cbxv will start and you'll see:
-[image-00]
+<img align="center" width="496" src="cbxv_ss_02.png">
 
 Hit the "o" key or click the "File Button" in the upper-right
 
 The File Open Dialog will display, navigate to a cbx (.cbr, .cbz) file, double-click it
 
 You'll see something like:
-[image-01]
+<img align="center" width="496" src="cbxv_ss_03.png">
 
 In this case we're seeing the cover on the left and the inside cover on the right. 
 Hit the "r" key (Join Toggle || Button) and you'll see:
-[image-02]
+<img align="center" width="496" src="cbxv_ss_04.png">
 
 The first page, the cover, has essentially been "Joined" or turned into a single-page
 with a span of 2, so that it displays by itself. All of the other pages have also been
 adjusted in the layout. Hit the "Right Arrow" key and you'll see:
-[image-03]
+<img align="center" width="496" src="cbxv_ss_05.png">
 
 In this case of a good cover-to-cover scan, you're all set. If the book you're reading
 has other pages that are out of place you can join them or hide them as necessary
