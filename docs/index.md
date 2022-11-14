@@ -8,6 +8,9 @@ Locate the executable (cbxv, cbxv.exe, cbxv.app), double-click on it
 cbxv will start and you'll see:
 
 <img align="center" width="496" src="cbxv_ss_02.png">
+<sub>Note: All comic images shown on these pages are believed to be in the public
+domain. If you feel that's in error, please notify me and I will replace them
+with ones that are.</sub>
 
 Hit the "o" key or click the "File Button" in the upper-right
 
