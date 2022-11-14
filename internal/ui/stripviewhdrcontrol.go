@@ -14,7 +14,7 @@ import (
 type StripViewHdrControl struct {
     container   *gtk.Grid
     spinner     *gtk.Spinner
-    title       *gtk.Button
+    fileControl *gtk.Button
     helpControl *gtk.Button
 }
 
@@ -28,14 +28,25 @@ func NewStripViewHdrControl(m *model.Model, u *UI) *StripViewHdrControl {
     css, _ := spn.GetStyleContext()
     css.AddClass("nav-btn")
 
-    t := util.CreateButton("Untitled", "nav-btn", util.S("Open File"))
+    fc := util.CreateButton("File", "nav-btn", util.S("Open File"))
     hc := util.CreateButton(APP_HLP_ICN, "nav-btn", util.S("Help"))
 
-    t.Connect("clicked", func() bool {
+    fc.Connect("clicked", func() bool {
         // fixme: this code just copy/pasted from UI
         // should add a concept of UICommand
         dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
         dlg.SetCurrentFolder(m.BrowseDir)
+        fltr, _ := gtk.FileFilterNew()
+        fltr.AddPattern("*.cbz")
+        fltr.AddPattern("*.cbr")
+        fltr.AddPattern("*.cb7")
+        fltr.AddPattern("*.cbt")
+        fltr.SetName("cbx files")
+        dlg.AddFilter(fltr)
+        fltr, _ = gtk.FileFilterNew()
+        fltr.AddPattern("*")
+        fltr.SetName("All files")
+        dlg.AddFilter(fltr)
         output := dlg.NativeDialog.Run()
         if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
             f := dlg.GetFilename()
@@ -70,18 +81,18 @@ func NewStripViewHdrControl(m *model.Model, u *UI) *StripViewHdrControl {
     css, _ = container.GetStyleContext()
     css.AddClass("hdr-ctrl")
     container.Attach(spn, 0, 0, 1, 1)
-    container.Attach(t, 1, 0, 1, 1)
+    container.Attach(fc, 1, 0, 1, 1)
     container.Attach(hc, 2, 0, 1, 1)
     container.SetSizeRequest(64, 32)
     c.spinner = spn
-    c.title = t
+    c.fileControl = fc
     c.helpControl = hc
     c.container = container
     return c
 }
 
 func (c *StripViewHdrControl) Render(m *model.Model) {
-    c.title.SetLabel("Untitled")
+    c.fileControl.SetLabel("File")
 
     if m.Loading {
         c.spinner.Start()
@@ -93,6 +104,6 @@ func (c *StripViewHdrControl) Render(m *model.Model) {
         return
     } else {
         title := strings.TrimSuffix(filepath.Base(m.FilePath), filepath.Ext(m.FilePath))
-        c.title.SetLabel(title)
+        c.fileControl.SetLabel(title)
     }
 }

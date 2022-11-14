@@ -19,7 +19,7 @@ type PageViewHdrControl struct {
     container     *gtk.Grid
     leftBookmark  *gtk.Label
     spinner       *gtk.Spinner
-    title         *gtk.Button
+    fileControl   *gtk.Button
     helpControl   *gtk.Button
     rightBookmark *gtk.Label
 }
@@ -38,15 +38,26 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     css, _ := spn.GetStyleContext()
     css.AddClass("nav-btn")
 
-    t := util.CreateButton("Untitled", "nav-btn", util.S("Open File"))
+    fc := util.CreateButton("File", "nav-btn", util.S("Open File"))
     hc := util.CreateButton(APP_HLP_ICN, "nav-btn", util.S("Help"))
     rbkmk := util.CreateLabel("", "bkmk-btn", nil)
 
-    t.Connect("clicked", func() bool {
+    fc.Connect("clicked", func() bool {
         // fixme: this code just copy/pasted from UI
         // should add a concept of UICommand
         dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
         dlg.SetCurrentFolder(m.BrowseDir)
+        fltr, _ := gtk.FileFilterNew()
+        fltr.AddPattern("*.cbz")
+        fltr.AddPattern("*.cbr")
+        fltr.AddPattern("*.cb7")
+        fltr.AddPattern("*.cbt")
+        fltr.SetName("cbx files")
+        dlg.AddFilter(fltr)
+        fltr, _ = gtk.FileFilterNew()
+        fltr.AddPattern("*")
+        fltr.SetName("All files")
+        dlg.AddFilter(fltr)
         output := dlg.NativeDialog.Run()
         if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
             f := dlg.GetFilename()
@@ -82,13 +93,13 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     css.AddClass("hdr-ctrl")
     container.Attach(lbkmk, 0, 0, 1, 1)
     container.Attach(spn, 1, 0, 1, 1)
-    container.Attach(t, 2, 0, 1, 1)
+    container.Attach(fc, 2, 0, 1, 1)
     container.Attach(hc, 3, 0, 1, 1)
     container.Attach(rbkmk, 4, 0, 1, 1)
     container.SetSizeRequest(1000, 8)
     c.leftBookmark = lbkmk
     c.spinner = spn
-    c.title = t
+    c.fileControl = fc
     c.helpControl = hc
     c.rightBookmark = rbkmk
     c.container = container
@@ -102,7 +113,7 @@ func (c *PageViewHdrControl) Render(m *model.Model) {
     css, _ = c.rightBookmark.GetStyleContext()
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
-    c.title.SetLabel("Untitled")
+    c.fileControl.SetLabel("File")
 
     if m.Loading {
         c.spinner.Start()
@@ -153,6 +164,6 @@ func (c *PageViewHdrControl) Render(m *model.Model) {
                 }
             }
         }
-        c.title.SetLabel(title)
+        c.fileControl.SetLabel(title)
     }
 }

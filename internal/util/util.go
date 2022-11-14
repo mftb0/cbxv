@@ -31,7 +31,7 @@ const DEBUG = false
 const HELP_TXT = `<tt>
 Command             Key                 Mouse
 quit                q                   Window Close Button 
-openFile            o                   Title Button
+openFile            o                   File Button
 closeFile           c                   NA
 rightPage           d|l|[RightArrow]    right side
 leftPage            a|h|[LeftArrow]     left side
@@ -53,6 +53,8 @@ selectPage          [Tab]               NA
 exportPage          e                   NA
 
 <a href="https://mftb0.github.io/cbxv-gotk3">Additional Help</a>
+
+Copyright © 2022 Matt Butler
 </tt>`
 
 //go:embed assets

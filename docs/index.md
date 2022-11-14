@@ -8,7 +8,7 @@ Locate the executable (cbxv, cbxv.exe, cbxv.app), double-click on it
 cbxv will start and you'll see:
 [image-00]
 
-Hit the "o" key or click the "Title Button" in the upper-right
+Hit the "o" key or click the "File Button" in the upper-right
 
 The File Open Dialog will display, navigate to a cbx (.cbr, .cbz) file, double-click it
 
