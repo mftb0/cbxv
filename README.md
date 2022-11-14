@@ -18,10 +18,9 @@ the cover and inside cover, so that by the time you got to these pages they
 would be misaligned and not shown at the same time, ruining the scene.
 
 <img align="left" src="docs/cbxv_ss_01.png">
-
-Note: All comic images shown on these pages are believed to be in the public domain.
+<sub>Note: All comic images shown on these pages are believed to be in the public domain.
 If you feel that's in error, please notify me and I will replace them with ones that
-are.
+are.</sub>
 
 ## Features
 - Auto-joining and manual joining of pages
