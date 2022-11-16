@@ -1,14 +1,15 @@
 package model
 
 import (
-    "encoding/json"
-    "fmt"
-    "math"
-    "os"
-    "sort"
+	"encoding/json"
+	"fmt"
+	"math"
+	"os"
+	"runtime/debug"
+	"sort"
 
-    "github.com/gotk3/gotk3/gdk"
-    "github.com/mftb0/cbxv-gotk3/internal/util"
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 // Data model of a cbx application
@@ -184,6 +185,9 @@ type Page struct {
 }
 
 func (p *Page) Load() {
+    // fixme: must be called from gtk event dispatch thread or
+    // it will leak. Right now that is the case, but I'm going
+    // to isolate it from the model
     f, err := gdk.PixbufNewFromFile(p.FilePath)
     if err != nil {
         fmt.Printf("Error loading file %s\n", err)
@@ -454,6 +458,7 @@ func (m *Model) CloseCbxFile() {
     m.Bookmarks = nil
     m.SeriesList = nil
     m.SeriesIndex = 0
+    debug.FreeOSMemory()
 }
 
 // Walk the layout and load/unload pages as needed

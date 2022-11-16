@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"runtime"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -179,16 +178,11 @@ func (v *StripView) renderSpreads(m *model.Model) {
 
 	for i := range m.Spreads[0].Pages {
 		page := m.Spreads[0].Pages[i]
-		// fixme: Shouldn't be needed but actually
-		// lower mem use
-		p, _ := gdk.PixbufCopy(page.Image)
-		p, _ = scalePixbufToWidth(p, v.width)
+        p, _ := scalePixbufToWidth(page.Image, v.width)
 		c, _ := gtk.ImageNewFromPixbuf(p)
 		v.container.PackStart(c, true, true, 0)
 		v.scrollbars.ShowAll()
 	}
-
-	runtime.GC()
 }
 
 // In strip mode it's possible for the images to be very tall

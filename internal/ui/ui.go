@@ -27,6 +27,9 @@ type UI struct {
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	gtk.Init(nil)
+    if glib.MainContextDefault().IsOwner() {
+        fmt.Printf("true\n")
+    }
 	u := &UI{}
 	u.sendMessage = messenger
 	u.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)

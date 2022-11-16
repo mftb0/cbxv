@@ -19,6 +19,7 @@ import (
 
 	"github.com/gen2brain/go-unarr"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/gotk3/gotk3/glib"
 )
 
 const RENDERERSTATE_FN string = "rendererstate.json"
@@ -633,6 +634,13 @@ func HandleDropData(buf []byte, sendMessage Messenger) {
             sendMessage(*m)
         }
     }
+}
+
+func assertEventDispatchThread() bool {
+    if glib.MainContextDefault().IsOwner() {
+        return true
+    }
+    return false
 }
 
 func Log(format string, a ...any) {

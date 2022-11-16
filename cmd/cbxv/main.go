@@ -2,6 +2,7 @@ package main
 
 import (
     "os"
+    "runtime"
 
     "github.com/mftb0/cbxv-gotk3/internal/model"
     "github.com/mftb0/cbxv-gotk3/internal/ui"
@@ -30,6 +31,7 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *Comma
                 u.Render(m)
             })
         }
+        runtime.GC()
     }
 }
 

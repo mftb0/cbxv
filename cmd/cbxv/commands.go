@@ -30,7 +30,7 @@ func NewCommands(m *model.Model) *CommandList {
         if m.SpreadIndex < len(m.Spreads)-1 {
             m.SpreadIndex++
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            go m.RefreshPages()
+            m.RefreshPages()
         } else {
             cmds.Commands["nextFile"]("")
         }
@@ -44,7 +44,7 @@ func NewCommands(m *model.Model) *CommandList {
         if m.SpreadIndex > 0 {
             m.SpreadIndex--
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            go m.RefreshPages()
+            m.RefreshPages()
         } else {
             cmds.Commands["previousFile"]("")
         }
@@ -185,7 +185,7 @@ func NewCommands(m *model.Model) *CommandList {
         // Error handling
         m.Loading = true
         m.LoadHash()
-        go m.LoadCbxFile()
+        m.LoadCbxFile()
         go m.LoadSeriesList()
 
         m.PageIndex = 0
