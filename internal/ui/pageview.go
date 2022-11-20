@@ -165,27 +165,34 @@ func (v *PageView) initRenderer(m *model.Model) {
     v.canvas.AddEvents(4)
     v.canvas.AddEvents(int(gdk.BUTTON_PRESS_MASK))
     v.canvas.Connect("event", func(canvas *gtk.DrawingArea, event *gdk.Event) bool {
-        //reset the hud hiding
-        v.hdrControl.container.Show()
-        v.navControl.container.Show()
-        v.hudHidden = false
-        v.hudKeepAlive = true
+        if v.hudHidden {
+            //reset the hud hiding
+            v.hdrControl.container.Show()
+            v.navControl.container.Show()
+            v.hudHidden = false
+            v.hudKeepAlive = true
+            return true
+        }
         return false
     })
 
-    v.canvas.Connect("button-press-event", func(canvas *gtk.DrawingArea, event *gdk.Event) {
+    v.canvas.Connect("button-press-event", func(canvas *gtk.DrawingArea, event *gdk.Event) bool {
+        r := false
         w := v.hud.GetAllocatedWidth()
         half := float64(w / 2)
         e := &gdk.EventButton{Event: event}
         if e.X() < half {
             v.sendMessage(util.Message{TypeName: "leftPage"})
+            r = true
         } else {
             v.sendMessage(util.Message{TypeName: "rightPage"})
+            r = true
         }
         //reset the hud hiding
         v.hud.ShowAll()
         v.hudHidden = false
         v.hudKeepAlive = true
+        return r
     })
 }
 

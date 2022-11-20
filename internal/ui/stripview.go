@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -178,7 +179,7 @@ func (v *StripView) renderSpreads(m *model.Model) {
 
 	for i := range m.Spreads[0].Pages {
 		page := m.Spreads[0].Pages[i]
-        p, _ := scalePixbufToWidth(page.Image, v.width)
+        p, _ := v.scalePixbufToWidth(page.Image, v.width)
 		c, _ := gtk.ImageNewFromPixbuf(p)
 		v.container.PackStart(c, true, true, 0)
 		v.scrollbars.ShowAll()
@@ -187,38 +188,32 @@ func (v *StripView) renderSpreads(m *model.Model) {
 
 // In strip mode it's possible for the images to be very tall
 // Allow some scaling up, but with a couple constraints:
-// gtk won't display anything greater than 32kx32k, so
-// prevent that
-// On a landscape monitor if the scale is valid but quite large
-// you still could be left looking at just a small horizontal
-// slice so prevent scaling larger than 1.5x
-func clampScale(scale, pW float64, pH float64) float64 {
-	maxPix := float64(32000)
+// gtk won't display anything greater than 32kx32k pix
+// Height's max then is 32k
+// Width we don't scroll so max is the lesser of 32k and window width
+// Overall we don't want to scroll more than 2x
+func (v *StripView) clampScale(scale float64, pW float64, pH float64) float64 {
+    // clamp no greater than 32k pix
+	maxH := float64(32000)
 
-	maxFactor := float64(1.5)
-	if scale > maxFactor {
-		if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-			return maxFactor
-		}
-	}
+    // clamp no greater than 32k pix or window width
+    maxW := math.Min(32000, float64(v.width))
 
-	maxFactor = 1.25
-	if scale > maxFactor {
-		if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-			return maxFactor
-		}
-	}
+    // clamp no greater than 2x
+    maxFactor := math.Min(scale, float64(2))
 
-	maxFactor = scale
-	if maxFactor*pW < maxPix && maxFactor*pH < maxPix {
-		return maxFactor
-	}
+    // try to find an acceptable factor
+    for ; maxFactor >= .80; maxFactor -= float64(.20) {
+        if maxFactor*pW < maxW && maxFactor*pH < maxH {
+            return maxFactor
+        }
+    }
 
 	// Never could find anything acceptable, just skip scaling
 	return 1
 }
 
-func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
+func (v *StripView)scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	cW := float64(w)
 	pW := float64(p.GetWidth())
 	pH := float64(p.GetHeight())
@@ -227,7 +222,7 @@ func scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	if pW != cW {
 		scale := cW / pW
 		if scale > 1 {
-			scale = clampScale(scale, pW, pH)
+			scale = v.clampScale(scale, pW, pH)
 		}
 
 		p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
