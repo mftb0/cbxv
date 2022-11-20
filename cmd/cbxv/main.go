@@ -13,14 +13,14 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.1.1"
+    VERSION = "0.1.2"
 )
 
 // Update listens for message on the message channel and
-// handles messages by invoking commands which update the model
-func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *CommandList) {
+// handles messages by invoking messageHandlers which update the model
+func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *MessageHandlerList) {
     for msg := range msgChan {
-        cmd := commands.Commands[msg.TypeName]
+        cmd := msgHandlers.List[msg.TypeName]
         if m.Spreads == nil && (msg.TypeName != "quit" &&
             msg.TypeName != "openFile") {
             continue
@@ -37,7 +37,7 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, commands *Comma
 
 // Setup the model
 // Setup the ui
-// Create commands to modify the model
+// Create messageHandlers
 // Start the update message handler
 // Open the main window, when it closes
 // Shutdown UI threads
@@ -47,26 +47,27 @@ func main() {
     md := model.ProgramMetadata{Name: NAME, Version: VERSION}
     messenger := func(m util.Message) { msgChan <- m }
     m := model.NewModel(md, messenger)
-    commands := NewCommands(m)
+    msgHandlers := NewMessageHandlers(m)
 
     u := ui.NewUI(m, messenger)
 
-    go update(m, u, msgChan, commands)
+    go update(m, u, msgChan, msgHandlers)
 
     u.RunFunc(func() {
         //default to 2-page display
-        commands.Commands["setLayoutModeTwoPage"]("")
+        msgHandlers.List["setLayoutModeTwoPage"]("")
         if len(os.Args) > 1 {
-            commands.Commands["openFile"](os.Args[1])
+            msgHandlers.List["openFile"](os.Args[1])
         }
     })
 
     u.Run()
 
-    // At the end of all things the closeFile command
+    // At the end of all things the closeFile message
     // can't work because we've orchestrated for it only
     // to be run on the UI thread and the UI thread is dead so
     // we have to close the last cbx file here, to get
     // rid of any tmpDir
     m.CloseCbxFile()
 }
+

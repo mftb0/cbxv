@@ -9,72 +9,82 @@ import (
     "github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
-type Command struct {
+/* 
+Messages are just the generic way to communicate with the app
+They can be looked up by name and take a single argument
+which can contain whatever data as a string, structured or 
+unstructured. 
+
+Currently the MessageHandlers only have access to the model, because that's 
+all thats been needed. Generally the UI communicates to the app and the app 
+takes action by updating the model.
+
+There are a couple minor exceptions; quit, where the app terminates
+itself and render which the model sends to the app, but right now
+since the app always calls render after every message its 
+essentially a noop. This may change in the future though and I'll
+add access to the UI
+ */
+ 
+type MessageHandler struct {
     Name        string
-    DisplayName string
-    BindKey     []string
 }
 
-type CommandList struct {
-    Commands map[string]func(data string)
+type MessageHandlerList struct {
+    List map[string]func(data string)
 }
 
-func NewCommands(m *model.Model) *CommandList {
-    cmds := &CommandList{Commands: make(map[string]func(data string))}
+func NewMessageHandlers(m *model.Model) *MessageHandlerList {
+    handlers := &MessageHandlerList{List: make(map[string]func(data string))}
 
-    cmd := Command{
+    handler := MessageHandler{
         Name:        "rightPage",
-        DisplayName: "Right Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.SpreadIndex < len(m.Spreads)-1 {
             m.SpreadIndex++
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
             m.RefreshPages()
         } else {
-            cmds.Commands["nextFile"]("")
+            handlers.List["nextFile"]("")
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "leftPage",
-        DisplayName: "Left Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.SpreadIndex > 0 {
             m.SpreadIndex--
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
             m.RefreshPages()
         } else {
-            cmds.Commands["previousFile"]("")
+            handlers.List["previousFile"]("")
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "firstPage",
-        DisplayName: "First Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "lastPage",
-        DisplayName: "Last Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.SpreadIndex = (len(m.Spreads) - 1)
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "lastBookmark",
-        DisplayName: "Last Bookmark",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         blen := (len(m.Bookmarks.Model.Bookmarks) - 1)
         if blen > -1 {
             bkmk := m.Bookmarks.Model.Bookmarks[blen]
@@ -86,11 +96,10 @@ func NewCommands(m *model.Model) *CommandList {
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "selectPage",
-        DisplayName: "Select Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
             if m.PageIndex == m.Spreads[m.SpreadIndex].VersoPage() {
                 m.PageIndex++
@@ -100,11 +109,10 @@ func NewCommands(m *model.Model) *CommandList {
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "setLayoutModeOnePage",
-        DisplayName: "Layout Mode One Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
@@ -114,11 +122,10 @@ func NewCommands(m *model.Model) *CommandList {
         m.RefreshPages()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "setLayoutModeTwoPage",
-        DisplayName: "Layout Mode Two Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
@@ -128,11 +135,10 @@ func NewCommands(m *model.Model) *CommandList {
         m.RefreshPages()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "setLayoutModeLongStrip",
-        DisplayName: "Layout Mode Long Strip",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.LayoutMode = model.LONG_STRIP
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
@@ -140,11 +146,10 @@ func NewCommands(m *model.Model) *CommandList {
         m.RefreshPages()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "toggleDirection",
-        DisplayName: "Toggle Read Mode",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         // Toggle the read mode
         if m.Direction == model.LTR {
             m.Direction = model.RTL
@@ -153,17 +158,16 @@ func NewCommands(m *model.Model) *CommandList {
         }
 
         // Swap what these do, so they continue to do what they say 0_o
-        r := cmds.Commands["rightPage"]
-        l := cmds.Commands["leftPage"]
-        cmds.Commands["rightPage"] = l
-        cmds.Commands["leftPage"] = r
+        r := handlers.List["rightPage"]
+        l := handlers.List["leftPage"]
+        handlers.List["rightPage"] = l
+        handlers.List["leftPage"] = r
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "toggleFullscreen",
-        DisplayName: "Toggle Fullscreen",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.Fullscreen == true {
             m.Fullscreen = false
         } else {
@@ -171,12 +175,11 @@ func NewCommands(m *model.Model) *CommandList {
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "openFile",
-        DisplayName: "Open File",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
-        cmds.Commands["closeFile"]("")
+    handlers.List[handler.Name] = func(data string) {
+        handlers.List["closeFile"]("")
         m.FilePath = data
         m.BrowseDir = filepath.Dir(data)
 
@@ -191,56 +194,51 @@ func NewCommands(m *model.Model) *CommandList {
         m.PageIndex = 0
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "closeFile",
-        DisplayName: "Close File",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.CloseCbxFile()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "nextFile",
-        DisplayName: "Next File",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.SeriesIndex < (len(m.SeriesList) - 1) {
             m.SeriesIndex++
             filePath := m.SeriesList[m.SeriesIndex]
-            cmds.Commands["closeFile"]("")
-            cmds.Commands["openFile"](filePath)
+            handlers.List["closeFile"]("")
+            handlers.List["openFile"](filePath)
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "previousFile",
-        DisplayName: "Previous File",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.SeriesIndex > 0 {
             m.SeriesIndex--
             filePath := m.SeriesList[m.SeriesIndex]
-            cmds.Commands["closeFile"]("")
-            cmds.Commands["openFile"](filePath)
+            handlers.List["closeFile"]("")
+            handlers.List["openFile"](filePath)
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "exportPage",
-        DisplayName: "Export Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         srcPath := m.Pages[m.PageIndex].FilePath
         dstPath := data
         m.ExportDir = filepath.Dir(dstPath)
         util.ExportPage(srcPath, dstPath)
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "toggleBookmark",
-        DisplayName: "Toggle Bookmark",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         p := m.PageIndex
         b := m.Bookmarks.Find(p)
         if b != nil {
@@ -251,11 +249,10 @@ func NewCommands(m *model.Model) *CommandList {
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "toggleJoin",
-        DisplayName: "toggleJoin",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
             pi := m.PageIndex
             p := &m.Pages[pi]
@@ -272,11 +269,10 @@ func NewCommands(m *model.Model) *CommandList {
         }
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "hidePage",
-        DisplayName: "Hide Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         pi := m.PageIndex
         p := &m.Pages[pi]
         p.Hidden = true
@@ -286,11 +282,10 @@ func NewCommands(m *model.Model) *CommandList {
         m.SpreadIndex = m.PageToSpread(pi)
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "showPage",
-        DisplayName: "Show Page",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         i, err := strconv.Atoi(data)
         if err != nil {
             return
@@ -314,35 +309,32 @@ func NewCommands(m *model.Model) *CommandList {
         m.SpreadIndex = m.PageToSpread(pi)
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "loadAllPages",
-        DisplayName: "Load All Pages",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         m.RefreshPages()
         m.NewSpreads()
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "render",
-        DisplayName: "Render",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         //noop render always gets called after cmd
     }
 
-    cmd = Command{
+    handler = MessageHandler{
         Name:        "quit",
-        DisplayName: "Quit",
     }
-    cmds.Commands[cmd.Name] = func(data string) {
+    handlers.List[handler.Name] = func(data string) {
         // because of orchestration with gtk's
         // thread this no longer works at shutdown
         // Mostly doesn't matter, but we do need
         // to clean up the last tmpDir, moved to
         // end of main
-        cmds.Commands["closeFile"]("")
+        handlers.List["closeFile"]("")
     }
 
-    return cmds
+    return handlers
 }
