@@ -1,12 +1,12 @@
 package main
 
 import (
-    "os"
-    "runtime"
+	"os"
+	"runtime"
 
-    "github.com/mftb0/cbxv-gotk3/internal/model"
-    "github.com/mftb0/cbxv-gotk3/internal/ui"
-    "github.com/mftb0/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv-gotk3/internal/model"
+	"github.com/mftb0/cbxv-gotk3/internal/ui"
+	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 // Simple cbx application with a gui provided by gtk
@@ -20,14 +20,14 @@ const (
 // handles messages by invoking messageHandlers which update the model
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *MessageHandlerList) {
     for msg := range msgChan {
-        cmd := msgHandlers.List[msg.TypeName]
+        msgHandler := msgHandlers.List[msg.TypeName]
         if m.Spreads == nil && (msg.TypeName != "quit" &&
             msg.TypeName != "openFile") {
             continue
         }
-        if cmd != nil {
+        if msgHandler != nil {
             u.RunFunc(func() {
-                cmd(msg.Data)
+                msgHandler(msg.Data)
                 u.Render(m)
             })
         }

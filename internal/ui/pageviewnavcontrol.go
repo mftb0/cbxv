@@ -83,11 +83,11 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
     css.AddClass("nav-ctrl")
 
     jc.Connect("clicked", func() {
-        u.SendMessage(util.Message{TypeName: "toggleJoin"})
+        u.Commands.Names["toggleJoin"].Execute()
     })
 
     dc.Connect("clicked", func() {
-        u.SendMessage(util.Message{TypeName: "toggleDirection"})
+        u.Commands.Names["toggleDirection"].Execute()
     })
 
     fsc.Connect("clicked", func() {
@@ -96,7 +96,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
         } else {
             u.MainWindow.Fullscreen()
         }
-        u.SendMessage(util.Message{TypeName: "toggleFullscreen"})
+        u.Commands.Names["toggleFullscreen"].Execute()
     })
 
     container.Attach(nbc, 0, 0, 10, 1)
@@ -245,7 +245,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 if v == "Hidden" {
                     return
                 }
-                c.ui.SendMessage(util.Message{TypeName: "showPage", Data: v})
+                c.ui.Commands.Names["showPage"].Execute()
             })
             c.hpcSignalHandle = &hndl
         }

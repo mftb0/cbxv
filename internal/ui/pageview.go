@@ -22,7 +22,7 @@ const (
 const TICK = 3000
 
 type PageView struct {
-    sendMessage          util.Messenger
+    ui                   *UI
     hud                  *gtk.Overlay
     hudHidden            bool
     hudKeepAlive         bool
@@ -34,7 +34,7 @@ type PageView struct {
 
 func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
     v := &PageView{}
-    v.sendMessage = messenger
+    v.ui = u
 
     v.hud = v.newHUD(m, u)
 
@@ -49,7 +49,7 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
     v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
     v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
         if selData != nil {
-            util.HandleDropData(selData.GetData(), u.SendMessage)
+            handleDropData(selData.GetData(), u.Commands.Names["openFile"])
         }
     })
 
@@ -94,39 +94,18 @@ func (v *PageView) renderHud(m *model.Model) {
 
 func (v *PageView) Connect(m *model.Model, u *UI) {
     u.MainWindow.Add(v.hud)
-    sigH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+    sigH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) bool {
         keyEvent := gdk.EventKeyNewFromEvent(event)
         keyVal := keyEvent.KeyVal()
-        switch keyVal {
-        case gdk.KEY_d, gdk.KEY_Right, gdk.KEY_l:
-            v.sendMessage(util.Message{TypeName: "rightPage"})
-        case gdk.KEY_a, gdk.KEY_Left, gdk.KEY_h:
-            v.sendMessage(util.Message{TypeName: "leftPage"})
-        case gdk.KEY_w, gdk.KEY_Up, gdk.KEY_k:
-            v.sendMessage(util.Message{TypeName: "firstPage"})
-        case gdk.KEY_s, gdk.KEY_Down, gdk.KEY_j:
-            v.sendMessage(util.Message{TypeName: "lastPage"})
-        case gdk.KEY_Tab:
-            v.sendMessage(util.Message{TypeName: "selectPage"})
-        case gdk.KEY_grave:
-            v.sendMessage(util.Message{TypeName: "toggleDirection"})
-        case gdk.KEY_r:
-            v.sendMessage(util.Message{TypeName: "toggleJoin"})
-        case gdk.KEY_minus:
-            v.sendMessage(util.Message{TypeName: "hidePage"})
-        case gdk.KEY_n:
-            v.sendMessage(util.Message{TypeName: "nextFile"})
-        case gdk.KEY_p:
-            v.sendMessage(util.Message{TypeName: "previousFile"})
-        case gdk.KEY_space:
-            v.sendMessage(util.Message{TypeName: "toggleBookmark"})
-        case gdk.KEY_L:
-            v.sendMessage(util.Message{TypeName: "lastBookmark"})
+        cmd := u.Commands.KeyCodes[keyVal]
+        if cmd != nil {
+            cmd.Execute()
         }
 
         v.hud.ShowAll()
         v.hudHidden = false
         v.hudKeepAlive = true
+        return true
     })
     v.keyPressSignalHandle = &sigH
     u.MainWindow.ShowAll()
@@ -182,10 +161,10 @@ func (v *PageView) initRenderer(m *model.Model) {
         half := float64(w / 2)
         e := &gdk.EventButton{Event: event}
         if e.X() < half {
-            v.sendMessage(util.Message{TypeName: "leftPage"})
+            v.ui.Commands.Names["leftPage"].Execute()
             r = true
         } else {
-            v.sendMessage(util.Message{TypeName: "rightPage"})
+            v.ui.Commands.Names["rightPage"].Execute()
             r = true
         }
         //reset the hud hiding

@@ -46,12 +46,7 @@ func NewStripViewNavControl(m *model.Model, u *UI) *StripViewNavControl {
     css.AddClass("nav-ctrl")
 
     fsc.Connect("clicked", func() {
-        if m.Fullscreen {
-            u.MainWindow.Unfullscreen()
-        } else {
-            u.MainWindow.Fullscreen()
-        }
-        u.SendMessage(util.Message{TypeName: "toggleFullscreen"})
+        u.Commands.Names["toggleFullscreen"].Execute()
     })
 
     container.Attach(pn, 0, 0, 1, 1)
@@ -103,3 +98,4 @@ func (c *StripViewNavControl) Render(m *model.Model) {
         }
     }
 }
+

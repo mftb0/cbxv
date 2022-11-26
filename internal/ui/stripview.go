@@ -8,11 +8,10 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/mftb0/cbxv-gotk3/internal/model"
-	"github.com/mftb0/cbxv-gotk3/internal/util"
 )
 
 type StripView struct {
-	sendMessage          util.Messenger
+	ui                   *UI
 	container            *gtk.Box
 	scrollbars           *gtk.ScrolledWindow
 	hud                  *gtk.Overlay
@@ -25,9 +24,8 @@ type StripView struct {
 	width                int
 }
 
-func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
+func NewStripView(m *model.Model, u *UI) View {
 	v := &StripView{}
-	v.sendMessage = messenger
 
 	v.hud = v.newHUD(m, u)
 	v.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
@@ -54,7 +52,7 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 	v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
 	v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
 		if selData != nil {
-			util.HandleDropData(selData.GetData(), u.SendMessage)
+			handleDropData(selData.GetData(), u.Commands.Names["openFile"])
 		}
 	})
 
@@ -76,27 +74,19 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 }
 
 func (v *StripView) Connect(m *model.Model, u *UI) {
-	kpsH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
-		keyEvent := gdk.EventKeyNewFromEvent(event)
-		keyVal := keyEvent.KeyVal()
-		switch keyVal {
-		case gdk.KEY_w, gdk.KEY_Up, gdk.KEY_k:
-			// scroll to top, no msg to send, doesn't affect model
-			v.scrollbars.GetVAdjustment().SetValue(0)
-		case gdk.KEY_s, gdk.KEY_Down, gdk.KEY_j:
-			// scroll to bottom, no msg to send, doesn't affect model
-			b := v.scrollbars.GetVAdjustment().GetUpper()
-			v.scrollbars.GetVAdjustment().SetValue(b)
-		case gdk.KEY_n:
-			v.sendMessage(util.Message{TypeName: "nextFile"})
-		case gdk.KEY_p:
-			v.sendMessage(util.Message{TypeName: "previousFile"})
-		}
-		v.hud.ShowAll()
-		v.hudHidden = false
-		v.hudKeepAlive = true
-	})
-	v.keyPressSignalHandle = &kpsH
+    kpsH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+        keyEvent := gdk.EventKeyNewFromEvent(event)
+        keyVal := keyEvent.KeyVal()
+        cmd := u.Commands.KeyCodes[keyVal]
+        if cmd != nil {
+            cmd.Execute()
+        }
+
+        v.hud.ShowAll()
+        v.hudHidden = false
+        v.hudKeepAlive = true
+    })
+    v.keyPressSignalHandle = &kpsH
 
 	confsH := u.MainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
 		e := &gdk.EventConfigure{Event: event}
@@ -136,12 +126,12 @@ func (v *StripView) Render(m *model.Model) {
 }
 
 func (v *StripView) ScrollToTop() {
-    v.scrollbars.GetVAdjustment().SetValue(0)
+	v.scrollbars.GetVAdjustment().SetValue(0)
 }
 
 func (v *StripView) ScrollToBottom() {
-    b := v.scrollbars.GetVAdjustment().GetUpper()
-    v.scrollbars.GetVAdjustment().SetValue(b)
+	b := v.scrollbars.GetVAdjustment().GetUpper()
+	v.scrollbars.GetVAdjustment().SetValue(b)
 }
 
 func (v *StripView) newHUD(m *model.Model, u *UI) *gtk.Overlay {
@@ -167,7 +157,7 @@ func (v *StripView) renderSpreads(m *model.Model) {
 	}
 
 	if len(m.Spreads[0].Pages) < len(m.Pages) {
-		v.sendMessage(util.Message{TypeName: "loadAllPages"})
+		v.ui.Commands.Names["loadAllPages"].Execute()
 		return
 	}
 
@@ -188,7 +178,7 @@ func (v *StripView) renderSpreads(m *model.Model) {
 
 	for i := range m.Spreads[0].Pages {
 		page := m.Spreads[0].Pages[i]
-        p, _ := v.scalePixbufToWidth(page.Image, v.width)
+		p, _ := v.scalePixbufToWidth(page.Image, v.width)
 		c, _ := gtk.ImageNewFromPixbuf(p)
 		v.container.PackStart(c, true, true, 0)
 		v.scrollbars.ShowAll()
@@ -202,27 +192,27 @@ func (v *StripView) renderSpreads(m *model.Model) {
 // Width we don't scroll so max is the lesser of 32k and window width
 // Overall we don't want to scroll more than 2x
 func (v *StripView) clampScale(scale float64, pW float64, pH float64) float64 {
-    // clamp no greater than 32k pix
+	// clamp no greater than 32k pix
 	maxH := float64(32000)
 
-    // clamp no greater than 32k pix or window width
-    maxW := math.Min(32000, float64(v.width))
+	// clamp no greater than 32k pix or window width
+	maxW := math.Min(32000, float64(v.width))
 
-    // clamp no greater than 2x
-    maxFactor := math.Min(scale, float64(2))
+	// clamp no greater than 2x
+	maxFactor := math.Min(scale, float64(2))
 
-    // try to find an acceptable factor
-    for ; maxFactor >= .80; maxFactor -= float64(.20) {
-        if maxFactor*pW < maxW && maxFactor*pH < maxH {
-            return maxFactor
-        }
-    }
+	// try to find an acceptable factor
+	for ; maxFactor >= .80; maxFactor -= float64(.20) {
+		if maxFactor*pW < maxW && maxFactor*pH < maxH {
+			return maxFactor
+		}
+	}
 
 	// Never could find anything acceptable, just skip scaling
 	return 1
 }
 
-func (v *StripView)scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
+func (v *StripView) scalePixbufToWidth(p *gdk.Pixbuf, w int) (*gdk.Pixbuf, error) {
 	cW := float64(w)
 	pW := float64(p.GetWidth())
 	pH := float64(p.GetHeight())

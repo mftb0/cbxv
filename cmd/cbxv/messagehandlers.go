@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "path/filepath"
     "strconv"
     "time"
@@ -26,10 +27,6 @@ essentially a noop. This may change in the future though and I'll
 add access to the UI
  */
  
-type MessageHandler struct {
-    Name        string
-}
-
 type MessageHandlerList struct {
     List map[string]func(data string)
 }
@@ -37,10 +34,7 @@ type MessageHandlerList struct {
 func NewMessageHandlers(m *model.Model) *MessageHandlerList {
     handlers := &MessageHandlerList{List: make(map[string]func(data string))}
 
-    handler := MessageHandler{
-        Name:        "rightPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["rightPage"] = func(data string) {
         if m.SpreadIndex < len(m.Spreads)-1 {
             m.SpreadIndex++
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
@@ -50,10 +44,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "leftPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["leftPage"] = func(data string) {
         if m.SpreadIndex > 0 {
             m.SpreadIndex--
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
@@ -63,28 +54,19 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "firstPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["firstPage"] = func(data string) {
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
-    handler = MessageHandler{
-        Name:        "lastPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["lastPage"] = func(data string) {
         m.SpreadIndex = (len(m.Spreads) - 1)
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
         m.RefreshPages()
     }
 
-    handler = MessageHandler{
-        Name:        "lastBookmark",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["lastBookmark"] = func(data string) {
         blen := (len(m.Bookmarks.Model.Bookmarks) - 1)
         if blen > -1 {
             bkmk := m.Bookmarks.Model.Bookmarks[blen]
@@ -96,10 +78,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "selectPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["selectPage"] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
             if m.PageIndex == m.Spreads[m.SpreadIndex].VersoPage() {
                 m.PageIndex++
@@ -109,10 +88,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "setLayoutModeOnePage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["setLayoutModeOnePage"] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
@@ -122,10 +98,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.RefreshPages()
     }
 
-    handler = MessageHandler{
-        Name:        "setLayoutModeTwoPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["setLayoutModeTwoPage"] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
@@ -135,10 +108,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.RefreshPages()
     }
 
-    handler = MessageHandler{
-        Name:        "setLayoutModeLongStrip",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["setLayoutModeLongStrip"] = func(data string) {
         m.LayoutMode = model.LONG_STRIP
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
@@ -146,10 +116,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.RefreshPages()
     }
 
-    handler = MessageHandler{
-        Name:        "toggleDirection",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["toggleDirection"] = func(data string) {
         // Toggle the read mode
         if m.Direction == model.LTR {
             m.Direction = model.RTL
@@ -164,10 +131,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         handlers.List["leftPage"] = r
     }
 
-    handler = MessageHandler{
-        Name:        "toggleFullscreen",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["toggleFullscreen"] = func(data string) {
         if m.Fullscreen == true {
             m.Fullscreen = false
         } else {
@@ -175,10 +139,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "openFile",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["openFile"] = func(data string) {
         handlers.List["closeFile"]("")
         m.FilePath = data
         m.BrowseDir = filepath.Dir(data)
@@ -194,17 +155,11 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.PageIndex = 0
     }
 
-    handler = MessageHandler{
-        Name:        "closeFile",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["closeFile"] = func(data string) {
         m.CloseCbxFile()
     }
 
-    handler = MessageHandler{
-        Name:        "nextFile",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["nextFile"] = func(data string) {
         if m.SeriesIndex < (len(m.SeriesList) - 1) {
             m.SeriesIndex++
             filePath := m.SeriesList[m.SeriesIndex]
@@ -213,10 +168,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "previousFile",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["previousFile"] = func(data string) {
         if m.SeriesIndex > 0 {
             m.SeriesIndex--
             filePath := m.SeriesList[m.SeriesIndex]
@@ -225,20 +177,14 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "exportPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["exportPage"] = func(data string) {
         srcPath := m.Pages[m.PageIndex].FilePath
         dstPath := data
         m.ExportDir = filepath.Dir(dstPath)
         util.ExportPage(srcPath, dstPath)
     }
 
-    handler = MessageHandler{
-        Name:        "toggleBookmark",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["toggleBookmark"] = func(data string) {
         p := m.PageIndex
         b := m.Bookmarks.Find(p)
         if b != nil {
@@ -249,10 +195,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "toggleJoin",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["toggleJoin"] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
             pi := m.PageIndex
             p := &m.Pages[pi]
@@ -269,10 +212,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
-    handler = MessageHandler{
-        Name:        "hidePage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["hidePage"] = func(data string) {
         pi := m.PageIndex
         p := &m.Pages[pi]
         p.Hidden = true
@@ -282,10 +222,7 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.SpreadIndex = m.PageToSpread(pi)
     }
 
-    handler = MessageHandler{
-        Name:        "showPage",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["showPage"] = func(data string) {
         i, err := strconv.Atoi(data)
         if err != nil {
             return
@@ -309,25 +246,16 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         m.SpreadIndex = m.PageToSpread(pi)
     }
 
-    handler = MessageHandler{
-        Name:        "loadAllPages",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["loadAllPages"] = func(data string) {
         m.RefreshPages()
         m.NewSpreads()
     }
 
-    handler = MessageHandler{
-        Name:        "render",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["render"] = func(data string) {
         //noop render always gets called after cmd
     }
 
-    handler = MessageHandler{
-        Name:        "quit",
-    }
-    handlers.List[handler.Name] = func(data string) {
+    handlers.List["quit"] = func(data string) {
         // because of orchestration with gtk's
         // thread this no longer works at shutdown
         // Mostly doesn't matter, but we do need
@@ -338,3 +266,4 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
 
     return handlers
 }
+

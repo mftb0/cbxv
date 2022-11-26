@@ -2,7 +2,7 @@ package ui
 
 import (
 	"fmt"
-	"path/filepath"
+	"strings"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -23,6 +23,7 @@ type UI struct {
 	PageView    View
 	StripView   View
 	View        View
+    Commands    *CommandList
 }
 
 func NewUI(m *model.Model, messenger util.Messenger) *UI {
@@ -46,12 +47,14 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	}
 
 	u.PageView = NewPageView(m, u, messenger)
-	u.StripView = NewStripView(m, u, u.SendMessage)
+	u.StripView = NewStripView(m, u)
 	u.View = u.PageView
 
 	initCss()
 
-	u.initKBHandler(m)
+//	u.initKBHandler(m)
+
+    u.Commands = NewCommands(m, u)
 
 	u.MainWindow.ShowAll()
 
@@ -86,90 +89,15 @@ func (u *UI) Render(m *model.Model) {
 }
 
 func (u *UI) initKBHandler(m *model.Model) {
-	u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+	u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) bool {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
-		switch keyVal {
-		case gdk.KEY_q:
-			u.SendMessage(util.Message{TypeName: "quit"})
-			u.Quit()
-		case gdk.KEY_1:
-			u.View.Disconnect(m, u)
-			u.View = u.PageView
-			u.View.Connect(m, u)
-			u.SendMessage(util.Message{TypeName: "setLayoutModeOnePage"})
-		case gdk.KEY_2:
-			u.View.Disconnect(m, u)
-			u.View = u.PageView
-			u.View.Connect(m, u)
-			u.SendMessage(util.Message{TypeName: "setLayoutModeTwoPage"})
-		case gdk.KEY_3:
-			u.View.Disconnect(m, u)
-			u.View = u.StripView
-			u.View.Connect(m, u)
-			u.SendMessage(util.Message{TypeName: "setLayoutModeLongStrip"})
-		case gdk.KEY_f, gdk.KEY_F11:
-			if m.Fullscreen {
-				u.MainWindow.Unfullscreen()
-			} else {
-				u.MainWindow.Fullscreen()
-			}
-			u.SendMessage(util.Message{TypeName: "toggleFullscreen"})
-		case gdk.KEY_o:
-			dlg, _ := gtk.FileChooserNativeDialogNew("Open",
-				u.MainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-			defer dlg.Destroy()
-
-			dlg.SetCurrentFolder(m.BrowseDir)
-			fltr, _ := gtk.FileFilterNew()
-			fltr.AddPattern("*.cbz")
-			fltr.AddPattern("*.cbr")
-			fltr.AddPattern("*.cb7")
-			fltr.AddPattern("*.cbt")
-			fltr.SetName("cbx files")
-			dlg.AddFilter(fltr)
-			fltr, _ = gtk.FileFilterNew()
-			fltr.AddPattern("*")
-			fltr.SetName("All files")
-			dlg.AddFilter(fltr)
-
-			output := dlg.NativeDialog.Run()
-			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-				f := dlg.GetFilename()
-				m := &util.Message{TypeName: "openFile", Data: f}
-				u.SendMessage(*m)
-			}
-		case gdk.KEY_c:
-			u.SendMessage(util.Message{TypeName: "closeFile"})
-		case gdk.KEY_e:
-			dlg, _ := gtk.FileChooserNativeDialogNew("Save",
-				u.MainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
-			defer dlg.Destroy()
-
-			base := filepath.Base(m.Pages[m.PageIndex].FilePath)
-			dlg.SetCurrentFolder(m.ExportDir)
-			dlg.SetCurrentName(base)
-			dlg.SetDoOverwriteConfirmation(true)
-
-			output := dlg.NativeDialog.Run()
-			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-				f := dlg.GetFilename()
-				m := &util.Message{TypeName: "exportPage", Data: f}
-				u.SendMessage(*m)
-			}
-		case gdk.KEY_question, gdk.KEY_F1:
-			dlg := gtk.MessageDialogNewWithMarkup(u.MainWindow,
-				gtk.DialogFlags(gtk.DIALOG_MODAL),
-				gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
-			defer dlg.Destroy()
-
-			dlg.SetTitle("Help")
-			dlg.SetMarkup(util.HELP_TXT)
-			css, _ := dlg.GetStyleContext()
-			css.AddClass("msg-dlg")
-
-			dlg.Run()
-		}
+        cmd := u.Commands.KeyCodes[keyVal]
+        if cmd != nil {
+            fmt.Printf("cmd:%s\n", cmd.Name)
+            cmd.Execute()
+        }
+        return true
 	})
 }
 
@@ -196,3 +124,14 @@ func initCss() {
 
 	gtk.AddProviderForScreen(s, css, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }
+
+func handleDropData(buf []byte, command *Command) {
+    uris := strings.Split(string(buf), "\n")
+    if len(uris) > 0 {
+        p := util.ParseFileUrl(strings.Trim(uris[0], "\r\n\t"))
+        if p != nil {
+            command.Execute()
+        }
+    }
+}
+

@@ -43,42 +43,12 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     rbkmk := util.CreateLabel("", "bkmk-btn", nil)
 
     fc.Connect("clicked", func() bool {
-        // fixme: this code just copy/pasted from UI
-        // should add a concept of UICommand
-        dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.MainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
-        dlg.SetCurrentFolder(m.BrowseDir)
-        fltr, _ := gtk.FileFilterNew()
-        fltr.AddPattern("*.cbz")
-        fltr.AddPattern("*.cbr")
-        fltr.AddPattern("*.cb7")
-        fltr.AddPattern("*.cbt")
-        fltr.SetName("cbx files")
-        dlg.AddFilter(fltr)
-        fltr, _ = gtk.FileFilterNew()
-        fltr.AddPattern("*")
-        fltr.SetName("All files")
-        dlg.AddFilter(fltr)
-        output := dlg.NativeDialog.Run()
-        if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-            f := dlg.GetFilename()
-            m := &util.Message{TypeName: "openFile", Data: f}
-            u.SendMessage(*m)
-        }
+        u.Commands.Names["fileOpen"].Execute()
         return true
     })
 
     hc.Connect("clicked", func() bool {
-        // fixme: this code just copy/pasted from UI
-        // should add a concept of UICommand
-        dlg := gtk.MessageDialogNewWithMarkup(u.MainWindow,
-            gtk.DialogFlags(gtk.DIALOG_MODAL),
-            gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
-        dlg.SetTitle("Help")
-        dlg.SetMarkup(util.HELP_TXT)
-        css, _ := dlg.GetStyleContext()
-        css.AddClass("msg-dlg")
-        dlg.Run()
-        dlg.Destroy()
+        u.Commands.Names["help"].Execute()
         return true
     })
 
@@ -167,3 +137,4 @@ func (c *PageViewHdrControl) Render(m *model.Model) {
         c.fileControl.SetLabel(title)
     }
 }
+

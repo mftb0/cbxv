@@ -604,7 +604,7 @@ func CreateButton(text string, cssClass string, toolTip *string) *gtk.Button {
     return c
 }
 
-func parseFileUrl(fileUrl string) *string {
+func ParseFileUrl(fileUrl string) *string {
     var r string
     if strings.HasPrefix(fileUrl, "file:///") {
         uri, err := url.ParseRequestURI(strings.Trim(fileUrl, "\r\n\t"))
@@ -623,17 +623,6 @@ func parseFileUrl(fileUrl string) *string {
         }
     }
     return &r
-}
-
-func HandleDropData(buf []byte, sendMessage Messenger) {
-    uris := strings.Split(string(buf), "\n")
-    if len(uris) > 0 {
-        p := parseFileUrl(strings.Trim(uris[0], "\r\n\t"))
-        if p != nil {
-            m := &Message{TypeName: "openFile", Data: *p}
-            sendMessage(*m)
-        }
-    }
 }
 
 func assertEventDispatchThread() bool {
