@@ -49,7 +49,7 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
     v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
     v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
         if selData != nil {
-            util.HandleDropData(selData.GetData(), u.sendMessage)
+            util.HandleDropData(selData.GetData(), u.SendMessage)
         }
     })
 
@@ -58,7 +58,7 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
         if !v.hudHidden && !v.hudKeepAlive {
             v.hdrControl.container.Hide()
             v.navControl.container.Hide()
-            u.mainWindow.QueueDraw()
+            u.MainWindow.QueueDraw()
             v.hudHidden = true
         } else {
             v.hudKeepAlive = false
@@ -93,8 +93,8 @@ func (v *PageView) renderHud(m *model.Model) {
 }
 
 func (v *PageView) Connect(m *model.Model, u *UI) {
-    u.mainWindow.Add(v.hud)
-    sigH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+    u.MainWindow.Add(v.hud)
+    sigH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
         keyEvent := gdk.EventKeyNewFromEvent(event)
         keyVal := keyEvent.KeyVal()
         switch keyVal {
@@ -129,15 +129,15 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
         v.hudKeepAlive = true
     })
     v.keyPressSignalHandle = &sigH
-    u.mainWindow.ShowAll()
+    u.MainWindow.ShowAll()
 }
 
 func (v *PageView) Disconnect(m *model.Model, u *UI) {
     if v.keyPressSignalHandle != nil {
-        u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
+        u.MainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
         v.keyPressSignalHandle = nil
     }
-    u.mainWindow.Remove(v.hud)
+    u.MainWindow.Remove(v.hud)
 }
 
 func (v *PageView) initRenderer(m *model.Model) {

@@ -45,7 +45,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     fc.Connect("clicked", func() bool {
         // fixme: this code just copy/pasted from UI
         // should add a concept of UICommand
-        dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+        dlg, _ := gtk.FileChooserNativeDialogNew("Open", u.MainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
         dlg.SetCurrentFolder(m.BrowseDir)
         fltr, _ := gtk.FileFilterNew()
         fltr.AddPattern("*.cbz")
@@ -62,7 +62,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
         if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
             f := dlg.GetFilename()
             m := &util.Message{TypeName: "openFile", Data: f}
-            u.sendMessage(*m)
+            u.SendMessage(*m)
         }
         return true
     })
@@ -70,7 +70,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     hc.Connect("clicked", func() bool {
         // fixme: this code just copy/pasted from UI
         // should add a concept of UICommand
-        dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow,
+        dlg := gtk.MessageDialogNewWithMarkup(u.MainWindow,
             gtk.DialogFlags(gtk.DIALOG_MODAL),
             gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
         dlg.SetTitle("Help")

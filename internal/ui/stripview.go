@@ -54,7 +54,7 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 	v.hud.DragDestSet(gtk.DEST_DEFAULT_ALL, []gtk.TargetEntry{*target}, gdk.ACTION_COPY)
 	v.hud.Connect("drag-data-received", func(widget *gtk.Overlay, context *gdk.DragContext, x int, y int, selData *gtk.SelectionData) {
 		if selData != nil {
-			util.HandleDropData(selData.GetData(), u.sendMessage)
+			util.HandleDropData(selData.GetData(), u.SendMessage)
 		}
 	})
 
@@ -63,7 +63,7 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 		if !v.hudHidden && !v.hudKeepAlive {
 			v.hdrControl.container.Hide()
 			v.navControl.container.Hide()
-			u.mainWindow.QueueDraw()
+			u.MainWindow.QueueDraw()
 			v.hudHidden = true
 		} else {
 			v.hudKeepAlive = false
@@ -71,12 +71,12 @@ func NewStripView(m *model.Model, u *UI, messenger util.Messenger) View {
 		return true
 	})
 
-	v.width = u.mainWindow.GetAllocatedWidth()
+	v.width = u.MainWindow.GetAllocatedWidth()
 	return v
 }
 
 func (v *StripView) Connect(m *model.Model, u *UI) {
-	kpsH := u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+	kpsH := u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
 		switch keyVal {
@@ -98,7 +98,7 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 	})
 	v.keyPressSignalHandle = &kpsH
 
-	confsH := u.mainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
+	confsH := u.MainWindow.Connect("configure-event", func(widget *gtk.Window, event *gdk.Event) {
 		e := &gdk.EventConfigure{Event: event}
 
 		if v.width == e.Width() {
@@ -110,22 +110,22 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
 	})
 	v.configSignalHandle = &confsH
 
-	u.mainWindow.Add(v.hud)
+	u.MainWindow.Add(v.hud)
 	v.container.ShowAll()
 	v.scrollbars.ShowAll()
-	u.mainWindow.ShowAll()
+	u.MainWindow.ShowAll()
 }
 
 func (v *StripView) Disconnect(m *model.Model, u *UI) {
 	if v.keyPressSignalHandle != nil {
-		u.mainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
+		u.MainWindow.HandlerDisconnect(*v.keyPressSignalHandle)
 		v.keyPressSignalHandle = nil
 	}
 	if v.configSignalHandle != nil {
-		u.mainWindow.HandlerDisconnect(*v.configSignalHandle)
+		u.MainWindow.HandlerDisconnect(*v.configSignalHandle)
 		v.configSignalHandle = nil
 	}
-	u.mainWindow.Remove(v.hud)
+	u.MainWindow.Remove(v.hud)
 }
 
 func (v *StripView) Render(m *model.Model) {
@@ -133,6 +133,15 @@ func (v *StripView) Render(m *model.Model) {
 		v.renderHud(m)
 		v.renderSpreads(m)
 	})
+}
+
+func (v *StripView) ScrollToTop() {
+    v.scrollbars.GetVAdjustment().SetValue(0)
+}
+
+func (v *StripView) ScrollToBottom() {
+    b := v.scrollbars.GetVAdjustment().GetUpper()
+    v.scrollbars.GetVAdjustment().SetValue(b)
 }
 
 func (v *StripView) newHUD(m *model.Model, u *UI) *gtk.Overlay {

@@ -18,10 +18,10 @@ type View interface {
 }
 
 type UI struct {
-	sendMessage util.Messenger
-	mainWindow  *gtk.Window
-	pageView    View
-	stripView   View
+	SendMessage util.Messenger
+	MainWindow  *gtk.Window
+	PageView    View
+	StripView   View
 	View        View
 }
 
@@ -31,29 +31,29 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
         fmt.Printf("true\n")
     }
 	u := &UI{}
-	u.sendMessage = messenger
-	u.mainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	u.mainWindow.SetPosition(gtk.WIN_POS_CENTER)
-	u.mainWindow.SetTitle(m.ProgramName)
-	u.mainWindow.Connect("destroy", func() {
+	u.SendMessage = messenger
+	u.MainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	u.MainWindow.SetPosition(gtk.WIN_POS_CENTER)
+	u.MainWindow.SetTitle(m.ProgramName)
+	u.MainWindow.Connect("destroy", func() {
 		gtk.MainQuit()
 	})
-	u.mainWindow.SetDefaultSize(1024, 768)
+	u.MainWindow.SetDefaultSize(1024, 768)
 
 	iPath, _ := util.AppIconPath()
 	if iPath != nil {
-		u.mainWindow.SetIconFromFile(*iPath)
+		u.MainWindow.SetIconFromFile(*iPath)
 	}
 
-	u.pageView = NewPageView(m, u, messenger)
-	u.stripView = NewStripView(m, u, u.sendMessage)
-	u.View = u.pageView
+	u.PageView = NewPageView(m, u, messenger)
+	u.StripView = NewStripView(m, u, u.SendMessage)
+	u.View = u.PageView
 
 	initCss()
 
 	u.initKBHandler(m)
 
-	u.mainWindow.ShowAll()
+	u.MainWindow.ShowAll()
 
 	return u
 }
@@ -81,43 +81,43 @@ func (u *UI) Render(m *model.Model) {
 		// causes the draw event to fire
 		// which gets the canvas to Render
 		// see initRenderer
-		u.mainWindow.QueueDraw()
+		u.MainWindow.QueueDraw()
 	})
 }
 
 func (u *UI) initKBHandler(m *model.Model) {
-	u.mainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
+	u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) {
 		keyEvent := gdk.EventKeyNewFromEvent(event)
 		keyVal := keyEvent.KeyVal()
 		switch keyVal {
 		case gdk.KEY_q:
-			u.sendMessage(util.Message{TypeName: "quit"})
+			u.SendMessage(util.Message{TypeName: "quit"})
 			u.Quit()
 		case gdk.KEY_1:
 			u.View.Disconnect(m, u)
-			u.View = u.pageView
+			u.View = u.PageView
 			u.View.Connect(m, u)
-			u.sendMessage(util.Message{TypeName: "setLayoutModeOnePage"})
+			u.SendMessage(util.Message{TypeName: "setLayoutModeOnePage"})
 		case gdk.KEY_2:
 			u.View.Disconnect(m, u)
-			u.View = u.pageView
+			u.View = u.PageView
 			u.View.Connect(m, u)
-			u.sendMessage(util.Message{TypeName: "setLayoutModeTwoPage"})
+			u.SendMessage(util.Message{TypeName: "setLayoutModeTwoPage"})
 		case gdk.KEY_3:
 			u.View.Disconnect(m, u)
-			u.View = u.stripView
+			u.View = u.StripView
 			u.View.Connect(m, u)
-			u.sendMessage(util.Message{TypeName: "setLayoutModeLongStrip"})
+			u.SendMessage(util.Message{TypeName: "setLayoutModeLongStrip"})
 		case gdk.KEY_f, gdk.KEY_F11:
 			if m.Fullscreen {
-				u.mainWindow.Unfullscreen()
+				u.MainWindow.Unfullscreen()
 			} else {
-				u.mainWindow.Fullscreen()
+				u.MainWindow.Fullscreen()
 			}
-			u.sendMessage(util.Message{TypeName: "toggleFullscreen"})
+			u.SendMessage(util.Message{TypeName: "toggleFullscreen"})
 		case gdk.KEY_o:
 			dlg, _ := gtk.FileChooserNativeDialogNew("Open",
-				u.mainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+				u.MainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
 			defer dlg.Destroy()
 
 			dlg.SetCurrentFolder(m.BrowseDir)
@@ -137,13 +137,13 @@ func (u *UI) initKBHandler(m *model.Model) {
 			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 				f := dlg.GetFilename()
 				m := &util.Message{TypeName: "openFile", Data: f}
-				u.sendMessage(*m)
+				u.SendMessage(*m)
 			}
 		case gdk.KEY_c:
-			u.sendMessage(util.Message{TypeName: "closeFile"})
+			u.SendMessage(util.Message{TypeName: "closeFile"})
 		case gdk.KEY_e:
 			dlg, _ := gtk.FileChooserNativeDialogNew("Save",
-				u.mainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+				u.MainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
 			defer dlg.Destroy()
 
 			base := filepath.Base(m.Pages[m.PageIndex].FilePath)
@@ -155,10 +155,10 @@ func (u *UI) initKBHandler(m *model.Model) {
 			if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
 				f := dlg.GetFilename()
 				m := &util.Message{TypeName: "exportPage", Data: f}
-				u.sendMessage(*m)
+				u.SendMessage(*m)
 			}
 		case gdk.KEY_question, gdk.KEY_F1:
-			dlg := gtk.MessageDialogNewWithMarkup(u.mainWindow,
+			dlg := gtk.MessageDialogNewWithMarkup(u.MainWindow,
 				gtk.DialogFlags(gtk.DIALOG_MODAL),
 				gtk.MESSAGE_INFO, gtk.BUTTONS_CLOSE, "Help")
 			defer dlg.Destroy()
