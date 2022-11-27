@@ -150,7 +150,6 @@ func (v *PageView) initRenderer(m *model.Model) {
             v.navControl.container.Show()
             v.hudHidden = false
             v.hudKeepAlive = true
-            return true
         }
         return false
     })

@@ -52,8 +52,6 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 
 	initCss()
 
-//	u.initKBHandler(m)
-
     u.Commands = NewCommands(m, u)
 
 	u.MainWindow.ShowAll()
@@ -85,19 +83,6 @@ func (u *UI) Render(m *model.Model) {
 		// which gets the canvas to Render
 		// see initRenderer
 		u.MainWindow.QueueDraw()
-	})
-}
-
-func (u *UI) initKBHandler(m *model.Model) {
-	u.MainWindow.Connect("key-press-event", func(widget *gtk.Window, event *gdk.Event) bool {
-		keyEvent := gdk.EventKeyNewFromEvent(event)
-		keyVal := keyEvent.KeyVal()
-        cmd := u.Commands.KeyCodes[keyVal]
-        if cmd != nil {
-            fmt.Printf("cmd:%s\n", cmd.Name)
-            cmd.Execute()
-        }
-        return true
 	})
 }
 
