@@ -26,6 +26,7 @@ type StripView struct {
 
 func NewStripView(m *model.Model, u *UI) View {
 	v := &StripView{}
+    v.ui = u
 
 	v.hud = v.newHUD(m, u)
 	v.scrollbars, _ = gtk.ScrolledWindowNew(nil, nil)
@@ -152,15 +153,6 @@ func (v *StripView) renderHud(m *model.Model) {
 }
 
 func (v *StripView) renderSpreads(m *model.Model) {
-	if m.Spreads == nil {
-		return
-	}
-
-	if len(m.Spreads[0].Pages) < len(m.Pages) {
-		v.ui.Commands.Names["loadAllPages"].Execute()
-		return
-	}
-
 	v.container.GetChildren().FreeFull(func(item any) {
 		v.container.Remove(item.(gtk.IWidget))
 	})
@@ -175,6 +167,15 @@ func (v *StripView) renderSpreads(m *model.Model) {
 	v.container.SetVExpand(true)
 	v.scrollbars.Add(v.container)
 	v.scrollbars.ShowAll()
+
+	if m.Spreads == nil {
+		return
+	}
+
+	if len(m.Spreads[0].Pages) < len(m.Pages) {
+		v.ui.Commands.Names["loadAllPages"].Execute()
+		return
+	}
 
 	for i := range m.Spreads[0].Pages {
 		page := m.Spreads[0].Pages[i]

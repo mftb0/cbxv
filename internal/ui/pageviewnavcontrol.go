@@ -245,7 +245,12 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 if v == "Hidden" {
                     return
                 }
-                c.ui.Commands.Names["showPage"].Execute()
+                //fixme:command needs data
+                cmd := c.ui.Commands.Names["showPage"]
+                cmd.Execute = func() {
+                    c.ui.SendMessage(util.Message{TypeName: "showPage", Data: v})
+                }
+                cmd.Execute()
             })
             c.hpcSignalHandle = &hndl
         }

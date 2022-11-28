@@ -211,11 +211,13 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
     AddCommand(cmds, NewCommand("showPage", "Show Page",
 		[]uint{},
         func() {
+            u.SendMessage(util.Message{TypeName: "showPage"})
         }))
 
     AddCommand(cmds, NewCommand("loadAllPages", "Load All Pages",
 		[]uint{},
         func() {
+            u.SendMessage(util.Message{TypeName: "loadAllPages"})
         }))
 
     AddCommand(cmds, NewCommand("render", "Render",
