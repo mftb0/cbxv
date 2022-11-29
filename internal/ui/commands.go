@@ -127,8 +127,9 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
     AddCommand(cmds, NewCommand("openFile", "Open File",
 		[]uint{gdk.KEY_o},
 	    func() {
-            dlg, _ := gtk.FileChooserNativeDialogNew("Open",
-                u.MainWindow, gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+            dlg, _ := gtk.FileChooserDialogNewWith2Buttons("Open", u.MainWindow,
+                gtk.FILE_CHOOSER_ACTION_OPEN, "_Open", gtk.RESPONSE_ACCEPT,
+                "_Cancel", gtk.RESPONSE_CANCEL)
             defer dlg.Destroy()
 
             dlg.SetCurrentFolder(m.BrowseDir)
@@ -144,7 +145,7 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
             fltr.SetName("All files")
             dlg.AddFilter(fltr)
 
-            output := dlg.NativeDialog.Run()
+            output := dlg.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
                 m := &util.Message{TypeName: "openFile", Data: f}
@@ -173,8 +174,9 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
     AddCommand(cmds, NewCommand("exportPage", "Export Page",
 		[]uint{gdk.KEY_e},
         func() {
-            dlg, _ := gtk.FileChooserNativeDialogNew("Save",
-                u.MainWindow, gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", "_Cancel")
+            dlg, _ := gtk.FileChooserDialogNewWith2Buttons("Save", u.MainWindow,
+                gtk.FILE_CHOOSER_ACTION_SAVE, "_Save", gtk.RESPONSE_ACCEPT,
+                "_Cancel", gtk.RESPONSE_CANCEL)
             defer dlg.Destroy()
 
             base := filepath.Base(m.Pages[m.PageIndex].FilePath)
@@ -182,7 +184,7 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
             dlg.SetCurrentName(base)
             dlg.SetDoOverwriteConfirmation(true)
 
-            output := dlg.NativeDialog.Run()
+            output := dlg.Run()
             if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
                 f := dlg.GetFilename()
                 m := &util.Message{TypeName: "exportPage", Data: f}
