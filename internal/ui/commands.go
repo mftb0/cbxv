@@ -179,16 +179,18 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
                 "_Cancel", gtk.RESPONSE_CANCEL)
             defer dlg.Destroy()
 
-            base := filepath.Base(m.Pages[m.PageIndex].FilePath)
-            dlg.SetCurrentFolder(m.ExportDir)
-            dlg.SetCurrentName(base)
-            dlg.SetDoOverwriteConfirmation(true)
+            if m.Pages != nil {
+                base := filepath.Base(m.Pages[m.PageIndex].FilePath)
+                dlg.SetCurrentFolder(m.ExportDir)
+                dlg.SetCurrentName(base)
+                dlg.SetDoOverwriteConfirmation(true)
 
-            output := dlg.Run()
-            if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
-                f := dlg.GetFilename()
-                m := &util.Message{TypeName: "exportPage", Data: f}
-                u.SendMessage(*m)
+                output := dlg.Run()
+                if gtk.ResponseType(output) == gtk.RESPONSE_ACCEPT {
+                    f := dlg.GetFilename()
+                    m := &util.Message{TypeName: "exportPage", Data: f}
+                    u.SendMessage(*m)
+                }
             }
         }))
 

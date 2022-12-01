@@ -43,7 +43,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     rbkmk := util.CreateLabel("", "bkmk-btn", nil)
 
     fc.Connect("clicked", func() bool {
-        u.Commands.Names["fileOpen"].Execute()
+        u.Commands.Names["openFile"].Execute()
         return true
     })
 
