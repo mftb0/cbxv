@@ -112,7 +112,7 @@ func handleDropData(buf []byte, command *Command) {
     if len(uris) > 0 {
         p := util.ParseFileUrl(strings.Trim(uris[0], "\r\n\t"))
         if p != nil {
-            command.Execute()
+            command.Execute(*p)
         }
     }
 }
