@@ -211,7 +211,7 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
 			u.SendMessage(util.Message{TypeName: "toggleBookmark"})
 		}))
 
-	AddCommand(cmds, NewCommand("toggleJoin", "toggleJoin",
+	AddCommand(cmds, NewCommand("toggleJoin", "toggle Join",
 		[]uint{gdk.KEY_r},
 		func(args ...any) {
 			u.SendMessage(util.Message{TypeName: "toggleJoin"})

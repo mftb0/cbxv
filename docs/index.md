@@ -107,7 +107,7 @@ Excelsior!
 - exportPage          e                   NA
 
 ### Bookmark Commands
-- addBookmark         [Space]             NA
+- toggleBookmark      [Space]             Bookmark Buttons
 - lastBookmark        L                   NA
 
 ### Layout Commands

@@ -40,7 +40,7 @@ firstPage           w|k|[UpArrow]       NA
 lastPage            s|j|[DownArrow]     NA
 nextFile            n                   NA
 previousFile        p                   NA
-addBookmark         [Space]             NA
+toggleBookmark      [Space]             Bookmark Buttons
 lastBookmark        L                   NA
 help                ?|[F1]              Question Mark Button
 toggleDirection     [BackTick]          Direction Button

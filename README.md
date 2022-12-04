@@ -65,27 +65,27 @@ are.</sub>
     largely keyboard driven, but many functions are also available 
     with the mouse:
 
-        |Command            |Key            |Mouse               |
-        |-------------------|---------------|--------------------|
-        |quit               |q              |Window Close Button | 
-        |openFile           |o              |Title Button        |
-        |closeFile          |c              |NA                  |
-        |rightPage          |d|l|RightArrow |right side          |
-        |leftPage           |a|h|LeftArrow  |left side           |
-        |firstPage          |w|k|UpArrow    |NA                  |
-        |lastPage           |s|j|DownArrow  |NA                  |
-        |nextFile           |n              |NA                  |
-        |previousFile       |p              |NA                  |
-        |addBookmark        |[Space]        |NA
-        |lastBookmark       |L              |NA                  |
-        |help               |?              |Question Mark Button|
-        |toggleDirection    |Back Tick      |Direction Toggle    |
-        |1-Page Layout      |1              |NA                  |
-        |2-Page Layout      |2              |NA                  |
-        |stripLayout        |3              |NA                  |
-        |hidePage           |-              |NA                  |
-        |toggleJoin         |r              |Join Toggle         |
-        |toggleFullscreen   |f|[F11]        |Fullscreen Toggle   |
-        |selectPage         |[Tab]          |NA                  |
-        |export Page        |e              |NA                  |
+    |Command            |Key            |Mouse               |
+    |-------------------|---------------|--------------------|
+    |quit               |q              |Window Close Button | 
+    |openFile           |o              |Title Button        |
+    |closeFile          |c              |NA                  |
+    |rightPage          |d|l|RightArrow |right side          |
+    |leftPage           |a|h|LeftArrow  |left side           |
+    |firstPage          |w|k|UpArrow    |NA                  |
+    |lastPage           |s|j|DownArrow  |NA                  |
+    |nextFile           |n              |NA                  |
+    |previousFile       |p              |NA                  |
+    |toggleBookmark     |[Space]        |Bookmark Buttons    |
+    |lastBookmark       |L              |NA                  |
+    |help               |?              |Question Mark Button|
+    |toggleDirection    |Back Tick      |Direction Toggle    |
+    |1-Page Layout      |1              |NA                  |
+    |2-Page Layout      |2              |NA                  |
+    |stripLayout        |3              |NA                  |
+    |hidePage           |-              |NA                  |
+    |toggleJoin         |r              |Join Toggle         |
+    |toggleFullscreen   |f|[F11]        |Fullscreen Toggle   |
+    |selectPage         |[Tab]          |NA                  |
+    |export Page        |e              |NA                  |
 
