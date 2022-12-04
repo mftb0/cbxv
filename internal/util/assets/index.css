@@ -259,6 +259,8 @@ link:active {
 }
 
 .bkmk-btn {
+    background-color: @bma_color; 
+    border: none;
     padding: 3px 19px 3px 19px;
     margin-left: 8px;
     margin-right: 8px;
@@ -274,6 +276,7 @@ link:active {
 
 @define-color bg_color  #010901;
 @define-color bga_color rgba(0,0,0,0.49);
+@define-color bma_color rgba(0,255,0,0.24);
 @define-color fg_color  #00ff00;
 @define-color hi_color  #22dd22;
 

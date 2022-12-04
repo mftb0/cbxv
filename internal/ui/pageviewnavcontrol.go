@@ -24,7 +24,7 @@ type PageViewNavControl struct {
     rightPageNum      *gtk.Label
     progName          *gtk.Label
     progVersion       *gtk.Label
-    DirectionControl  *gtk.Button
+    directionControl  *gtk.Button
     layoutModeControl *gtk.Label
     spreadControl     *gtk.Button
     hiddenPageControl *gtk.ComboBoxText
@@ -115,7 +115,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
     nc.leftPageNum = lpn
     nc.progName = pn
     nc.progVersion = pv
-    nc.DirectionControl = dc
+    nc.directionControl = dc
     nc.layoutModeControl = lmc
     nc.spreadControl = jc
     nc.hiddenPageControl = hpc
@@ -131,9 +131,9 @@ func (c *PageViewNavControl) Render(m *model.Model) {
         c.leftPageNum.SetText("")
         c.spreadControl.SetLabel("")
         if m.Direction == model.RTL {
-            c.DirectionControl.SetLabel(DIR_RTL_ICN)
+            c.directionControl.SetLabel(DIR_RTL_ICN)
         } else {
-            c.DirectionControl.SetLabel(DIR_LTR_ICN)
+            c.directionControl.SetLabel(DIR_LTR_ICN)
         }
 
         if m.LayoutMode == model.ONE_PAGE {
@@ -187,7 +187,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 c.leftPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
                 lpncss.AddClass("bordered")
             }
-            c.DirectionControl.SetLabel(DIR_RTL_ICN)
+            c.directionControl.SetLabel(DIR_RTL_ICN)
         } else {
             if np > 0 {
                 c.navBar.SetInverted(false)
@@ -207,7 +207,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 c.rightPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
                 rpncss.AddClass("bordered")
             }
-            c.DirectionControl.SetLabel(DIR_LTR_ICN)
+            c.directionControl.SetLabel(DIR_LTR_ICN)
         }
 
         if m.LayoutMode == model.ONE_PAGE {

@@ -79,10 +79,13 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
 
     handlers.List["selectPage"] = func(data string) {
         if m.LayoutMode == model.TWO_PAGE {
-            if m.PageIndex == m.Spreads[m.SpreadIndex].VersoPage() {
-                m.PageIndex++
-            } else {
-                m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
+            s := m.Spreads[m.SpreadIndex]
+            if len(s.Pages) > 1 {
+                if m.PageIndex == s.VersoPage() {
+                    m.PageIndex = s.RectoPage()
+                } else {
+                    m.PageIndex = s.VersoPage()
+                }
             }
         }
     }
