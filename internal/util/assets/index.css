@@ -12,12 +12,13 @@ label {
     box-shadow: none;
     text-shadow: none;
     color: @hi_color;
+    font-family: "DejaVu Mono", Monaco, Verdana, sans-serif;
 }
 
 button {
     background-image:none;
     background-color: @bga_color; 
-    border: solid 1px rgba(0,0,0,0.49);
+    border: none;
     border-radius: 0px;
     box-shadow: none;
     text-shadow: none;
@@ -26,6 +27,7 @@ button {
     margin: 0px;
     font-weight: bold;
     font-size: 14px;
+    font-family: "DejaVu Mono", Monaco, Verdana, sans-serif;
 }
 
 headerbar {
@@ -93,7 +95,7 @@ menuitem:hover {
 }
 
 menu {
-    background-image:none;
+    background-image: none;
     background-color: @bg_color;
     border-radius: 0px;
     box-shadow: none;
@@ -104,10 +106,10 @@ menu {
 }
 
 combobox {
-    background-image:none;
+    background-image: none;
     background-color: @bg_color;
     border-radius: 0px;
-    border:none;
+    border: none;
     box-shadow: none;
     text-shadow: none;
     color: @hi_color;
@@ -275,7 +277,7 @@ link:active {
 }
 
 @define-color bg_color  #010901;
-@define-color bga_color rgba(0,0,0,0.49);
+@define-color bga_color rgba(0,32,0,0.49);
 @define-color bma_color rgba(0,255,0,0.24);
 @define-color fg_color  #00ff00;
 @define-color hi_color  #22dd22;
