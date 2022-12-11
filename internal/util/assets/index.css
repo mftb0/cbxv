@@ -12,7 +12,8 @@ label {
     box-shadow: none;
     text-shadow: none;
     color: @hi_color;
-    font-family: "DejaVu Mono", Monaco, Verdana, sans-serif;
+    font-family: "DejaVu Mono", Monaco, "Segoe UI", sans-serif;
+    font-size: 14px;
 }
 
 button {
@@ -26,8 +27,8 @@ button {
     padding: 0px;
     margin: 0px;
     font-weight: bold;
+    font-family: "DejaVu Mono", Monaco, "Segoe UI", sans-serif;
     font-size: 14px;
-    font-family: "DejaVu Mono", Monaco, Verdana, sans-serif;
 }
 
 headerbar {

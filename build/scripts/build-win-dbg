@@ -13,14 +13,22 @@ NM="cbxv_${GOOS}_${GOARCH}-${VERSION}"
 DST="dist/${NM}"
 mkdir -p "$DST"
 mkdir -p "$DST/lib"
+mkdir -p "$DST/share"
+mkdir -p "$DST/share/glib-2.0"
 
 cp out/cbxv.exe "$DST"
+cp build/assets/win/logo_x.png "$DST"
+
 ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" "$DST"
 cp /c/tools/msys64/mingw64/bin/libgif-7.dll "$DST"
 cp /c/tools/msys64/mingw64/bin/libjpeg-8.dll "$DST"
 cp /c/tools/msys64/mingw64/bin/gdbus.exe "$DST"
 cp -r /c/tools/msys64/mingw64/lib/gdk-pixbuf-2.0 "$DST/lib"
-cp build/assets/win/logo_x.png "$DST"
+
+cp -r /c/tools/msys64/mingw64/share/icons "$DST/share"
+cp -r /c/tools/msys64/mingw64/share/glib-2.0/schemas "$DST/share/glib-2.0" 
+
+glib-compile-schemas "$DST/share/glib-2.0/schemas"
 
 # fixme: no point until ver set
 # cd dist
