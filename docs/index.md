@@ -1,7 +1,7 @@
 # cbxv user manual
 
 ## tl;dr - Quickstart
-Open the archive (.tar.gz, .zip, .dmg), usually by dobule-clicking on it
+Open the cbxv archive (.tar.gz, .zip, .dmg), usually by dobule-clicking on it
 
 Locate the executable (cbxv, cbxv.exe, cbxv.app), double-click on it
 
@@ -77,12 +77,12 @@ Excelsior!
 
     Invocation:
 
-    Keys: o
-    Button: The File Button
+    Keys: o  
+    Button: The File Button  
     CLI: If you start cbxv from the command line you can provide a path and it 
-        will be opened.
+        will be opened.  
     Notes: The fileOpen dialog by default is configured to restrict choosing 
-    only files that start with an appropriate extension, but you can change it
+    only files that end with an appropriate extension, but you can change it
     to all files. Whatever file you specify either with the fileDialog or from
     the command line cbxv will try to open it. If it's a valid file with an 
     inappropriate extension like .zip it may very well succeed. If it's simply
