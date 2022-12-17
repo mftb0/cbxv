@@ -153,8 +153,8 @@ Excelsior!
     layout one of the two pages will have a highlighted border around it's 
     pageIndex button indicating that it's selected.
 
-    Keys: [Tab]
-    Mouse: Click the pageIndex Button of the page you want to select
+    Keys: [Tab]  
+    Mouse: pageIndex Buttons  
 
 - exportPage  
     The exportPage command will bring up the export dialog allowing you to save
@@ -168,8 +168,8 @@ Excelsior!
     The toggleBookmark command sets or unsets the bookmark on the currently
     selected page
     
-    Keys: [Space]
-    Mouse: Boomkark Buttons
+    Keys: [Space]  
+    Mouse: Boomkark Buttons  
 
 - lastBookmark  
     Use the lastBookmark command to move to the boomkark on the highest page
@@ -181,8 +181,8 @@ Excelsior!
     The direction command sets either Left-To-Right or Right-To-Left reading
     direction.
 
-    Keys: [BackTick]
-    Mouse: Direction Button
+    Keys: [BackTick]  
+    Mouse: Direction Button  
 
 - 1-Page Layout  
     The 1-Page Layout command sets the layout to one page at a time.
@@ -232,10 +232,10 @@ Excelsior!
     The help command brings up the help dialog, displaying summary information
     for all commands and providing a link to the manual.
 
-    Keys: ? [F1]
+    Keys: ? or [F1]
 
 - toggleFullscreen  
     toggleFullscreen command toggle fullscreen mode on and off
 
-    Keys: f, [F11]
+    Keys: f or [F11]
 
