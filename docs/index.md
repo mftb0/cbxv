@@ -93,6 +93,7 @@ Excelsior!
     Keys: c
 
 ### Navigation Commands
+- Overview
     cbxv is a viewer, most of what you do is navigating around so you can read
     the comic you have loaded. Consequently there are quite a few keys dedicated
     to basic navigation. 3 "sets" in fact; "Standard Keys" - Arrow Cluster, 
@@ -128,7 +129,7 @@ Excelsior!
 - lastPage  
     Always takes you to the last page
 
-    Keys: Up Arrow or w or k
+    Keys: Down Arrow or j or s
 
 - nextFile  
     Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
