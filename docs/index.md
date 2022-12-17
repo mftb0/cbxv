@@ -73,34 +73,80 @@ Excelsior!
     The openFile command when given no arguments will prompt you with the 
     fileOpen dialog to provide a file path. After a path is provided any file
     open in the UI will be closed and the new file will be opened and loaded
-    into the interface.
+    into the interface. 
 
-    Invocation:
+    The fileOpen dialog by default is configured to restrict choosing only files 
+    that end with an appropriate extension, but you can change it to all files. 
+    Whatever file you specify either with the fileDialog or from the command 
+    line cbxv will try to open it. If it's a valid file with an inappropriate 
+    extension like .zip it may very well succeed. If it's simply an invalid file 
+    it will fail.
 
     Keys: o  
-    Button: The File Button  
+    Mouse: The File Button  
     CLI: If you start cbxv from the command line you can provide a path and it 
         will be opened.  
-    Notes: The fileOpen dialog by default is configured to restrict choosing 
-    only files that end with an appropriate extension, but you can change it
-    to all files. Whatever file you specify either with the fileDialog or from
-    the command line cbxv will try to open it. If it's a valid file with an 
-    inappropriate extension like .zip it may very well succeed. If it's simply
-    an invalid file it will fail.
 
 - closeFile           
     The closeFile command will close any open file and unload it
 
-    Invocation:
     Keys: c
 
 ### Navigation Commands
-- rightPage           d|l|[RightArrow]    right side
-- leftPage            a|h|[LeftArrow]     left side
-- firstPage           w|k|[UpArrow]       NA
-- lastPage            s|j|[DownArrow]     NA
-- nextFile            n                   NA
-- previousFile        p                   NA
+    cbxv is a viewer, most of what you do is navigating around so you can read,
+    view the comic you have loaded. Consequently there are quite a few keys
+    dedicated to basic navigation. 3 "sets" in fact; "Gamer Keys", "Vi Keys", 
+    and "Standard Keys":  
+
+    Standard Keys: Arrow Cluster  
+    Gamer Keys: w, a, s, d  
+    Vi Keys: h, j, k, l  
+
+- rightPage           
+    Always takes you one page to the right. If you have the reading Direction
+    set to Left-To-Right, then it will take you to the next page. If you toggle
+    the reading Direction to Right-To-Left, then going a page to the right will
+    take you to the previous page.  
+
+    This key can also trigger next file or previous file when at the end or
+    beggining of the comic.
+
+    Keys: Right Arrow or d or l
+
+- leftPage
+    Always takes you one page to the left. If you have the reading Direction
+    set to Left-To-Right, then it will take you to the previous page. If you 
+    toggle the reading Direction to Right-To-Left, then going a page to the 
+    left will take you to the next page.  
+
+    This key can also trigger next file or previous file when at the end or
+    beggining of the comic.
+
+    Keys: Left Arrow or w or h
+
+- firstPage
+    Always takes you to the first page
+
+    Keys: Up Arrow or w or k
+
+- lastPage
+    Always takes you to the last page
+
+    Keys: Up Arrow or w or k
+
+- nextFile
+    Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
+    in the same directory and the position of the current file in that list. The
+    nextFile command takes you to the next cbx file in the list.
+
+    Keys: n
+
+- previousFile
+    Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
+    in the same directory and the position of the current file in that list. The
+    previousFile command takes you to the previous cbx file in the list.
+
+    Keys: p
 
 ### Page Commands
 - selectPage          [Tab]               NA
