@@ -113,35 +113,35 @@ Excelsior!
 
     Keys: Right Arrow or d or l
 
-- leftPage
+- leftPage  
     Always takes you one page to the left. If you have the reading Direction
     set to Left-To-Right, then it will take you to the previous page. If you 
     toggle the reading Direction to Right-To-Left, then going a page to the 
-    left will take you to the next page.  
+    left will take you to the next page.
 
     This key can also trigger next file or previous file when at the end or
     beggining of the comic.
 
     Keys: Left Arrow or w or h
 
-- firstPage
+- firstPage  
     Always takes you to the first page
 
     Keys: Up Arrow or w or k
 
-- lastPage
+- lastPage  
     Always takes you to the last page
 
     Keys: Up Arrow or w or k
 
-- nextFile
+- nextFile  
     Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
     in the same directory and the position of the current file in that list. The
     nextFile command takes you to the next cbx file in the list.
 
     Keys: n
 
-- previousFile
+- previousFile  
     Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
     in the same directory and the position of the current file in that list. The
     previousFile command takes you to the previous cbx file in the list.
