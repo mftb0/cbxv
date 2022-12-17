@@ -108,7 +108,7 @@ Excelsior!
     This key can also trigger next file or previous file when at the end or
     beggining of the comic.
 
-    Keys: [RightArrow] or d or l
+    Keys: [RightArrow] or d or l  
     Mouse: Click on the right side of the screen
 
 - leftPage  
@@ -120,7 +120,7 @@ Excelsior!
     This key can also trigger next file or previous file when at the end or
     beggining of the comic.
 
-    Keys: [LeftArrow] or w or h
+    Keys: [LeftArrow] or w or h  
     Mouse: Click on the left side of the screen
 
 - firstPage  
