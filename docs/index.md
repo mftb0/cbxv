@@ -93,7 +93,7 @@ Excelsior!
     Keys: c
 
 ### Navigation Commands
-- Overview
+- Overview  
     cbxv is a viewer, most of what you do is navigating around so you can read
     the comic you have loaded. Consequently there are quite a few keys dedicated
     to basic navigation. 3 "sets" in fact; "Standard Keys" - Arrow Cluster, 
@@ -109,6 +109,7 @@ Excelsior!
     beggining of the comic.
 
     Keys: Right Arrow or d or l
+    Mouse: Click on the right side of the screen
 
 - leftPage  
     Always takes you one page to the left. If you have the reading Direction
@@ -120,6 +121,7 @@ Excelsior!
     beggining of the comic.
 
     Keys: Left Arrow or w or h
+    Mouse: Click on the left side of the screen
 
 - firstPage  
     Always takes you to the first page
@@ -146,8 +148,20 @@ Excelsior!
     Keys: p
 
 ### Page Commands
-- selectPage          [Tab]               NA
-- exportPage          e                   NA
+- selectPage
+    The selectPage command allows you to change the selectedPage. In a 2-page 
+    layout one of the two pages will have a highlighted border around it's 
+    pageIndex button indicating that it's selected.
+
+    Keys: Tab
+    Mouse: Click the pageIndex Button of the page you want to select
+
+- exportPage
+    The exportPage command will bring up the export dialog allowing you to save
+    the currently selected page as an mage file wherever you want independent of 
+    the cbx file you are viewing.
+
+    Keys: e
 
 ### Bookmark Commands
 - toggleBookmark      [Space]             Bookmark Buttons
