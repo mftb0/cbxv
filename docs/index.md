@@ -93,14 +93,10 @@ Excelsior!
     Keys: c
 
 ### Navigation Commands
-    cbxv is a viewer, most of what you do is navigating around so you can read,
-    view the comic you have loaded. Consequently there are quite a few keys
-    dedicated to basic navigation. 3 "sets" in fact; "Gamer Keys", "Vi Keys", 
-    and "Standard Keys":  
-
-    Standard Keys: Arrow Cluster  
-    Gamer Keys: w, a, s, d  
-    Vi Keys: h, j, k, l  
+    cbxv is a viewer, most of what you do is navigating around so you can read
+    the comic you have loaded. Consequently there are quite a few keys dedicated
+    to basic navigation. 3 "sets" in fact; "Standard Keys" - Arrow Cluster, 
+    "Gamer Keys" - "wasd", and "Vi Keys" - "hjkl".
 
 - rightPage           
     Always takes you one page to the right. If you have the reading Direction
