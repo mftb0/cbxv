@@ -108,7 +108,7 @@ Excelsior!
     This key can also trigger next file or previous file when at the end or
     beggining of the comic.
 
-    Keys: Right Arrow or d or l
+    Keys: [RightArrow] or d or l
     Mouse: Click on the right side of the screen
 
 - leftPage  
@@ -120,18 +120,18 @@ Excelsior!
     This key can also trigger next file or previous file when at the end or
     beggining of the comic.
 
-    Keys: Left Arrow or w or h
+    Keys: [LeftArrow] or w or h
     Mouse: Click on the left side of the screen
 
 - firstPage  
     Always takes you to the first page
 
-    Keys: Up Arrow or w or k
+    Keys: [UpArrow] or w or k
 
 - lastPage  
     Always takes you to the last page
 
-    Keys: Down Arrow or j or s
+    Keys: [DownArrow] or j or s
 
 - nextFile  
     Whenever you open a cbx file cbxv creates a sorted list of all the cbx files
@@ -148,15 +148,15 @@ Excelsior!
     Keys: p
 
 ### Page Commands
-- selectPage
+- selectPage  
     The selectPage command allows you to change the selectedPage. In a 2-page 
     layout one of the two pages will have a highlighted border around it's 
     pageIndex button indicating that it's selected.
 
-    Keys: Tab
+    Keys: [Tab]
     Mouse: Click the pageIndex Button of the page you want to select
 
-- exportPage
+- exportPage  
     The exportPage command will bring up the export dialog allowing you to save
     the currently selected page as an mage file wherever you want independent of 
     the cbx file you are viewing.
@@ -164,19 +164,78 @@ Excelsior!
     Keys: e
 
 ### Bookmark Commands
-- toggleBookmark      [Space]             Bookmark Buttons
-- lastBookmark        L                   NA
+- toggleBookmark  
+    The toggleBookmark command sets or unsets the bookmark on the currently
+    selected page
+    
+    Keys: [Space]
+    Mouse: Boomkark Buttons
+
+- lastBookmark  
+    Use the lastBookmark command to move to the boomkark on the highest page
+
+    Keys: L
 
 ### Layout Commands
-- Direction           [BackTick]          Direction Button
-- 1-Page Layout       1                   NA
-- 2-Page Layout       2                   NA
-- stripLayout         3                   NA
-- hidePage            -                   NA
-- toggleJoin          r                   Join Toggle
+- Direction  
+    The direction command sets either Left-To-Right or Right-To-Left reading
+    direction.
+
+    Keys: [BackTick]
+    Mouse: Direction Button
+
+- 1-Page Layout  
+    The 1-Page Layout command sets the layout to one page at a time.
+
+    Keys: 1
+
+- 2-Page Layout  
+    The 2-Page Layout command sets the layout to view up to two pages at a time.
+
+    Keys: 2
+
+- stripLayout  
+    Strip Layout arranges all pages in one long vertical strip. The strip layout
+    is much simpler and removes many commands and controls that are not 
+    applicable.
+
+    Keys: 3
+
+- hidePage  
+    The hidePage command hides the currently selected page from view. You can
+    see the list of hidden pages for the current cbx file with the HiddenPages 
+    control.
+
+    Keys: -
+
+- toggleJoin  
+    The toggleJoin command causes 1-page to be treated as two for the purposes
+    of layout. The term "join" is borrowed from the scanning community where
+    generally 2 images from adjacent pages are joined together to emulate a 
+    a double-page spread. In cbxv such pages are auto-joined. Other pages that
+    you might want to join are covers. They will be treated as having a span of
+    2, causing them to occupy both spots of a spread in a two-page layout
+    forcing any other page to the next spread. That means the cover will be
+    displayed by itself while staying in 2-page layout mode. the command has
+    no effect in either 1-page or strip modes.
+
+    Keys: r
 
 ### General Commands
-- quit                q                   Window Close Button 
-- help                ?|[F1]              Question Mark Button
-- toggleFullscreen    f                   Fullscreen Toggle
+- quit  
+    The quit command saves any accumulated state (layout changes, bookmarks,
+    etc...) and exits the program.
+
+    Keys: q
+
+- help  
+    The help command brings up the help dialog, displaying summary information
+    for all commands and providing a link to the manual.
+
+    Keys: ? [F1]
+
+- toggleFullscreen  
+    toggleFullscreen command toggle fullscreen mode on and off
+
+    Keys: f, [F11]
 
