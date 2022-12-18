@@ -177,7 +177,7 @@ Excelsior!
     Keys: L
 
 ### Layout Commands
-- Direction  
+- toggleDirection  
     The direction command sets either Left-To-Right or Right-To-Left reading
     direction.
 

@@ -34,8 +34,8 @@ Command             Key                 Mouse
 quit                q                   Window Close Button 
 openFile            o                   File Button
 closeFile           c                   NA
-rightPage           d|l|[RightArrow]    right side
-leftPage            a|h|[LeftArrow]     left side
+rightPage           d|l|[RightArrow]    Right Side
+leftPage            a|h|[LeftArrow]     Left Side
 firstPage           w|k|[UpArrow]       NA
 lastPage            s|j|[DownArrow]     NA
 nextFile            n                   NA
@@ -43,17 +43,17 @@ previousFile        p                   NA
 toggleBookmark      [Space]             Bookmark Buttons
 lastBookmark        L                   NA
 help                ?|[F1]              Question Mark Button
-toggleDirection     [BackTick]          Direction Button
+toggleDirection     [BackTick]          Direction Toggle
 1-Page Layout       1                   NA
 2-Page Layout       2                   NA
 stripLayout         3                   NA
 hidePage            -                   NA
 toggleJoin          r                   Join Toggle
 toggleFullscreen    f|[F11]             Fullscreen Toggle
-selectPage          [Tab]               NA
+selectPage          [Tab]               Page Index Buttons
 exportPage          e                   NA
 
-<a href="https://mftb0.github.io/cbxv-gotk3">Additional Help</a>
+<a href="https://mftb0.github.io/cbxv-gotk3">Program Manual</a>
 
 Copyright © 2022 Matt Butler
 </tt>`

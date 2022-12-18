@@ -52,7 +52,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
             }
             u.Commands.Names["toggleBookmark"].Execute()
         } else {
-            if len(s.Pages) > 2 {
+            if len(s.Pages) > 1 {
                 if s.RectoPage() == m.PageIndex {
                     u.Commands.Names["selectPage"].Execute()
                 }

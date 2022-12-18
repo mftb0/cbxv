@@ -21,7 +21,7 @@ type PageViewNavControl struct {
     ui                *UI
     container         *gtk.Grid
     navBar            *gtk.ProgressBar
-    rightPageNum      *gtk.Label
+    rightPageNum      *gtk.Button
     progName          *gtk.Label
     progVersion       *gtk.Label
     directionControl  *gtk.Button
@@ -30,7 +30,7 @@ type PageViewNavControl struct {
     hiddenPageControl *gtk.ComboBoxText
     hpcSignalHandle   *glib.SignalHandle
     fullscreenControl *gtk.Button
-    leftPageNum       *gtk.Label
+    leftPageNum       *gtk.Button
 }
 
 func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
@@ -45,7 +45,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
     css, _ := nbc.GetStyleContext()
     css.AddClass("nav-bar")
 
-    lpn := util.CreateLabel("0", "nav-btn", nil)
+    lpn := util.CreateButton("0", "nav-btn", util.S("Left Page Index"))
     lpn.SetHAlign(gtk.ALIGN_START)
     css.AddClass("page-num")
 
@@ -69,7 +69,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
 
     fsc := util.CreateButton(util.FullscreenIcon(), "nav-btn", util.S("Fullscreen Toggle"))
 
-    rpn := util.CreateLabel("1", "nav-btn", nil)
+    rpn := util.CreateButton("1", "nav-btn", util.S("Right Page Index"))
     css.AddClass("page-num")
 
     container, err := gtk.GridNew()
@@ -81,6 +81,24 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
     container.SetHExpand(true)
     css, _ = container.GetStyleContext()
     css.AddClass("nav-ctrl")
+
+    lpn.Connect("clicked", func() bool {
+        s := m.Spreads[m.SpreadIndex]
+        if m.Direction == model.RTL {
+            if len(s.Pages) > 1 {
+                if s.VersoPage() == m.PageIndex {
+                    u.Commands.Names["selectPage"].Execute()
+                }
+            }
+        } else {
+            if len(s.Pages) > 1 {
+                if s.RectoPage() == m.PageIndex {
+                    u.Commands.Names["selectPage"].Execute()
+                }
+            }
+        }
+        return true
+    })
 
     jc.Connect("clicked", func() {
         u.Commands.Names["toggleJoin"].Execute()
@@ -97,6 +115,24 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
             u.MainWindow.Fullscreen()
         }
         u.Commands.Names["toggleFullscreen"].Execute()
+    })
+
+    rpn.Connect("clicked", func() bool {
+        s := m.Spreads[m.SpreadIndex]
+        if m.Direction == model.RTL {
+            if len(s.Pages) > 1 {
+                if s.RectoPage() == m.PageIndex {
+                    u.Commands.Names["selectPage"].Execute()
+                }
+            }
+        } else {
+            if len(s.Pages) > 1 {
+                if s.VersoPage() == m.PageIndex {
+                    u.Commands.Names["selectPage"].Execute()
+                }
+            }
+        }
+        return true
     })
 
     container.Attach(nbc, 0, 0, 10, 1)
@@ -128,7 +164,7 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
 func (c *PageViewNavControl) Render(m *model.Model) {
     if len(m.Spreads) < 1 {
         c.navBar.SetFraction(0)
-        c.leftPageNum.SetText("")
+        c.leftPageNum.SetLabel("")
         c.spreadControl.SetLabel("")
         if m.Direction == model.RTL {
             c.directionControl.SetLabel(DIR_RTL_ICN)
@@ -151,14 +187,14 @@ func (c *PageViewNavControl) Render(m *model.Model) {
             c.fullscreenControl.SetLabel(util.RestoreIcon())
         }
 
-        c.rightPageNum.SetText("")
+        c.rightPageNum.SetLabel("")
 
         return
     } else {
         spread := m.Spreads[m.SpreadIndex]
         np := len(m.Spreads)
-        c.leftPageNum.SetText("")
-        c.rightPageNum.SetText("")
+        c.leftPageNum.SetLabel("")
+        c.rightPageNum.SetLabel("")
         lpncss, _ := c.leftPageNum.GetStyleContext()
         rpncss, _ := c.rightPageNum.GetStyleContext()
         lpncss.RemoveClass("bordered")
@@ -175,8 +211,8 @@ func (c *PageViewNavControl) Render(m *model.Model) {
             }
 
             if len(spread.Pages) > 1 {
-                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
-                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.RectoPage()))
+                c.rightPageNum.SetLabel(fmt.Sprintf("%d", spread.VersoPage()))
+                c.leftPageNum.SetLabel(fmt.Sprintf("%d", spread.RectoPage()))
                 if m.PageIndex == spread.VersoPage() {
                     rpncss.AddClass("bordered")
                 } else if m.PageIndex == spread.RectoPage() {
@@ -184,7 +220,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 }
             } else {
                 rpncss.AddClass("transparent")
-                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
+                c.leftPageNum.SetLabel(fmt.Sprintf("%d", spread.VersoPage()))
                 lpncss.AddClass("bordered")
             }
             c.directionControl.SetLabel(DIR_RTL_ICN)
@@ -195,8 +231,8 @@ func (c *PageViewNavControl) Render(m *model.Model) {
             }
 
             if len(spread.Pages) > 1 {
-                c.leftPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
-                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.RectoPage()))
+                c.leftPageNum.SetLabel(fmt.Sprintf("%d", spread.VersoPage()))
+                c.rightPageNum.SetLabel(fmt.Sprintf("%d", spread.RectoPage()))
                 if m.PageIndex == spread.VersoPage() {
                     lpncss.AddClass("bordered")
                 } else if m.PageIndex == spread.RectoPage() {
@@ -204,7 +240,7 @@ func (c *PageViewNavControl) Render(m *model.Model) {
                 }
             } else {
                 lpncss.AddClass("transparent")
-                c.rightPageNum.SetText(fmt.Sprintf("%d", spread.VersoPage()))
+                c.rightPageNum.SetLabel(fmt.Sprintf("%d", spread.VersoPage()))
                 rpncss.AddClass("bordered")
             }
             c.directionControl.SetLabel(DIR_LTR_ICN)
