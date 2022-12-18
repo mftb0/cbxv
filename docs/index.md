@@ -64,7 +64,7 @@ Excelsior!
 
 ## Interface Elements
 
-<img align="center" width="496" src="prg_elements-03.png">
+<img align="center" width="496" src="prg_elements-04.png">
 
 ## Commands
 
