@@ -286,15 +286,21 @@ func (m *Model) NewSpreads() {
             // on to the next page
             i++
 
-            // skip hidden
+            // skip hidden pages
             for ; i < len(pages); i++ {
                 p = &pages[i]
                 if p.Hidden {
                     m.HiddenPages = true
                     continue
                 } else {
-                    break
+                    break 
                 }
+            }
+
+            // If all pages to the end were hidden, add spread, we're done
+            if i >= len(pages) {
+                spreads = append(spreads, spread)
+                break 
             }
 
             // if pg is landscape, make a new spread, spread done
@@ -307,7 +313,7 @@ func (m *Model) NewSpreads() {
                 continue
             }
 
-            // No special cases, so spread with 2 pages
+            // no more special cases, add recto page and add last spread
             spread.Pages = append(spread.Pages, p)
             spread.PageIdxs = append(spread.PageIdxs, i)
             spreads = append(spreads, spread)
@@ -524,6 +530,8 @@ func (m *Model) CalcVersoPage() int {
 }
 
 // page index to spread index
+// fixme: this works, but should evaluate using
+// pageIdxs stored on spread
 func (m *Model) PageToSpread(n int) int {
     if m.Spreads == nil {
         return 0

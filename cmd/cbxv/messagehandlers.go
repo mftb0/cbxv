@@ -214,16 +214,32 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
+    // Hide the currently selected page
     handlers.List["hidePage"] = func(data string) {
-        pi := m.PageIndex
-        p := &m.Pages[pi]
+        // Note current SpreadIndex
+        si := m.PageToSpread(m.PageIndex)
+
+        // Hide page
+        p := &m.Pages[m.PageIndex]
         p.Hidden = true
+
+        // Recalculate layout
         m.RefreshPages()
         m.NewSpreads()
         m.StoreLayout()
-        m.SpreadIndex = m.PageToSpread(pi)
+
+        // It's possible we lost a spread so
+        // make sure we cap the SpreadIndex
+        if si >= len(m.Spreads) {
+            si = len(m.Spreads) - 1
+        }
+
+        // Restore the SpreadIndex
+        m.SpreadIndex = si
+        m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
     }
 
+    // Unhide a page (doesn't even have to be on screen, let alone selected)
     handlers.List["showPage"] = func(data string) {
         i, err := strconv.Atoi(data)
         if err != nil {
@@ -234,18 +250,19 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
             return
         }
 
+        // Note current PageIndex
         pi := m.PageIndex
 
-        if i < pi {
-            pi++
-        }
-
+        // Recalculate layout
         p := &m.Pages[i]
         p.Hidden = false
         m.RefreshPages()
         m.NewSpreads()
         m.StoreLayout()
+
+        // Set the spread index based on the noted page
         m.SpreadIndex = m.PageToSpread(pi)
+        m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
     }
 
     handlers.List["loadAllPages"] = func(data string) {
