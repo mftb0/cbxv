@@ -530,26 +530,22 @@ func (m *Model) CalcVersoPage() int {
 }
 
 // page index to spread index
-// fixme: this works, but should evaluate using
-// pageIdxs stored on spread
 func (m *Model) PageToSpread(n int) int {
     if m.Spreads == nil {
         return 0
+    } else if n > len(m.Spreads)-1 {
+        return len(m.Spreads)-1
     } else if m.LayoutMode == TWO_PAGE {
-        var p = 0
         for i := range m.Spreads {
             spread := m.Spreads[i]
-            p += len(spread.Pages)
-            if p > n {
-                return i
+            for j := range spread.PageIdxs {
+                if n == spread.PageIdxs[j] {
+                    return i
+                }
             }
         }
-        // Couldn't find out of bounds
-        if n > len(m.Spreads)-1 {
-            n = len(m.Spreads) - 1
-        }
     }
-    return n
+    return -1
 }
 
 func (m *Model) joinAll() {
