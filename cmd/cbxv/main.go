@@ -13,7 +13,7 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.2.2"
+    VERSION = "0.2.3"
 )
 
 // Update listens for message on the message channel and
