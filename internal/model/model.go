@@ -422,7 +422,7 @@ func (m *Model) LoadSeriesList() {
             m.SeriesIndex = i
         }
     }
-    m.PageIndex = m.CalcVersoPage()
+    m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
 }
 
 func (m *Model) LoadCbxFile() {
@@ -505,28 +505,6 @@ func (m *Model) RefreshPages() {
             }
         }
     }
-}
-
-// For the current spread find the "lesser" or
-// verso page number
-func (m *Model) CalcVersoPage() int {
-    r := 0
-    if m.LayoutMode == ONE_PAGE {
-        r = m.SpreadIndex
-    } else if m.LayoutMode == TWO_PAGE {
-        if m.Spreads == nil {
-            return 0
-        }
-
-        for i := 0; i < m.SpreadIndex; i++ {
-            spread := m.Spreads[i]
-            r += len(spread.Pages)
-        }
-    } else {
-        r = m.SpreadIndex
-    }
-
-    return r
 }
 
 // page index to spread index
