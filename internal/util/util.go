@@ -18,8 +18,9 @@ import (
 	"time"
 
 	"github.com/gen2brain/go-unarr"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 const RENDERERSTATE_FN string = "rendererstate.json"
@@ -201,6 +202,30 @@ func createRandomString(n int) string {
     return string(b)
 }
 
+func validCBXExt(ext string) bool {
+     if ext != ".cbz" &&
+        ext != ".cbr" &&
+        ext != ".cb7" &&
+        ext != ".cbt" &&
+        ext != ".pdf" {
+        return false
+    }
+    return true
+}
+
+func validImageExt(ext string) bool {
+    if ext != ".jpg" &&
+        ext != ".jpeg" &&
+        ext != ".png" &&
+        ext != ".webp" &&
+        ext != ".avif" &&
+        ext != ".heic" &&
+        ext != ".gif" {
+        return false
+    }
+    return true
+}
+
 func extractZipWorker(dst *os.File, src io.ReadCloser, errors chan error) {
     _, err := io.Copy(dst, src)
     dst.Close()
@@ -235,13 +260,7 @@ func extractZip(filePath string, tmpDir string) ([]string, error) {
 
         // If extension isn't a useful one we're done
         ext := strings.ToLower(filepath.Ext(fp))
-        if ext != ".jpg" &&
-            ext != ".jpeg" &&
-            ext != ".png" &&
-            ext != ".webp" &&
-            ext != ".avif" &&
-            ext != ".heic" &&
-            ext != ".gif" {
+        if !validImageExt(ext) {
             continue
         }
 
@@ -301,6 +320,36 @@ func extractZip(filePath string, tmpDir string) ([]string, error) {
     return urls, nil
 }
 
+func extractPdf(filePath string, tmpDir string) ([]string, error) {
+    err := os.MkdirAll(tmpDir, os.ModePerm)
+    if err != nil {
+        return nil, err 
+    }
+
+    err = api.ExtractImagesFile(filePath, tmpDir, nil, nil)
+    if err != nil {
+        return nil, err 
+    }
+
+    urls := make([]string, 0)
+    entries, err := os.ReadDir(tmpDir)
+    if err != nil {
+        return nil, err
+    }
+
+    for _, entry := range entries {
+        ext := strings.ToLower(filepath.Ext(entry.Name()))
+        if !validImageExt(ext) {
+            continue
+        }
+        entryPath := filepath.Join(tmpDir, entry.Name())
+        urls = append(urls, entryPath)
+    }
+
+    sort.Strings(urls)
+    return urls, nil
+}
+
 func extractRar(filePath string, tmpDir string) ([]string, error) {
     a, err := unarr.NewArchive(filePath)
     if err != nil {
@@ -314,6 +363,11 @@ func extractRar(filePath string, tmpDir string) ([]string, error) {
 
     var urls []string
     for _, entry := range entries {
+        ext := strings.ToLower(filepath.Ext(entry))
+        if !validImageExt(ext) {
+            continue
+        }
+
         fp := filepath.Join(tmpDir, entry)
         url := fp
         urls = append(urls, url)
@@ -324,6 +378,17 @@ func extractRar(filePath string, tmpDir string) ([]string, error) {
 }
 
 func extract(filePath string, tmpDir string) ([]string, error) {
+
+    ext := filepath.Ext(filePath)
+    if ext == ".pdf" {
+        result, err := extractPdf(filePath, tmpDir)
+        if err != nil {
+            return nil, err
+        } else {
+           return result, nil
+        }
+    }
+
     result, err := extractZip(filePath, tmpDir)
     if err != nil {
         rr, err := extractRar(filePath, tmpDir)
@@ -513,7 +578,7 @@ func ReadSeriesList(filePath string) ([]string, error) {
 
     for _, entry := range entries {
         ext := strings.ToLower(filepath.Ext(entry.Name()))
-        if ext != ".cbz" && ext != ".cbr" {
+        if !validCBXExt(ext){
             continue
         }
         entryPath := filepath.Join(dirname, entry.Name())

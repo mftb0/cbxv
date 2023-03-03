@@ -148,6 +148,7 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
                 fltr.AddPattern("*.cbr")
                 fltr.AddPattern("*.cb7")
                 fltr.AddPattern("*.cbt")
+                fltr.AddPattern("*.pdf")
                 fltr.SetName("cbx files")
                 dlg.AddFilter(fltr)
                 fltr, _ = gtk.FileFilterNew()

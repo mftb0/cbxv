@@ -4,9 +4,9 @@
 
 <br />
 
-cbxv is a native, desktop application for viewing comic book (.cbz and .cbr) 
-files. It's focus is manipulating the layout so that the art and story can be
-appreciated closer to the original intent.
+cbxv is a native, desktop application for viewing comic book/manga (.cbz and
+.cbr) files. It's focus is manipulating the layout so that the art and story
+can be appreciated closer to the original intent.
 
 <br />
 
@@ -34,8 +34,10 @@ are.</sub>
 - Fullscreen View
 - Unique HUD Interface
 - Never alters original files
-- Supports most common formats; .cbz, .cbr, .cb7, .cbt
+- Supports most common formats; .cbz, .cbr, .cb7, .cbt, .pdf
 - Native performance
+
+<a href="https://mftb0.github.io/cbxv-gotk3">Program Manual</a>
 
 ## Dependencies
 - Linux - You must have Gtk3 installed. This is very common on Linux. If you 
