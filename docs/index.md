@@ -239,3 +239,10 @@ Excelsior!
 
     Keys: f or [F11]
 
+### Supported File Formats
+- .cbz - zip archive
+- .cbr - rar archive
+- .cb7 - 7zip archive
+- .cbt - tar archive
+- .pdf - portable document format file
+
