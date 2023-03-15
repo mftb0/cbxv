@@ -47,8 +47,13 @@ are.</sub>
     - Arch and Fedora   - gtk3
     - Debian and Ubuntu - libgtk-3-0
 
-- Windows and Mac - Everything that you need is in the archive available under 
-    the releases section.
+- Mac - Like Linux you must have Gtk3 installed. This is less common than Linux
+    but faily straightforward. Install <a href="https://brew.sh">Homebrew</a> and run:
+
+    brew install pkg-config gtk+3 adwaita-icon-theme
+
+- Windows - Everything that you need is in the archive available under the 
+    releases section.
 
 ## Installation
 -   Linux - Download the Linux build from the release area and unarchive it. 
