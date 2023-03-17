@@ -38,7 +38,7 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	})
 	u.MainWindow.SetDefaultSize(1024, 768)
 
-	iPath, _ := util.AppIconPath()
+	iPath := util.AppIconPath()
 	if iPath != nil {
 		u.MainWindow.SetIconFromFile(*iPath)
 	}

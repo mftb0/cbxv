@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"crypto/md5"
 	"embed"
+    "errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -135,27 +136,41 @@ func layoutsPath() (string, error) {
 }
 
 // Get a string that points to an icon for our executables use at runtime
-// Linux - find the icon in the standard directory
+// Linux - find the icon in one of the standard directories
 // Windows - find the icon relative to the executable
-func AppIconPath() (*string, error) {
+func AppIconPath() (*string) {
     var p string
+    fname := "logo_cbxv.png"
     if runtime.GOOS == "linux" {
+        sharePath := "/share/icons/hicolor/1024x1024/apps"
+
         hPath, err := homePath()
         if err != nil {
-            return nil, err
+            return nil
         }
-        iDir := filepath.Join(".local", "share", "icons", "hicolor", "1024x1024")
-        iPath := filepath.Join(iDir, "logo_x.png")
-        p = filepath.Join(hPath, iPath)
+
+        iPath := filepath.Join(hPath, ".local", sharePath, fname)
+        if _, err := os.Stat(iPath); errors.Is(err, os.ErrNotExist) {
+            iPath := filepath.Join("/usr", sharePath, fname)
+            if _, err := os.Stat(iPath); err == nil {
+                p = iPath
+            }
+        } else {
+            p = iPath
+        }
     } else if runtime.GOOS == "windows" {
         ePath, err := os.Executable()
         if err != nil {
-            return nil, err
+            return nil
         }
-	eDir := filepath.Dir(ePath)
-	p = filepath.Join(eDir, "logo_x.png")
+        eDir := filepath.Dir(ePath)
+        p = filepath.Join(eDir, fname)
     }
-    return &p, nil
+
+    if len(p) > 0 {
+        return &p
+    }
+    return nil
 }
 
 func FullscreenIcon() string {

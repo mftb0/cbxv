@@ -3,7 +3,7 @@
 Version=1.0
 Type=Application
 Terminal=false
-Exec=$HOME/x/bin/cbxv
+Exec=/usr/bin/cbxv
 Name=cbxv
-Icon=$HOME/x/prj/cbx/cbxv-gotk3/internal/util/assets/logo_x.png
+Icon=/usr/share/icons/hicolor/1024x1024/apps/logo_cbxv.png
 
