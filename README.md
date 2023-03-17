@@ -1,6 +1,6 @@
 ## cbxv - The high fidelity comic book viewer
 
-<img width="128" height="128" align="left" src="build/assets/lin/logo_x.png">
+<img width="128" height="128" align="left" src="build/assets/lin/logo_cbxv.png">
 
 <br />
 
