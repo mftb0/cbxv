@@ -405,6 +405,7 @@ func (m *Model) LoadHash() {
     hash, err := util.HashFile(m.FilePath)
     if err != nil {
         fmt.Printf("Unable to compute file hash %s\n", err)
+        return
     }
     m.Hash = hash
     m.loadBookmarks()
@@ -414,6 +415,7 @@ func (m *Model) LoadSeriesList() {
     s, err := util.ReadSeriesList(m.FilePath)
     if err != nil {
         fmt.Printf("Unable to load series list %s\n", err)
+        return
     }
     m.SeriesList = s
 
@@ -421,6 +423,11 @@ func (m *Model) LoadSeriesList() {
         if m.FilePath == s[i] {
             m.SeriesIndex = i
         }
+    }
+
+    // If there are no spreads, probably a bad file, bail
+    if len(m.Spreads) == 0 {
+        return 
     }
     m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
 }
@@ -436,6 +443,7 @@ func (m *Model) LoadCbxFile() {
     ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
     if err != nil {
         fmt.Printf("Unable to load cbx file %s\n", err)
+        return
     }
     m.ImgPaths = ip
     m.NewPages()
