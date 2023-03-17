@@ -17,7 +17,7 @@ mkdir -p "$DST/share"
 mkdir -p "$DST/share/glib-2.0"
 
 cp out/cbxv.exe "$DST"
-cp build/assets/win/logo_x.png "$DST"
+cp build/assets/win/logo_cbxv.png "$DST"
 
 ldd out/cbxv.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" "$DST"
 cp /c/tools/msys64/mingw64/bin/libgif-7.dll "$DST"
