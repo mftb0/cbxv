@@ -7,8 +7,8 @@ import (
 
     "github.com/gotk3/gotk3/gtk"
 
-    "github.com/mftb0/cbxv-gotk3/internal/model"
-    "github.com/mftb0/cbxv-gotk3/internal/util"
+    "github.com/mftb0/cbxv/internal/model"
+    "github.com/mftb0/cbxv/internal/util"
 )
 
 type StripViewHdrControl struct {

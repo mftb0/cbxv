@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/gotk3/gotk3/gdk"
-	"github.com/mftb0/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv/internal/util"
 )
 
 // Data model of a cbx application

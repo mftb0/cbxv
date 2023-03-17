@@ -55,9 +55,9 @@ toggleFullscreen    f|[F11]             Fullscreen Toggle
 selectPage          [Tab]               Page Index Buttons
 exportPage          e                   NA
 
-<a href="https://mftb0.github.io/cbxv-gotk3">Program Manual</a>
+<a href="https://mftb0.github.io/cbxv">Program Manual</a>
 
-Copyright © 2022 Matt Butler
+Copyright © 2022-2023 Matt Butler
 </tt>`
 
 //go:embed assets

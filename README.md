@@ -37,7 +37,7 @@ are.</sub>
 - Supports most common formats; .cbz, .cbr, .cb7, .cbt, .pdf
 - Native performance
 
-<a href="https://mftb0.github.io/cbxv-gotk3">Program Manual</a>
+<a href="https://mftb0.github.io/cbxv">Program Manual</a>
 
 ## Dependencies
 - Linux - You must have Gtk3 installed. This is very common on Linux. If you 
@@ -96,5 +96,5 @@ are.</sub>
     |selectPage         |[Tab]          |Page Index Buttons  |
     |exportPage         |e              |NA                  |
 
-<a href="https://mftb0.github.io/cbxv-gotk3">Program Manual</a>
+<a href="https://mftb0.github.io/cbxv">Program Manual</a>
 

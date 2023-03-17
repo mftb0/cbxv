@@ -1,4 +1,4 @@
-module github.com/mftb0/cbxv-gotk3
+module github.com/mftb0/cbxv
 
 go 1.18
 
@@ -19,8 +19,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/mftb0/cbxv-gotk3/internal/util => ../cbxv-gotk3
+replace github.com/mftb0/cbxv/internal/util => ../cbxv
 
-replace github.com/mftb0/cbxv-gotk3/internal/ui => ../cbxv-gotk3
+replace github.com/mftb0/cbxv/internal/ui => ../cbxv
 
-replace github.com/mftb0/cbxv-gotk3/internal/model => ../cbxv-gotk3
+replace github.com/mftb0/cbxv/internal/model => ../cbxv

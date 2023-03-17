@@ -4,16 +4,16 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/mftb0/cbxv-gotk3/internal/model"
-	"github.com/mftb0/cbxv-gotk3/internal/ui"
-	"github.com/mftb0/cbxv-gotk3/internal/util"
+	"github.com/mftb0/cbxv/internal/model"
+	"github.com/mftb0/cbxv/internal/ui"
+	"github.com/mftb0/cbxv/internal/util"
 )
 
 // Simple cbx application with a gui provided by gtk
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.3.2"
+    VERSION = "0.3.3"
 )
 
 // Update listens for message on the message channel and
