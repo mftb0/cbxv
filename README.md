@@ -4,14 +4,16 @@
 
 <br />
 
-cbxv is a native, desktop application for viewing comic book/manga (.cbz and
-.cbr) files. It's focus is manipulating the layout so that the art and story
-can be appreciated closer to the original intent.
+cbxv is a native, desktop application for viewing comic book and manga (.cbz and
+.cbr) files. It stays lean and fast by eschewing any sort of extraneous web 
+technologies or library management features. It distinguishes itself by focusing 
+on features for manipulating the layout, so that the art and story can be 
+appreciated closer to the original intent.
 
 <br />
 
 Take for example the beautiful two page spread shown in cbxv below. It's a 
-complete scene with two spaceships converging for an epic battle on the left 
+complete scene with two spaceships converging for an epic battle on the left,
 and our hero, victorious, exiting the scene in the lower right. In a basic
 viewer, even with a cover-to-cover scan, the first two page spread would show 
 the cover and inside cover, so that by the time you got to these pages they 
