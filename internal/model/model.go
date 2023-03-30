@@ -210,20 +210,25 @@ func (p *Page) LoadMeta() {
 
 // Creates pgs slice and loads it
 func (m *Model) NewPages() {
-    pages := make([]Page, len(m.ImgPaths))
 
-    for i := range m.ImgPaths {
-        pages[i].FilePath = m.ImgPaths[i]
-        pages[i].Span = SINGLE
-        pages[i].Loaded = false
-        if i < MAX_LOAD {
-            pages[i].Load()
-        } else {
-            pages[i].LoadMeta()
+    if m.ImgPaths != nil {
+        pages := make([]Page, len(m.ImgPaths))
+
+        for i := range m.ImgPaths {
+            pages[i].FilePath = m.ImgPaths[i]
+            pages[i].Span = SINGLE
+            pages[i].Loaded = false
+            if i < MAX_LOAD {
+                pages[i].Load()
+            } else {
+                pages[i].LoadMeta()
+            }
         }
-    }
 
-    m.Pages = pages
+        m.Pages = pages
+    } else {
+        fmt.Printf("File extraction failed, no pages to load\n");
+    }
     m.Loading = false
 }
 
@@ -432,7 +437,10 @@ func (m *Model) LoadSeriesList() {
     m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
 }
 
-func (m *Model) LoadCbxFile() {
+func (m *Model) OpenCbxFile() {
+    m.SendMessage(util.Message{TypeName: "render"})
+    m.LoadHash()
+
     td, err := util.CreateTmpDir()
     if err != nil {
         fmt.Printf("Unable to create tmp dir %s\n", err)
@@ -446,6 +454,10 @@ func (m *Model) LoadCbxFile() {
         return
     }
     m.ImgPaths = ip
+    m.SendMessage(util.Message{TypeName: "loadFile"})
+}
+
+func (m *Model) LoadCbxFile() {
     m.NewPages()
     m.SpreadIndex = 0
     m.PageIndex = 0

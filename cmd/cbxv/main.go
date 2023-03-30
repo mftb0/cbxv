@@ -13,7 +13,7 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.4.1"
+    VERSION = "0.4.2"
 )
 
 // Update listens for message on the message channel and
@@ -21,8 +21,10 @@ const (
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *MessageHandlerList) {
     for msg := range msgChan {
         msgHandler := msgHandlers.List[msg.TypeName]
-        if m.Spreads == nil && (msg.TypeName != "quit" &&
-            msg.TypeName != "openFile") {
+        if m.Spreads == nil &&
+            (msg.TypeName != "quit" &&
+            msg.TypeName != "openFile" &&
+            msg.TypeName != "loadFile") {
             continue
         }
         if msgHandler != nil {
@@ -57,7 +59,7 @@ func main() {
         //default to 2-page display
         msgHandlers.List["setLayoutModeTwoPage"]("")
         if len(os.Args) > 1 {
-            msgHandlers.List["openFile"](os.Args[1])
+            messenger(util.Message{TypeName: "openFile", Data: os.Args[1]})
         }
     })
 

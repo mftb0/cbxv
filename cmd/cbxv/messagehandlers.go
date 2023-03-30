@@ -150,10 +150,12 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         // See the model for details about
         // Error handling
         m.Loading = true
-        m.LoadHash()
-        m.LoadCbxFile()
+        go m.OpenCbxFile()
         go m.LoadSeriesList()
+    }
 
+    handlers.List["loadFile"] = func(data string) {
+        m.LoadCbxFile()
         m.PageIndex = 0
     }
 
