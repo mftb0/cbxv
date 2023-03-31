@@ -62,6 +62,12 @@ Excelsior!
     For your convenience a simple script is provided to put a desktop file and 
     icon in the appropriate places for your user.
 
+    - Arch - cbxv is also available from the AUR, so if you're on Arch you could
+      install cbxv from there if you prefer. Below is an example using the yay
+      AUR helper:
+
+      yay -S libunarr-git cbxv-git
+
 -   Windows - Download the Windows build from the release area and unarchive it. 
     Copy the resulting directory to program files or wherever you like and run it.
 
