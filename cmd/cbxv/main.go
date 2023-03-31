@@ -13,18 +13,19 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.4.2"
+    VERSION = "0.4.3"
 )
 
-// Update listens for message on the message channel and
-// handles messages by invoking messageHandlers which update the model
+// Update listens for messages on the message channel and
+// handles messages by invoking messageHandlers
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *MessageHandlerList) {
     for msg := range msgChan {
         msgHandler := msgHandlers.List[msg.TypeName]
         if m.Spreads == nil &&
             (msg.TypeName != "quit" &&
             msg.TypeName != "openFile" &&
-            msg.TypeName != "loadFile") {
+            msg.TypeName != "openFileResult" &&
+            msg.TypeName != "toggleFullscreen") {
             continue
         }
         if msgHandler != nil {
@@ -49,9 +50,9 @@ func main() {
     md := model.ProgramMetadata{Name: NAME, Version: VERSION}
     messenger := func(m util.Message) { msgChan <- m }
     m := model.NewModel(md, messenger)
-    msgHandlers := NewMessageHandlers(m)
-
     u := ui.NewUI(m, messenger)
+    msgHandlers := NewMessageHandlers(m, u)
+
 
     go update(m, u, msgChan, msgHandlers)
 

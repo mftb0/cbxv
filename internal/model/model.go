@@ -1,15 +1,15 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
-	"math"
-	"os"
-	"runtime/debug"
-	"sort"
+    "encoding/json"
+    "fmt"
+    "math"
+    "os"
+    "runtime/debug"
+    "sort"
 
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/mftb0/cbxv/internal/util"
+    "github.com/gotk3/gotk3/gdk"
+    "github.com/mftb0/cbxv/internal/util"
 )
 
 // Data model of a cbx application
@@ -68,6 +68,18 @@ const (
 const (
     MAX_LOAD = 8
 )
+
+type ResultCode int
+
+const (
+    OK ResultCode = iota
+    ERR
+)
+
+type Result struct {
+    Code        ResultCode `json:"code"`
+    Description string     `json:"description"`
+}
 
 // Mark a place in the model by keeping track of an index in the pages slice
 type Bookmark struct {
@@ -186,11 +198,14 @@ type Page struct {
 
 func (p *Page) Load() {
     // fixme: must be called from gtk event dispatch thread or
-    // it will leak. Right now that is the case, but I'm going
-    // to isolate it from the model
+    // it will leak. I am calling it on the event dispatch
+    // thread but I don't like that anything gtk is
+    // referenced from the model, so I'm going to refactor that
+    // out of here
     f, err := gdk.PixbufNewFromFile(p.FilePath)
     if err != nil {
-        fmt.Printf("Error loading file %s\n", err)
+        fmt.Printf("Warning unable to load file %s\n", err)
+        return
     }
     p.Image = f
     p.Width = f.GetWidth()
@@ -201,7 +216,8 @@ func (p *Page) Load() {
 func (p *Page) LoadMeta() {
     _, w, h, err := gdk.PixbufGetFileInfo(p.FilePath)
     if err != nil {
-        fmt.Printf("Error loading file %s\n", err)
+        fmt.Printf("Warning unable to load metadata for file %s\n", err)
+        return
     }
     p.Width = w
     p.Height = h
@@ -211,25 +227,20 @@ func (p *Page) LoadMeta() {
 // Creates pgs slice and loads it
 func (m *Model) NewPages() {
 
-    if m.ImgPaths != nil {
-        pages := make([]Page, len(m.ImgPaths))
+    pages := make([]Page, len(m.ImgPaths))
 
-        for i := range m.ImgPaths {
-            pages[i].FilePath = m.ImgPaths[i]
-            pages[i].Span = SINGLE
-            pages[i].Loaded = false
-            if i < MAX_LOAD {
-                pages[i].Load()
-            } else {
-                pages[i].LoadMeta()
-            }
+    for i := range m.ImgPaths {
+        pages[i].FilePath = m.ImgPaths[i]
+        pages[i].Span = SINGLE
+        pages[i].Loaded = false
+        if i < MAX_LOAD {
+            pages[i].Load()
+        } else {
+            pages[i].LoadMeta()
         }
-
-        m.Pages = pages
-    } else {
-        fmt.Printf("File extraction failed, no pages to load\n");
     }
-    m.Loading = false
+
+    m.Pages = pages
 }
 
 // How a page is oriented
@@ -298,14 +309,14 @@ func (m *Model) NewSpreads() {
                     m.HiddenPages = true
                     continue
                 } else {
-                    break 
+                    break
                 }
             }
 
             // If all pages to the end were hidden, add spread, we're done
             if i >= len(pages) {
                 spreads = append(spreads, spread)
-                break 
+                break
             }
 
             // if pg is landscape, make a new spread, spread done
@@ -373,53 +384,10 @@ type Layout struct {
     Pages         []Page     `json:"pages"`
 }
 
-/*
- * We have a lot of stuff to load hash, bookmarks, serieslist, cbx,
- * individual pages, page metadata and layout.
- * Error handling - All Load functions are responsible for handling any
- * errors they encounter. They currently handle them by logging to the console.
- * The load process starts in the openFile Command when the Loading property
- * is set true on the Model. It ends in NewPages after we've attemped to load
- * the inital pages and metadata, we set Loading to false. There may still be
- * some stuff loading async, but by that point the user should be able to know
- * that either the attempt failed or that they can reasonably start paging
- * through their comic.
- */
-func (m *Model) loadBookmarks() {
-    m.Bookmarks = NewBookmarkList(m.FilePath)
-    m.Bookmarks.Load(m.Hash)
-    msg := &util.Message{TypeName: "render"}
-    m.SendMessage(*msg)
-}
-
-func (m *Model) loadLayout(hash string) *Layout {
-    data, _ := util.ReadLayout(hash)
-
-    if data != nil {
-        var lo Layout
-        err := json.Unmarshal([]byte(*data), &lo)
-        if err != nil {
-            fmt.Printf("e:%s\n", err)
-        }
-        return &lo
-    }
-    return nil
-}
-
-func (m *Model) LoadHash() {
-    hash, err := util.HashFile(m.FilePath)
-    if err != nil {
-        fmt.Printf("Unable to compute file hash %s\n", err)
-        return
-    }
-    m.Hash = hash
-    m.loadBookmarks()
-}
-
 func (m *Model) LoadSeriesList() {
     s, err := util.ReadSeriesList(m.FilePath)
     if err != nil {
-        fmt.Printf("Unable to load series list %s\n", err)
+        fmt.Printf("Warning unable to load series list %s\n", err)
         return
     }
     m.SeriesList = s
@@ -429,45 +397,84 @@ func (m *Model) LoadSeriesList() {
             m.SeriesIndex = i
         }
     }
-
-    // If there are no spreads, probably a bad file, bail
-    if len(m.Spreads) == 0 {
-        return 
-    }
-    m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
 }
 
+/*
+ * When the user fires the "openFile" event a process called "loading" starts.
+ * There are two phases:
+ *
+ * The first phase "Opening" the cbx is asynchronous:
+ * hash created
+ * tmpDir created
+ * cbx file opened
+ * cbx file extracted
+ * Errors during this phase are considered critical, and stop the process 
+ * The ui is up and alive, but the user can't navigate until this phase signals
+ * completion either success or failure. If the result is success LoadCbx is invoked,
+ * see below
+ *
+ */
 func (m *Model) OpenCbxFile() {
     m.SendMessage(util.Message{TypeName: "render"})
-    m.LoadHash()
+
+    hash, err := util.HashFile(m.FilePath)
+    if err != nil {
+        m.sendOpenFileResMsg(-1, fmt.Sprintf("Error opening file; %s", err))
+        return
+    }
+    m.Hash = hash
 
     td, err := util.CreateTmpDir()
     if err != nil {
-        fmt.Printf("Unable to create tmp dir %s\n", err)
+        m.sendOpenFileResMsg(-11, fmt.Sprintf("Error creating tmp dir; %s", err))
         return
     }
     m.TmpDir = td
 
     ip, err := util.GetImagePaths(m.FilePath, m.TmpDir)
     if err != nil {
-        fmt.Printf("Unable to load cbx file %s\n", err)
+        m.sendOpenFileResMsg(-21, fmt.Sprintf("Error extracting cbx file; %s", err))
         return
     }
     m.ImgPaths = ip
-    m.SendMessage(util.Message{TypeName: "loadFile"})
+
+    m.sendOpenFileResMsg(0, "Success")
 }
 
+/*
+ * The second phase of the "loading" process is the actual loading and 
+ * its synchronous. We have a lot of stuff to load:
+ * individual pages 
+ * page metadata 
+ * layout
+ * bookmarks
+ *
+ * It has to be synchronous because the pixbufs that are loaded into the 
+ * pages can't be touched on anything but the event dispatch thread or they 
+ * leak.
+ * 
+ * Errors during this phase are treated as warnings. For two reasons, some of 
+ * this stuff is optional and there could be hundreds of errors on a per page 
+ * basis. If the program can be useful to the user in spite of that it tries.
+ * 
+ * Finally there is the serieslist which is just an exception in that it really
+ * is optional if it can't be calculated the program just does without it, see 
+ * loadSeriesList
+ */
 func (m *Model) LoadCbxFile() {
     m.NewPages()
     m.SpreadIndex = 0
     m.PageIndex = 0
+
     m.joinAll()
     lo := m.loadLayout(m.Hash)
     if lo != nil {
-        util.Log("Applying layout\n")
         m.applyLayout(lo)
     }
+
     m.NewSpreads()
+
+    m.loadBookmarks()
 
     m.SendMessage(util.Message{TypeName: "render"})
 }
@@ -532,7 +539,7 @@ func (m *Model) PageToSpread(n int) int {
     if m.Spreads == nil {
         return 0
     } else if n > len(m.Spreads)-1 {
-        return len(m.Spreads)-1
+        return len(m.Spreads) - 1
     } else if m.LayoutMode == TWO_PAGE {
         for i := range m.Spreads {
             spread := m.Spreads[i]
@@ -544,6 +551,26 @@ func (m *Model) PageToSpread(n int) int {
         }
     }
     return -1
+}
+
+func (m *Model) loadBookmarks() {
+    m.Bookmarks = NewBookmarkList(m.FilePath)
+    m.Bookmarks.Load(m.Hash)
+    m.SendMessage(util.Message{TypeName: "render"})
+}
+
+func (m *Model) loadLayout(hash string) *Layout {
+    data, _ := util.ReadLayout(hash)
+
+    if data != nil {
+        var lo Layout
+        err := json.Unmarshal([]byte(*data), &lo)
+        if err != nil {
+            fmt.Printf("e:%s\n", err)
+        }
+        return &lo
+    }
+    return nil
 }
 
 func (m *Model) joinAll() {
@@ -589,6 +616,21 @@ func (m *Model) StoreLayout() error {
     return nil
 }
 
+// Make sure we always send a result message, no errors allowed
+func (m *Model) sendOpenFileResMsg(code ResultCode, description string) {
+    var d string
+    r := Result{code, description}
+    buf, err := json.Marshal(r)
+    if err != nil {
+        d = fmt.Sprintf("{\"code\":%d,\"result\":%s}", r.Code, r.Description)
+    } else {
+        d = string(buf)
+    }
+
+    m.SendMessage(util.Message{TypeName: "openFileResult", Data: d})
+}
+
+// dbg
 func (m *Model) checkSpreads() {
     c := 0
     for x := range m.Pages {
@@ -603,6 +645,7 @@ func (m *Model) checkSpreads() {
     }
 }
 
+// dbg
 func (m *Model) printLoaded() {
     var buf string
     for i := range m.Pages {
@@ -618,3 +661,4 @@ func (m *Model) printLoaded() {
     }
     fmt.Printf("%s\n", buf)
 }
+

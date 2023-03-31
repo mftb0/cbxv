@@ -72,6 +72,20 @@ func (u *UI) RunFunc(f interface{}) {
 	glib.IdleAdd(f)
 }
 
+func (u *UI) DisplayErrorDlg(message string) {
+    dlg := gtk.MessageDialogNewWithMarkup(u.MainWindow,
+        gtk.DialogFlags(gtk.DIALOG_MODAL),
+        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, "Error")
+    defer dlg.Destroy()
+
+    dlg.SetTitle("Error")
+    dlg.SetMarkup(message)
+    css, _ := dlg.GetStyleContext()
+    css.AddClass("msg-dlg")
+
+    dlg.Run()
+}
+
 func (u *UI) Render(m *model.Model) {
 	glib.IdleAdd(func() {
 		u.View.Render(m)

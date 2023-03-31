@@ -1,36 +1,31 @@
 package main
 
 import (
+    "encoding/json"
+    "fmt"
     "path/filepath"
     "strconv"
     "time"
 
     "github.com/mftb0/cbxv/internal/model"
+    "github.com/mftb0/cbxv/internal/ui"
     "github.com/mftb0/cbxv/internal/util"
 )
 
 /* 
-Messages are just the generic way to communicate with the app
-They can be looked up by name and take a single argument
-which can contain whatever data as a string, structured or 
-unstructured. 
-
-Currently the MessageHandlers only have access to the model, because that's 
-all thats been needed. Generally the UI communicates to the app and the app 
-takes action by updating the model.
-
-There are a couple minor exceptions; quit, where the app terminates
-itself and render which the model sends to the app, but right now
-since the app always calls render after every message its 
-essentially a noop. This may change in the future though and I'll
-add access to the UI
+ * Messages are just the generic way to communicate with the app
+ * They can be looked up by name and take a single argument
+ * which can contain whatever data as a string, structured or 
+ * unstructured. 
+ *
+ * MessageHandlers can handle messages from both the model and the UI
  */
  
 type MessageHandlerList struct {
     List map[string]func(data string)
 }
 
-func NewMessageHandlers(m *model.Model) *MessageHandlerList {
+func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
     handlers := &MessageHandlerList{List: make(map[string]func(data string))}
 
     handlers.List["rightPage"] = func(data string) {
@@ -141,22 +136,48 @@ func NewMessageHandlers(m *model.Model) *MessageHandlerList {
         }
     }
 
+    // The first part of opening a cbx file is handled
+    // async, because it's the single most expensive 
+    // thing in the program. When the first half completes
+    // the model will emit an "openFileResult", see below
     handlers.List["openFile"] = func(data string) {
         handlers.List["closeFile"]("")
         m.FilePath = data
         m.BrowseDir = filepath.Dir(data)
 
-        // Start loading stuff
-        // See the model for details about
-        // Error handling
+        // Start loading
         m.Loading = true
         go m.OpenCbxFile()
         go m.LoadSeriesList()
     }
 
-    handlers.List["loadFile"] = func(data string) {
-        m.LoadCbxFile()
-        m.PageIndex = 0
+    // Opening a cbx, Success or failure resolves here
+    // By the end of this handler the loading of the
+    // cbx will also be finished success or fail 
+    // It's possible that loading the SeriesList may still
+    // be outstanding or even fail, it's non-critical
+    handlers.List["openFileResult"] = func(data string) {
+		var r model.Result
+		err := json.Unmarshal([]byte(data), &r)
+		if err != nil {
+            msg := fmt.Sprintf("Error unable to decode openFileResult: %s", err)
+            u.DisplayErrorDlg(msg)
+		} else {
+            if r.Code == model.OK {
+                m.LoadCbxFile()
+                if len(m.Spreads) > 0 {
+                    m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
+                } else {
+                    // If there are no spreads, bad file?
+                    m.PageIndex = 0
+                }
+            } else {
+                msg := fmt.Sprintf("%s, %d", r.Description, r.Code)
+                u.DisplayErrorDlg(msg)
+            }
+        }
+        // End loading
+	    m.Loading = false
     }
 
     handlers.List["closeFile"] = func(data string) {
