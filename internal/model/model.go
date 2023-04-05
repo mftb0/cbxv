@@ -534,23 +534,46 @@ func (m *Model) RefreshPages() {
     }
 }
 
-// page index to spread index
+// Returns 0 if spreads are nil or 
+// page can't be found 
+// Otherwise it guesses
+// fixme: Don't like it, but there's no point in telling a user about any of it 
+// because errors detected here are almost certainly the result of a 
+// programming error elsewhere in the program
 func (m *Model) PageToSpread(n int) int {
     if m.Spreads == nil {
+        util.Log("p2s: spreads nil %d\n", n)
         return 0
-    } else if n > len(m.Spreads)-1 {
+    } 
+
+    if n < 0 {
+        util.Log("p2s: page out of range %d\n", n)
+        return 0
+    }
+
+    var pagesNil bool
+    if m.Pages == nil {
+        pagesNil = true
+        util.Log("p2s: pages nil %d\n", n)
+    }
+
+    if !pagesNil && n > len(m.Pages) - 1 {
+        max := len(m.Pages) - 1
+        util.Log("p2s: page out of range max: %d, n:%d\n", max, n)
         return len(m.Spreads) - 1
-    } else if m.LayoutMode == TWO_PAGE {
-        for i := range m.Spreads {
-            spread := m.Spreads[i]
-            for j := range spread.PageIdxs {
-                if n == spread.PageIdxs[j] {
-                    return i
-                }
+    }
+
+    for i := range m.Spreads {
+        spread := m.Spreads[i]
+        for j := range spread.PageIdxs {
+            if n == spread.PageIdxs[j] {
+                return i
             }
         }
     }
-    return -1
+
+    util.Log("p2s: page not found %d\n", n)
+    return  0
 }
 
 func (m *Model) loadBookmarks() {
@@ -622,7 +645,7 @@ func (m *Model) sendOpenFileResMsg(code ResultCode, description string) {
     r := Result{code, description}
     buf, err := json.Marshal(r)
     if err != nil {
-        d = fmt.Sprintf("{\"code\":%d,\"result\":%s}", r.Code, r.Description)
+        d = fmt.Sprintf("{\"code\":%d,\"result\":\"%s\"}", r.Code, r.Description)
     } else {
         d = string(buf)
     }

@@ -87,29 +87,23 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
 
     handlers.List["setLayoutModeOnePage"] = func(data string) {
         m.LayoutMode = model.ONE_PAGE
-        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
-        if m.SpreadIndex > len(m.Spreads)-1 {
-            m.SpreadIndex = len(m.Spreads) - 1
-        }
+        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.RefreshPages()
     }
 
     handlers.List["setLayoutModeTwoPage"] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
-        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.NewSpreads()
-        if m.SpreadIndex > len(m.Spreads)-1 {
-            m.SpreadIndex = len(m.Spreads) - 1
-        }
+        m.SpreadIndex = m.PageToSpread(m.PageIndex)
         m.RefreshPages()
     }
 
     handlers.List["setLayoutModeLongStrip"] = func(data string) {
         m.LayoutMode = model.LONG_STRIP
+        m.NewSpreads()
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-        m.NewSpreads()
         m.RefreshPages()
     }
 
