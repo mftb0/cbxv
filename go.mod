@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gen2brain/go-unarr v0.1.6
-	github.com/gotk3/gotk3 v0.6.1
+	github.com/gotk3/gotk3 v0.6.2
 	github.com/pdfcpu/pdfcpu v0.4.0
 )
 
