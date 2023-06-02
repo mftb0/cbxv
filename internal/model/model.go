@@ -8,7 +8,6 @@ import (
     "runtime/debug"
     "sort"
 
-    "github.com/gotk3/gotk3/gdk"
     "github.com/mftb0/cbxv/internal/util"
 )
 
@@ -184,6 +183,7 @@ func (l *BookmarkList) Load(hash string) {
     }
 }
 
+
 // A page in this case is generally analogous to an image
 // They are grouped on Spreads
 type Page struct {
@@ -193,16 +193,13 @@ type Page struct {
     Span     int         `json:"span"`
     Hidden   bool        `json:"hidden"`
     Loaded   bool        `json:"loaded"`
-    Image    *gdk.Pixbuf `json:"-"`
+    Image    *util.Img   `json:"-"`
 }
 
 func (p *Page) Load() {
-    // fixme: must be called from gtk event dispatch thread or
-    // it will leak. I am calling it on the event dispatch
-    // thread but I don't like that anything gtk is
-    // referenced from the model, so I'm going to refactor that
-    // out of here
-    f, err := gdk.PixbufNewFromFile(p.FilePath)
+    // Must be called from ui event dispatch thread or
+    // it will leak. 
+    f, err := util.ImgNewFromFile(p.FilePath)
     if err != nil {
         fmt.Printf("Warning unable to load file %s\n", err)
         return
@@ -214,7 +211,7 @@ func (p *Page) Load() {
 }
 
 func (p *Page) LoadMeta() {
-    _, w, h, err := gdk.PixbufGetFileInfo(p.FilePath)
+    _, w, h, err := util.ImgGetFileInfo(p.FilePath)
     if err != nil {
         fmt.Printf("Warning unable to load metadata for file %s\n", err)
         return

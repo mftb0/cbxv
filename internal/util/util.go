@@ -19,8 +19,6 @@ import (
 	"time"
 
 	"github.com/gen2brain/go-unarr"
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
@@ -657,33 +655,6 @@ func LoadTextFile(filePath string) (*string, error) {
 
 func S(str string) *string { return &str }
 
-func CreateLabel(text string, cssClass string, toolTip *string) *gtk.Label {
-    c, err := gtk.LabelNew(text)
-    if err != nil {
-        fmt.Printf("Error creating %s label %s\n", text, err)
-    }
-    if toolTip != nil {
-        c.SetTooltipMarkup(*toolTip)
-    }
-    css, _ := c.GetStyleContext()
-    css.AddClass(cssClass)
-    return c
-}
-
-func CreateButton(text string, cssClass string, toolTip *string) *gtk.Button {
-    c, err := gtk.ButtonNewWithLabel(text)
-    if err != nil {
-        fmt.Printf("Error creating label %s\n", err)
-    }
-    c.SetCanFocus(false)
-    if toolTip != nil {
-        c.SetTooltipText(*toolTip)
-    }
-    css, _ := c.GetStyleContext()
-    css.AddClass(cssClass)
-    return c
-}
-
 func ParseFileUrl(fileUrl string) *string {
     var r string
     if strings.HasPrefix(fileUrl, "file:///") {
@@ -703,13 +674,6 @@ func ParseFileUrl(fileUrl string) *string {
         }
     }
     return &r
-}
-
-func assertEventDispatchThread() bool {
-    if glib.MainContextDefault().IsOwner() {
-        return true
-    }
-    return false
 }
 
 func Log(format string, a ...any) {
