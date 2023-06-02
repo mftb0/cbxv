@@ -21,6 +21,40 @@ const (
 
 const TICK = 3000
 
+type PBCache struct {
+    max int
+    evict string
+    items map[string]*gdk.Pixbuf
+}
+
+func NewPBCache(max int) *PBCache {
+    return &PBCache{
+        max: max,
+        items: make(map[string]*gdk.Pixbuf, max),
+    }
+}
+
+func (c *PBCache) put(key string, pb *gdk.Pixbuf) {
+    if len(c.items) == c.max {
+        delete(c.items, c.evict)
+        fmt.Printf("evicted %s\n", c.evict)
+    }
+
+    c.items[key] = pb
+
+    if len(c.items) == c.max {
+        c.evict = key
+    }
+}
+
+func (c *PBCache) get(key string) *gdk.Pixbuf {
+    return c.items[key]
+}
+
+func (c *PBCache) clear() {
+    for k := range c.items {delete(c.items, k)}
+}
+
 type PageView struct {
     ui                   *UI
     hud                  *gtk.Overlay
@@ -30,11 +64,13 @@ type PageView struct {
     keyPressSignalHandle *glib.SignalHandle
     hdrControl           *PageViewHdrControl
     navControl           *PageViewNavControl
+    pbCache              *PBCache
 }
 
 func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
     v := &PageView{}
     v.ui = u
+    v.pbCache = NewPBCache(2)
 
     v.hud = v.newHUD(m, u)
 
@@ -101,7 +137,6 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
         if cmd != nil {
             cmd.Execute()
         }
-
         v.hud.ShowAll()
         v.hudHidden = false
         v.hudKeepAlive = true
@@ -120,18 +155,19 @@ func (v *PageView) Disconnect(m *model.Model, u *UI) {
 }
 
 func (v *PageView) initRenderer(m *model.Model) {
-    v.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) {
+    v.canvas.Connect("draw", func(canvas *gtk.DrawingArea, cr *cairo.Context) bool {
         cr.SetSourceRGB(0, 0, 0)
         cr.Rectangle(0, 0, float64(v.canvas.GetAllocatedWidth()), float64(v.canvas.GetAllocatedHeight()))
         cr.Fill()
         if m.Spreads == nil {
-            return
+            v.pbCache.clear()
+            return false
         }
 
         spread := m.Spreads[m.SpreadIndex]
         if m.LayoutMode == model.TWO_PAGE {
             s := newTwoPageSpread(m, canvas, cr, spread)
-            renderTwoPageSpread(s)
+            renderTwoPageSpread(v, s)
         } else if m.LayoutMode == model.ONE_PAGE {
             s := newOnePageSpread(canvas, cr, spread.Pages[0])
             renderOnePageSpread(s)
@@ -139,6 +175,7 @@ func (v *PageView) initRenderer(m *model.Model) {
         w := v.hud.GetAllocatedWidth() - 40
         v.hdrControl.container.SetSizeRequest(w, 8)
         v.navControl.container.SetSizeRequest(w, 8)
+        return true
     })
 
     v.canvas.AddEvents(4)
@@ -221,21 +258,22 @@ func scalePixbufToFit(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int, h int) (*gd
     cH := float64(h)
     pW := float64(p.GetWidth())
     pH := float64(p.GetHeight())
+    var r *gdk.Pixbuf
     var err error
     if pW > cW || pH > cH {
         scale := math.Min(cW/pW, cH/pH)
-        p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
+        r, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
         if err != nil {
             return nil, err
         }
     } else {
         scale := math.Min(cW/pW, cH/pH)
-        p, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
+        r, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
         if err != nil {
             return nil, err
         }
     }
-    return p, nil
+    return r, nil
 }
 
 func positionPixbuf(canvas *gtk.DrawingArea, p *gdk.Pixbuf, pos PagePosition) (x, y int) {
@@ -285,19 +323,29 @@ func renderOnePageSpread(s *OnePageSpread) error {
 
 // direction (rtl or ltr) has already been accounted for
 // so left and right here are literal
-func renderTwoPageSpread(s *TwoPageSpread) error {
+func renderTwoPageSpread(v *PageView, s *TwoPageSpread) error {
     if s.leftPage.Loaded == false {
         return fmt.Errorf("Image required by spread not loaded")
     }
 
     var x, y, cW, cH int
+    var err error
+    var lp, rp *gdk.Pixbuf
+    var k string
     if s.rightPage != nil {
         //put the left pg on the left, right-aligned
         cW = s.canvas.GetAllocatedWidth() / 2
         cH = s.canvas.GetAllocatedHeight()
-        lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
-        if err != nil {
-            return err
+        k = fmt.Sprintf("%v-%d-%d", s.leftPage.Image, cW, cH)
+        lp = v.pbCache.get(k)
+        if lp == nil {
+            lp, err = scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
+            if err != nil {
+                return err
+            }
+            v.pbCache.put(k, lp)
+        } else {
+            fmt.Printf("cachehit\n")
         }
 
         x, y = positionPixbuf(s.canvas, lp, ALIGN_RIGHT)
@@ -308,9 +356,15 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return fmt.Errorf("Image required by spread not loaded")
         }
 
-        rp, err := scalePixbufToFit(s.canvas, s.rightPage.Image, cW, cH)
-        if err != nil {
-            return err
+        k = fmt.Sprintf("%v-%d-%d", s.rightPage.Image, cW, cH)
+        rp = v.pbCache.get(k)
+        if rp == nil {
+            rp, err = scalePixbufToFit(s.canvas, s.rightPage.Image, cW, cH)
+            if err != nil {
+                return err
+            } 
+        } else {
+            fmt.Printf("cachehit\n")
         }
 
         x, y = positionPixbuf(s.canvas, rp, ALIGN_LEFT)
@@ -319,9 +373,15 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
         //there is no right page, then center the left page
         cW = s.canvas.GetAllocatedWidth()
         cH = s.canvas.GetAllocatedHeight()
-        lp, err := scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
-        if err != nil {
-            return err
+        k = fmt.Sprintf("%v-%d-%d", s.leftPage.Image, cW, cH)
+        lp = v.pbCache.get(k)
+        if lp == nil {
+            lp, err = scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
+            if err != nil {
+                return err
+            }
+        } else {
+            fmt.Printf("cachehit\n")
         }
 
         x, y = positionPixbuf(s.canvas, lp, ALIGN_CENTER)
