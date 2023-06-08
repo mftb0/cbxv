@@ -183,7 +183,6 @@ func (l *BookmarkList) Load(hash string) {
     }
 }
 
-
 // A page in this case is generally analogous to an image
 // They are grouped on Spreads
 type Page struct {

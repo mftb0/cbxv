@@ -101,6 +101,7 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
         if cmd != nil {
             cmd.Execute()
         }
+
         v.hud.ShowAll()
         v.hudHidden = false
         v.hudKeepAlive = true
