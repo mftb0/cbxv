@@ -32,7 +32,9 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         if m.SpreadIndex < len(m.Spreads)-1 {
             m.SpreadIndex++
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            m.RefreshPages()
+            if !m.SpreadLoaded(m.SpreadIndex) {
+                m.RefreshSpreads()
+            }
         } else {
             handlers.List["nextFile"]("")
         }
@@ -42,7 +44,9 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         if m.SpreadIndex > 0 {
             m.SpreadIndex--
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            m.RefreshPages()
+            if !m.SpreadLoaded(m.SpreadIndex) {
+                m.RefreshSpreads()
+            }
         } else {
             handlers.List["previousFile"]("")
         }
@@ -51,13 +55,13 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
     handlers.List["firstPage"] = func(data string) {
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-        m.RefreshPages()
+        m.RefreshSpreads()
     }
 
     handlers.List["lastPage"] = func(data string) {
         m.SpreadIndex = (len(m.Spreads) - 1)
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-        m.RefreshPages()
+        m.RefreshSpreads()
     }
 
     handlers.List["lastBookmark"] = func(data string) {
@@ -68,7 +72,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
                 m.SpreadIndex = m.PageToSpread(bkmk.PageIndex)
                 m.PageIndex = bkmk.PageIndex
             }
-            m.RefreshPages()
+            m.RefreshSpreads()
         }
     }
 
@@ -89,14 +93,14 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         m.LayoutMode = model.ONE_PAGE
         m.NewSpreads()
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
-        m.RefreshPages()
+        m.RefreshSpreads()
     }
 
     handlers.List["setLayoutModeTwoPage"] = func(data string) {
         m.LayoutMode = model.TWO_PAGE
         m.NewSpreads()
         m.SpreadIndex = m.PageToSpread(m.PageIndex)
-        m.RefreshPages()
+        m.RefreshSpreads()
     }
 
     handlers.List["setLayoutModeLongStrip"] = func(data string) {
@@ -104,7 +108,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         m.NewSpreads()
         m.SpreadIndex = 0
         m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-        m.RefreshPages()
+        m.RefreshSpreads()
     }
 
     handlers.List["toggleDirection"] = func(data string) {
@@ -223,7 +227,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
             } else {
                 p.Span = model.SINGLE
             }
-            m.RefreshPages()
+            m.RefreshSpreads()
             m.NewSpreads()
             m.StoreLayout()
             m.SpreadIndex = m.PageToSpread(pi)
@@ -241,7 +245,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         p.Hidden = true
 
         // Recalculate layout
-        m.RefreshPages()
+        m.RefreshSpreads()
         m.NewSpreads()
         m.StoreLayout()
 
@@ -273,7 +277,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         // Recalculate layout
         p := &m.Pages[i]
         p.Hidden = false
-        m.RefreshPages()
+        m.RefreshSpreads()
         m.NewSpreads()
         m.StoreLayout()
 
@@ -283,7 +287,7 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
     }
 
     handlers.List["loadAllPages"] = func(data string) {
-        m.RefreshPages()
+        m.RefreshSpreads()
         m.NewSpreads()
     }
 

@@ -490,8 +490,22 @@ func (m *Model) CloseCbxFile() {
     debug.FreeOSMemory()
 }
 
-// Walk the layout and load/unload pages as needed
-func (m *Model) RefreshPages() {
+// Test if a given spread is fully loaded
+func (m *Model) SpreadLoaded(spreadIndex int) bool {
+    m.printLoaded()
+
+    spread := m.Spreads[spreadIndex]
+    for i := range spread.Pages {
+        if !spread.Pages[i].Loaded {
+            return false
+        }
+    }
+    return true
+ }
+
+// Iterate over spreads and load/unload pages as needed
+// based on the current spread index
+func (m *Model) RefreshSpreads() {
     if m.LayoutMode != LONG_STRIP {
         start := int(math.Max(0, float64(m.SpreadIndex-(MAX_LOAD/2)+1)))
         end := int(math.Min(float64(m.SpreadIndex+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
@@ -516,9 +530,7 @@ func (m *Model) RefreshPages() {
             }
         }
 
-        if util.DEBUG {
-            m.printLoaded()
-        }
+        m.printLoaded()
     } else {
         // load all pages
         for i := range m.Pages {
@@ -678,6 +690,6 @@ func (m *Model) printLoaded() {
             }
         }
     }
-    fmt.Printf("%s\n", buf)
+    util.Log("%s\n", buf)
 }
 
