@@ -584,6 +584,29 @@ func (m *Model) PageToSpread(n int) int {
     return  0
 }
 
+func (m *Model) StoreLayout() error {
+    layout := Layout{
+        FormatVersion: "0.1",
+    }
+    c := ComicData{}
+    c.Hash = m.Hash
+    c.FilePath = m.FilePath
+    layout.Comic = c
+    layout.Mode = m.LayoutMode
+    layout.Pages = m.Pages
+
+    data, err := json.Marshal(layout)
+    if err != nil {
+        return err
+    }
+
+    err = util.WriteLayout(m.Hash, string(data))
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
 func (m *Model) loadBookmarks() {
     m.Bookmarks = NewBookmarkList(m.FilePath)
     m.Bookmarks.Load(m.Hash)
@@ -622,29 +645,6 @@ func (m *Model) applyLayout(layout *Layout) {
         mp.Hidden = p.Hidden
         m.Pages[i] = mp
     }
-}
-
-func (m *Model) StoreLayout() error {
-    layout := Layout{
-        FormatVersion: "0.1",
-    }
-    c := ComicData{}
-    c.Hash = m.Hash
-    c.FilePath = m.FilePath
-    layout.Comic = c
-    layout.Mode = m.LayoutMode
-    layout.Pages = m.Pages
-
-    data, err := json.Marshal(layout)
-    if err != nil {
-        return err
-    }
-
-    err = util.WriteLayout(m.Hash, string(data))
-    if err != nil {
-        return err
-    }
-    return nil
 }
 
 // Make sure we always send a result message, no errors allowed
