@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
 	"os"
 	"runtime"
 
@@ -14,7 +13,7 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.4.8"
+    VERSION = "0.4.9"
 )
 
 // Update listens for messages on the message channel and
@@ -57,9 +56,6 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
 // Shutdown UI threads
 // Exit
 func main() {
-    numGoR := runtime.NumGoroutine()
-    fmt.Printf("gors:%d\n", numGoR)
-
     msgChan := make(chan util.Message)
     md := model.ProgramMetadata{Name: NAME, Version: VERSION}
     messenger := func(m util.Message) { msgChan <- m }
@@ -78,8 +74,5 @@ func main() {
     })
 
     u.Run()
-
-    numGoR = runtime.NumGoroutine()
-    fmt.Printf("gors:%d\n", numGoR)
 }
 
