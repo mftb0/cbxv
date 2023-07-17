@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
 	"os"
 	"runtime"
 
@@ -46,6 +47,9 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
 // Shutdown UI threads
 // Exit
 func main() {
+    numGoR := runtime.NumGoroutine()
+    fmt.Printf("gors:%d\n", numGoR)
+
     msgChan := make(chan util.Message)
     md := model.ProgramMetadata{Name: NAME, Version: VERSION}
     messenger := func(m util.Message) { msgChan <- m }
@@ -72,5 +76,8 @@ func main() {
     // we have to close the last cbx file here, to get
     // rid of any tmpDir
     m.CloseCbxFile()
+
+    numGoR = runtime.NumGoroutine()
+    fmt.Printf("gors:%d\n", numGoR)
 }
 
