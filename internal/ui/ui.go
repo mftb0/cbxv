@@ -33,8 +33,9 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	u.MainWindow, _ = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	u.MainWindow.SetPosition(gtk.WIN_POS_CENTER)
 	u.MainWindow.SetTitle(m.ProgramName)
-	u.MainWindow.Connect("destroy", func() {
-		gtk.MainQuit()
+	u.MainWindow.Connect("delete-event", func() bool {
+        u.Commands.Names["quit"].Execute()
+        return true
 	})
 	u.MainWindow.SetDefaultSize(1024, 768)
 

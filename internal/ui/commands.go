@@ -265,7 +265,6 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
 		[]uint{gdk.KEY_q},
 		func(...any) {
 			u.SendMessage(util.Message{TypeName: "quit"})
-			u.Quit()
 		}))
 
 	return cmds

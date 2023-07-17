@@ -36,6 +36,16 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
             })
         }
         runtime.GC()
+
+        // Handling the quit message above 
+        // scheduled any open file to be closed and
+        // the GUI to be shut down which will let the program
+        // exit. In the meanwhile this routine is no longer
+        // needed so we can break the loop allowing it to 
+        // return
+        if msg.TypeName == "quit" {
+            break
+        }
     }
 }
 
@@ -57,7 +67,6 @@ func main() {
     u := ui.NewUI(m, messenger)
     msgHandlers := NewMessageHandlers(m, u)
 
-
     go update(m, u, msgChan, msgHandlers)
 
     u.RunFunc(func() {
@@ -69,13 +78,6 @@ func main() {
     })
 
     u.Run()
-
-    // At the end of all things the closeFile message
-    // can't work because we've orchestrated for it only
-    // to be run on the UI thread and the UI thread is dead so
-    // we have to close the last cbx file here, to get
-    // rid of any tmpDir
-    m.CloseCbxFile()
 
     numGoR = runtime.NumGoroutine()
     fmt.Printf("gors:%d\n", numGoR)

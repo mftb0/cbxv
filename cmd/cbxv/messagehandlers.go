@@ -296,12 +296,8 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
     }
 
     handlers.List["quit"] = func(data string) {
-        // because of orchestration with gtk's
-        // thread this no longer works at shutdown
-        // Mostly doesn't matter, but we do need
-        // to clean up the last tmpDir, moved to
-        // end of main
         handlers.List["closeFile"]("")
+	    u.Quit()
     }
 
     return handlers
