@@ -13,7 +13,7 @@ import (
 
 const (
     NAME    = "cbxv"
-    VERSION = "0.4.9"
+    VERSION = "0.5.0"
 )
 
 // Update listens for messages on the message channel and
@@ -21,6 +21,9 @@ const (
 func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *MessageHandlerList) {
     for msg := range msgChan {
         msgHandler := msgHandlers.List[msg.TypeName]
+
+        // If spreads are nil, the list below are the only commands
+        // that are allowed to run
         if m.Spreads == nil &&
             (msg.TypeName != "quit" &&
             msg.TypeName != "openFile" &&
@@ -28,12 +31,19 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
             msg.TypeName != "toggleFullscreen") {
             continue
         }
+
+        // We have a handler, schedule it to run on event dispatch thread
         if msgHandler != nil {
             u.RunFunc(func() {
                 msgHandler(msg.Data)
-                u.Render(m)
             })
         }
+
+        // Render after every command, except refreshSpreads
+        if msg.TypeName != "refreshSpreads" {
+            u.Render(m)
+        }
+
         runtime.GC()
 
         // Handling the quit message above 

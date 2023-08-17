@@ -32,9 +32,6 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         if m.SpreadIndex < len(m.Spreads)-1 {
             m.SpreadIndex++
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            if !m.SpreadLoaded(m.SpreadIndex) {
-                m.RefreshSpreads()
-            }
         } else {
             handlers.List["nextFile"]("")
         }
@@ -44,9 +41,6 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         if m.SpreadIndex > 0 {
             m.SpreadIndex--
             m.PageIndex = m.Spreads[m.SpreadIndex].VersoPage()
-            if !m.SpreadLoaded(m.SpreadIndex) {
-                m.RefreshSpreads()
-            }
         } else {
             handlers.List["previousFile"]("")
         }
@@ -292,7 +286,13 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
     }
 
     handlers.List["render"] = func(data string) {
-        //noop render always gets called after cmd
+        // noop render always gets called after cmd
+    }
+
+    // Unless it's refreshSpreads, this is the one cmd that
+    // after running we don't call render
+    handlers.List["refreshSpreads"] = func(data string) {
+        m.RefreshSpreads()
     }
 
     handlers.List["quit"] = func(data string) {

@@ -678,18 +678,20 @@ func (m *Model) checkSpreads() {
 
 // dbg
 func (m *Model) printLoaded() {
-    var buf string
-    for i := range m.Pages {
-        if !m.Pages[i].Loaded {
-            buf += "0"
-        } else {
-            if i == m.PageIndex {
-                buf += "_"
+    if util.DEBUG == true {
+        var buf string
+        for i := range m.Pages {
+            if !m.Pages[i].Loaded {
+                buf += "0"
             } else {
-                buf += "1"
+                if i == m.PageIndex {
+                    buf += "_"
+                } else {
+                    buf += "1"
+                }
             }
         }
+        util.Log("%s\n", buf)
     }
-    util.Log("%s\n", buf)
 }
 

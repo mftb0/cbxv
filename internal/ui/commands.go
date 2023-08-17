@@ -44,12 +44,14 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
 		[]uint{gdk.KEY_d, gdk.KEY_Right, gdk.KEY_l},
 		func(args ...any) {
 			u.SendMessage(util.Message{TypeName: "rightPage"})
+            u.SendMessage(util.Message{TypeName: "refreshSpreads"})
 		}))
 
 	AddCommand(cmds, NewCommand("leftPage", "Left Page",
 		[]uint{gdk.KEY_a, gdk.KEY_Left, gdk.KEY_h},
 		func(args ...any) {
 			u.SendMessage(util.Message{TypeName: "leftPage"})
+            u.SendMessage(util.Message{TypeName: "refreshSpreads"})
 		}))
 
 	AddCommand(cmds, NewCommand("firstPage", "First Page",

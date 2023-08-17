@@ -682,3 +682,12 @@ func Log(format string, a ...any) {
     }
 }
 
+func TrcStart (s string) (string, time.Time) {
+    return s, time.Now() 
+}
+
+func TrcEnd (s string, startTime time.Time) {
+    endTime := time.Now() 
+    fmt.Printf("Name:%s, Time:%d\n", s, endTime.Sub(startTime).Milliseconds())
+}
+

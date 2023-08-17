@@ -131,12 +131,14 @@ func (v *PageView) initRenderer(m *model.Model) {
         }
 
         spread := m.Spreads[m.SpreadIndex]
-        if m.LayoutMode == model.TWO_PAGE {
-            s := newTwoPageSpread(m, canvas, cr, spread)
-            renderTwoPageSpread(s)
-        } else if m.LayoutMode == model.ONE_PAGE {
-            s := newOnePageSpread(canvas, cr, spread.Pages[0])
-            renderOnePageSpread(s)
+        if m.SpreadLoaded(m.SpreadIndex) {
+            if m.LayoutMode == model.TWO_PAGE {
+                s := newTwoPageSpread(m, canvas, cr, spread)
+                renderTwoPageSpread(s)
+            } else if m.LayoutMode == model.ONE_PAGE {
+                s := newOnePageSpread(canvas, cr, spread.Pages[0])
+                renderOnePageSpread(s)
+            }
         }
         w := v.hud.GetAllocatedWidth() - 40
         v.hdrControl.container.SetSizeRequest(w, 8)
