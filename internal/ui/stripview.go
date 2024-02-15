@@ -44,6 +44,7 @@ func NewStripView(m *model.Model, u *UI) View {
 
 	v.scrollbars.Connect("scroll-event", func() {
 		v.hud.ShowAll()
+        v.ui.ShowCursor()
 		v.hudHidden = false
 		v.hudKeepAlive = true
 	})
@@ -63,6 +64,9 @@ func NewStripView(m *model.Model, u *UI) View {
 			v.hdrControl.container.Hide()
 			v.navControl.container.Hide()
 			u.MainWindow.QueueDraw()
+            if m.Fullscreen {
+                u.HideCursor()
+            }
 			v.hudHidden = true
 		} else {
 			v.hudKeepAlive = false
@@ -84,6 +88,7 @@ func (v *StripView) Connect(m *model.Model, u *UI) {
         }
 
         v.hud.ShowAll()
+        u.ShowCursor()
         v.hudHidden = false
         v.hudKeepAlive = true
     })
@@ -142,6 +147,7 @@ func (v *StripView) newHUD(m *model.Model, u *UI) *gtk.Overlay {
 	v.navControl = NewStripViewNavControl(m, u)
 	o.AddOverlay(v.hdrControl.container)
 	o.AddOverlay(v.navControl.container)
+    u.ShowCursor()
 	v.hudHidden = false
 
 	return o

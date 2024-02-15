@@ -87,6 +87,26 @@ func (u *UI) DisplayErrorDlg(message string) {
     dlg.Run()
 }
 
+func (u *UI) ShowCursor() {
+    d, _ := gdk.DisplayGetDefault()
+    c, _ := gdk.CursorNewFromName(d, "default")
+    w, err := u.MainWindow.GetWindow()
+    if err != nil {
+        return
+    }
+    w.SetCursor(c)
+}
+
+func (u *UI) HideCursor() {
+    d, _ := gdk.DisplayGetDefault()
+    c, _ := gdk.CursorNewFromName(d, "none")
+    w, err := u.MainWindow.GetWindow()
+    if err != nil {
+        return
+    }
+    w.SetCursor(c)
+}
+
 func (u *UI) Render(m *model.Model) {
 	glib.IdleAdd(func() {
 		u.View.Render(m)

@@ -58,6 +58,9 @@ func NewPageView(m *model.Model, u *UI, messenger util.Messenger) View {
         if !v.hudHidden && !v.hudKeepAlive {
             v.hdrControl.container.Hide()
             v.navControl.container.Hide()
+            if m.Fullscreen {
+                v.ui.HideCursor()
+            }
             u.MainWindow.QueueDraw()
             v.hudHidden = true
         } else {
@@ -82,6 +85,7 @@ func (v *PageView) newHUD(m *model.Model, u *UI) *gtk.Overlay {
     v.navControl = NewNavControl(m, u)
     o.AddOverlay(v.hdrControl.container)
     o.AddOverlay(v.navControl.container)
+    v.ui.ShowCursor()
     v.hudHidden = false
 
     return o
@@ -103,6 +107,7 @@ func (v *PageView) Connect(m *model.Model, u *UI) {
         }
 
         v.hud.ShowAll()
+        v.ui.ShowCursor()
         v.hudHidden = false
         v.hudKeepAlive = true
         return true
@@ -153,6 +158,7 @@ func (v *PageView) initRenderer(m *model.Model) {
             //reset the hud hiding
             v.hdrControl.container.Show()
             v.navControl.container.Show()
+            v.ui.ShowCursor()
             v.hudHidden = false
             v.hudKeepAlive = true
         }
@@ -173,6 +179,7 @@ func (v *PageView) initRenderer(m *model.Model) {
         }
         //reset the hud hiding
         v.hud.ShowAll()
+        v.ui.ShowCursor()
         v.hudHidden = false
         v.hudKeepAlive = true
         return r
