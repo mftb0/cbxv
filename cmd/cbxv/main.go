@@ -28,7 +28,7 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
             (msg.TypeName != "quit" &&
             msg.TypeName != "openFile" &&
             msg.TypeName != "openFileResult" &&
-            msg.TypeName != "toggleFullscreen") {
+            msg.TypeName != "setFullscreen") {
             continue
         }
 

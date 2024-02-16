@@ -131,6 +131,9 @@ func (v *PageView) initRenderer(m *model.Model) {
         util.Log("w:%d,h:%d\n", int64(x2-x1), int64(y2-y1))
         cr.Rectangle(x1, y1, x2, y2)
         cr.Fill()
+        w := v.hud.GetAllocatedWidth() - 40
+        v.hdrControl.container.SetSizeRequest(w, 8)
+        v.navControl.container.SetSizeRequest(w, 8)
         if m.Spreads == nil {
             return false
         }
@@ -145,9 +148,6 @@ func (v *PageView) initRenderer(m *model.Model) {
                 renderOnePageSpread(s)
             }
         }
-        w := v.hud.GetAllocatedWidth() - 40
-        v.hdrControl.container.SetSizeRequest(w, 8)
-        v.navControl.container.SetSizeRequest(w, 8)
         return true
     })
 

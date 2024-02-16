@@ -37,6 +37,16 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
         u.Commands.Names["quit"].Execute()
         return true
 	})
+	u.MainWindow.Connect("window-state-event", func(w *gtk.Window, event *gdk.Event) bool {
+        ev := gdk.EventWindowStateNewFromEvent(event)
+        if ev.ChangedMask() & ev.NewWindowState() == gdk.WINDOW_STATE_FULLSCREEN {
+            u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "true"})
+        } else {
+            u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "false"})
+        }
+        return true
+    })
+
 	u.MainWindow.SetDefaultSize(1024, 768)
 
 	iPath := util.AppIconPath()

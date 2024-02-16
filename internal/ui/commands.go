@@ -129,7 +129,6 @@ func NewCommands(m *model.Model, u *UI) *CommandList {
 			} else {
 				u.MainWindow.Fullscreen()
 			}
-			u.SendMessage(util.Message{TypeName: "toggleFullscreen"})
 		}))
 
 	AddCommand(cmds, NewCommand("openFile", "Open File",

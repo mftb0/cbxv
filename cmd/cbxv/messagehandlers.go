@@ -120,11 +120,11 @@ func NewMessageHandlers(m *model.Model, u *ui.UI) *MessageHandlerList {
         handlers.List["leftPage"] = r
     }
 
-    handlers.List["toggleFullscreen"] = func(data string) {
-        if m.Fullscreen == true {
-            m.Fullscreen = false
-        } else {
+    handlers.List["setFullscreen"] = func(data string) {
+        if data == "true" {
             m.Fullscreen = true
+        } else {
+            m.Fullscreen = false
         }
     }
 

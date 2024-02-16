@@ -109,11 +109,6 @@ func NewNavControl(m *model.Model, u *UI) *PageViewNavControl {
     })
 
     fsc.Connect("clicked", func() {
-        if m.Fullscreen {
-            u.MainWindow.Unfullscreen()
-        } else {
-            u.MainWindow.Fullscreen()
-        }
         u.Commands.Names["toggleFullscreen"].Execute()
     })
 
@@ -181,10 +176,9 @@ func (c *PageViewNavControl) Render(m *model.Model) {
         }
 
         if m.Fullscreen {
-            c.container.SetSizeRequest(1400, 8)
-            c.fullscreenControl.SetLabel(util.FullscreenIcon())
-        } else {
             c.fullscreenControl.SetLabel(util.RestoreIcon())
+        } else {
+            c.fullscreenControl.SetLabel(util.FullscreenIcon())
         }
 
         c.rightPageNum.SetLabel("")
