@@ -39,10 +39,12 @@ func NewUI(m *model.Model, messenger util.Messenger) *UI {
 	})
 	u.MainWindow.Connect("window-state-event", func(w *gtk.Window, event *gdk.Event) bool {
         ev := gdk.EventWindowStateNewFromEvent(event)
-        if ev.ChangedMask() & ev.NewWindowState() == gdk.WINDOW_STATE_FULLSCREEN {
-            u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "true"})
-        } else {
-            u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "false"})
+        if ev.ChangedMask() & gdk.WINDOW_STATE_FULLSCREEN != 0 {
+            if ev.NewWindowState() & gdk.WINDOW_STATE_FULLSCREEN != 0 {
+                u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "true"})
+            } else {
+                u.SendMessage(util.Message{TypeName: "setFullscreen", Data: "false"})
+            }
         }
         return true
     })
