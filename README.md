@@ -33,6 +33,7 @@ are.</sub>
 - Page Export
 - Fullscreen View
 - Unique HUD Interface
+- Drag and Drop File Opening
 - Never alters original files
 - Supports most common formats; .cbz, .cbr, .cb7, .cbt, .pdf
 - Native performance
