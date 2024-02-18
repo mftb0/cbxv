@@ -96,7 +96,7 @@ Excelsior!
 
     Keys: o  
     Mouse: The File Button  
-    Drag and Drop: Drag a file over the window, and drop to open.
+    Drag and Drop: Drag a file over the window, and drop to open.  
     CLI: If you start cbxv from the command line you can provide a path and it 
         will be opened.  
 
