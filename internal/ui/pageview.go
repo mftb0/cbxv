@@ -141,11 +141,9 @@ func (v *PageView) initRenderer(m *model.Model) {
         spread := m.Spreads[m.SpreadIndex]
         if m.SpreadLoaded(m.SpreadIndex) {
             if m.LayoutMode == model.TWO_PAGE {
-                s := newTwoPageSpread(m, canvas, cr, spread)
-                renderTwoPageSpread(s)
+                renderTwoPageSpread(newTwoPageSpread(m, canvas, cr, spread))
             } else if m.LayoutMode == model.ONE_PAGE {
-                s := newOnePageSpread(canvas, cr, spread.Pages[0])
-                renderOnePageSpread(s)
+                renderOnePageSpread(newOnePageSpread(canvas, cr, spread.Pages[0]))
             }
         }
         return true
