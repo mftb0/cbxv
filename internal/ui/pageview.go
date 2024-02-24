@@ -141,9 +141,9 @@ func (v *PageView) initRenderer(m *model.Model) {
         spread := m.Spreads[m.SpreadIndex]
         if m.SpreadLoaded(m.SpreadIndex) {
             if m.LayoutMode == model.TWO_PAGE {
-                renderTwoPageSpread(newTwoPageSpread(m, canvas, cr, spread))
+                renderTwoPageSpread(cr, canvas, newTwoPageSpread(m, spread))
             } else if m.LayoutMode == model.ONE_PAGE {
-                renderOnePageSpread(newOnePageSpread(canvas, cr, spread.Pages[0]))
+                renderOnePageSpread(cr, canvas, newOnePageSpread(spread.Pages[0]))
             }
         }
         return true
@@ -187,28 +187,21 @@ func (v *PageView) initRenderer(m *model.Model) {
 type PagePosition int
 
 type OnePageSpread struct {
-    canvas *gtk.DrawingArea
-    cr     *cairo.Context
     page   *model.Page
 }
 
-func newOnePageSpread(canvas *gtk.DrawingArea, cr *cairo.Context,
-    page *model.Page) *OnePageSpread {
-    return &OnePageSpread{canvas, cr, page}
+func newOnePageSpread(page *model.Page) *OnePageSpread {
+    return &OnePageSpread{page}
 }
 
 type TwoPageSpread struct {
-    canvas    *gtk.DrawingArea
-    cr        *cairo.Context
     leftPage  *model.Page
     rightPage *model.Page
 }
 
 // Create a two pg spread accounting for direction
-func newTwoPageSpread(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context, spread *model.Spread) *TwoPageSpread {
+func newTwoPageSpread(m *model.Model, spread *model.Spread) *TwoPageSpread {
     s := &TwoPageSpread{}
-    s.canvas = canvas
-    s.cr = cr
     if m.Direction == model.LTR {
         s.leftPage = spread.Pages[0]
         if len(spread.Pages) > 1 {
@@ -268,26 +261,26 @@ func renderPixbuf(cr *cairo.Context, p *gdk.Pixbuf, x, y int) {
     cr.Paint()
 }
 
-func renderOnePageSpread(s *OnePageSpread) error {
+func renderOnePageSpread(cr *cairo.Context, canvas *gtk.DrawingArea, s *OnePageSpread) error {
     if s.page.Loaded == false {
         return fmt.Errorf("Image required by spread not loaded")
     }
 
-    cW := s.canvas.GetAllocatedWidth()
-    cH := s.canvas.GetAllocatedHeight()
+    cW := canvas.GetAllocatedWidth()
+    cH := canvas.GetAllocatedHeight()
     p, err := scalePixbufToFit(s.page.Image, cW, cH)
     if err != nil {
         return err
     }
 
-    x, y := positionPixbuf(s.canvas, p, ALIGN_CENTER)
-    renderPixbuf(s.cr, p, x, y)
+    x, y := positionPixbuf(canvas, p, ALIGN_CENTER)
+    renderPixbuf(cr, p, x, y)
     return nil
 }
 
 // direction (rtl or ltr) has already been accounted for
 // so left and right here are literal
-func renderTwoPageSpread(s *TwoPageSpread) error {
+func renderTwoPageSpread(cr *cairo.Context, canvas *gtk.DrawingArea, s *TwoPageSpread) error {
     if s.leftPage.Loaded == false {
         return fmt.Errorf("Image required by spread not loaded")
     }
@@ -297,15 +290,15 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
     var err error
     if s.rightPage != nil {
         //put the left pg on the left, right-aligned
-        cW = s.canvas.GetAllocatedWidth() / 2
-        cH = s.canvas.GetAllocatedHeight()
+        cW = canvas.GetAllocatedWidth() / 2
+        cH = canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
 
-        x, y = positionPixbuf(s.canvas, lp, ALIGN_RIGHT)
-        renderPixbuf(s.cr, lp, x, y)
+        x, y = positionPixbuf(canvas, lp, ALIGN_RIGHT)
+        renderPixbuf(cr, lp, x, y)
 
         //put the right pg on the right, left-aligned
         if s.rightPage.Loaded == false {
@@ -317,19 +310,19 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return err
         } 
 
-        x, y = positionPixbuf(s.canvas, rp, ALIGN_LEFT)
-        renderPixbuf(s.cr, rp, x, y)
+        x, y = positionPixbuf(canvas, rp, ALIGN_LEFT)
+        renderPixbuf(cr, rp, x, y)
     } else {
         //there is no right page, then center the left page
-        cW = s.canvas.GetAllocatedWidth()
-        cH = s.canvas.GetAllocatedHeight()
+        cW = canvas.GetAllocatedWidth()
+        cH = canvas.GetAllocatedHeight()
         lp, err = scalePixbufToFit(s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
 
-        x, y = positionPixbuf(s.canvas, lp, ALIGN_CENTER)
-        renderPixbuf(s.cr, lp, x, y)
+        x, y = positionPixbuf(canvas, lp, ALIGN_CENTER)
+        renderPixbuf(cr, lp, x, y)
     }
     return nil
 }
