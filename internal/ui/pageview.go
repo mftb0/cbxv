@@ -228,25 +228,17 @@ func newTwoPageSpread(m *model.Model, canvas *gtk.DrawingArea, cr *cairo.Context
     return s
 }
 
-func scalePixbufToFit(canvas *gtk.DrawingArea, p *gdk.Pixbuf, w int, h int) (*gdk.Pixbuf, error) {
+func scalePixbufToFit(p *gdk.Pixbuf, w int, h int) (*gdk.Pixbuf, error) {
     cW := float64(w)
     cH := float64(h)
     pW := float64(p.GetWidth())
     pH := float64(p.GetHeight())
     var r *gdk.Pixbuf
     var err error
-    if pW > cW || pH > cH {
-        scale := math.Min(cW/pW, cH/pH)
-        r, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
-        if err != nil {
-            return nil, err
-        }
-    } else {
-        scale := math.Min(cW/pW, cH/pH)
-        r, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
-        if err != nil {
-            return nil, err
-        }
+    scale := math.Min(cW/pW, cH/pH)
+    r, err = p.ScaleSimple(int(pW*scale), int(pH*scale), gdk.INTERP_BILINEAR)
+    if err != nil {
+        return nil, err
     }
     return r, nil
 }
@@ -285,7 +277,7 @@ func renderOnePageSpread(s *OnePageSpread) error {
 
     cW := s.canvas.GetAllocatedWidth()
     cH := s.canvas.GetAllocatedHeight()
-    p, err := scalePixbufToFit(s.canvas, s.page.Image, cW, cH)
+    p, err := scalePixbufToFit(s.page.Image, cW, cH)
     if err != nil {
         return err
     }
@@ -309,7 +301,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
         //put the left pg on the left, right-aligned
         cW = s.canvas.GetAllocatedWidth() / 2
         cH = s.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
+        lp, err = scalePixbufToFit(s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
@@ -322,7 +314,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
             return fmt.Errorf("Image required by spread not loaded")
         }
 
-        rp, err = scalePixbufToFit(s.canvas, s.rightPage.Image, cW, cH)
+        rp, err = scalePixbufToFit(s.rightPage.Image, cW, cH)
         if err != nil {
             return err
         } 
@@ -333,7 +325,7 @@ func renderTwoPageSpread(s *TwoPageSpread) error {
         //there is no right page, then center the left page
         cW = s.canvas.GetAllocatedWidth()
         cH = s.canvas.GetAllocatedHeight()
-        lp, err = scalePixbufToFit(s.canvas, s.leftPage.Image, cW, cH)
+        lp, err = scalePixbufToFit(s.leftPage.Image, cW, cH)
         if err != nil {
             return err
         }
