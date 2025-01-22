@@ -101,7 +101,7 @@ are.</sub>
     |toggleJoin         |r              |Join Toggle         |
     |toggleFullscreen   |f|[F11]        |Fullscreen Toggle   |
     |selectPage         |[Tab]          |Page Index Buttons  |
-    |exportPage         |e              |NA                  |
+    |exportPage         |e              |Export Page Button  |
 
 <a href="https://mftb0.github.io/cbxv">Program Manual</a>
 

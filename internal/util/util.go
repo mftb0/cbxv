@@ -51,11 +51,11 @@ hidePage            -                   NA
 toggleJoin          r                   Join Toggle
 toggleFullscreen    f|[F11]             Fullscreen Toggle
 selectPage          [Tab]               Page Index Buttons
-exportPage          e                   NA
+exportPage          e                   Export Page Button
 
 <a href="https://mftb0.github.io/cbxv">Program Manual</a>
 
-Copyright © 2022-2023 Matt Butler
+Copyright © 2022-2024 Matt Butler
 </tt>`
 
 //go:embed assets

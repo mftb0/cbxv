@@ -171,10 +171,11 @@ Excelsior!
 
 - exportPage  
     The exportPage command will bring up the export dialog allowing you to save
-    the currently selected page as an mage file wherever you want independent of 
-    the cbx file you are viewing.
+    the currently selected page as an image file wherever you want independent 
+    of the cbx file you are viewing.
 
     Keys: e
+    Mouse: exportPage Button  
 
 ### Bookmark Commands
 - toggleBookmark  

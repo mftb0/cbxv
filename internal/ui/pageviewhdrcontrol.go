@@ -13,6 +13,7 @@ import (
 
 const (
     APP_HLP_ICN = "?"
+    APP_EXP_ICN = ">"
 )
 
 type PageViewHdrControl struct {
@@ -20,6 +21,7 @@ type PageViewHdrControl struct {
     leftBookmark  *gtk.Button
     spinner       *gtk.Spinner
     fileControl   *gtk.Button
+    exportControl *gtk.Button
     helpControl   *gtk.Button
     rightBookmark *gtk.Button
 }
@@ -39,6 +41,7 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     css.AddClass("nav-btn")
 
     fc := util.CreateButton("File", "nav-btn", util.S("Open File"))
+    ec := util.CreateButton("Export", "nav-btn", util.S("Export Page"))
     hc := util.CreateButton(APP_HLP_ICN, "nav-btn", util.S("Help"))
     rbkmk := util.CreateButton("", "bkmk-btn", nil)
 
@@ -64,6 +67,11 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
 
     fc.Connect("clicked", func() bool {
         u.Commands.Names["openFile"].Execute()
+        return true
+    })
+
+    ec.Connect("clicked", func() bool {
+        u.Commands.Names["exportPage"].Execute()
         return true
     })
 
@@ -104,13 +112,15 @@ func NewHdrControl(m *model.Model, u *UI) *PageViewHdrControl {
     container.Attach(lbkmk, 0, 0, 1, 1)
     container.Attach(spn, 1, 0, 1, 1)
     container.Attach(fc, 2, 0, 1, 1)
-    container.Attach(hc, 3, 0, 1, 1)
-    container.Attach(rbkmk, 4, 0, 1, 1)
+    container.Attach(ec, 3, 0, 1, 1)
+    container.Attach(hc, 4, 0, 1, 1)
+    container.Attach(rbkmk, 5, 0, 1, 1)
     container.SetSizeRequest(1000, 8)
 
     c.leftBookmark = lbkmk
     c.spinner = spn
     c.fileControl = fc
+    c.exportControl = ec
     c.helpControl = hc
     c.rightBookmark = rbkmk
     c.container = container
@@ -125,6 +135,7 @@ func (c *PageViewHdrControl) Render(m *model.Model) {
     css.RemoveClass("marked")
     css.RemoveClass("transparent")
     c.fileControl.SetLabel("File")
+    c.exportControl.SetLabel(fmt.Sprintf("%s %s", " ", APP_EXP_ICN))
 
     if m.Loading {
         c.spinner.Start()
@@ -178,6 +189,7 @@ func (c *PageViewHdrControl) Render(m *model.Model) {
             }
         }
         c.fileControl.SetLabel(title)
+        c.exportControl.SetLabel(fmt.Sprintf("%d %s", m.PageIndex, APP_EXP_ICN))
     }
 }
 
