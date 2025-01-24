@@ -13,7 +13,7 @@ import (
 
 const (
 	NAME    = "cbxv"
-	VERSION = "0.5.6"
+	VERSION = "0.5.7"
 )
 
 // Update listens for messages on the message channel and
@@ -28,6 +28,7 @@ func update(m *model.Model, u *ui.UI, msgChan chan util.Message, msgHandlers *Me
 			(msg.TypeName != "quit" &&
 				msg.TypeName != "openFile" &&
 				msg.TypeName != "openFileResult" &&
+				msg.TypeName != "toggleDirection" &&
 				msg.TypeName != "setFullscreen") {
 			continue
 		}

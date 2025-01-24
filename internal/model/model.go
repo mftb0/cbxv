@@ -376,6 +376,7 @@ const (
 type Layout struct {
     FormatVersion string     `json:"formatVersion"`
     Comic         ComicData  `json:"comic"`
+    Direction     Direction  `json:"direction"`
     Mode          LayoutMode `json:"mode"`
     Pages         []Page     `json:"pages"`
 }
@@ -586,12 +587,13 @@ func (m *Model) PageToSpread(n int) int {
 
 func (m *Model) StoreLayout() error {
     layout := Layout{
-        FormatVersion: "0.1",
+        FormatVersion: "0.2",
     }
     c := ComicData{}
     c.Hash = m.Hash
     c.FilePath = m.FilePath
     layout.Comic = c
+    layout.Direction = m.Direction
     layout.Mode = m.LayoutMode
     layout.Pages = m.Pages
 
@@ -618,6 +620,10 @@ func (m *Model) loadLayout(hash string) *Layout {
 
     if data != nil {
         var lo Layout
+        // default Direction to whatever it's currently 
+        // set too, because it was added in 0.2 and we 
+        // want to preserve existing behavior
+        lo.Direction = m.Direction
         err := json.Unmarshal([]byte(*data), &lo)
         if err != nil {
             fmt.Printf("e:%s\n", err)
@@ -638,6 +644,10 @@ func (m *Model) joinAll() {
 }
 
 func (m *Model) applyLayout(layout *Layout) {
+    if m.Direction != layout.Direction {
+        m.SendMessage(util.Message{TypeName: "toggleDirection"})
+    }
+
     for i := range layout.Pages {
         p := layout.Pages[i]
         mp := m.Pages[i]
