@@ -1,21 +1,23 @@
 module github.com/mftb0/cbxv
 
-go 1.18
+go 1.25.0
 
 require (
 	github.com/gen2brain/go-unarr v0.2.3
 	github.com/gotk3/gotk3 v0.6.5-0.20240618185848-ff349ae13f56
-	github.com/pdfcpu/pdfcpu v0.8.1
+	github.com/pdfcpu/pdfcpu v0.12.0
 )
 
 require (
+	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/hhrutter/lzw v1.0.0 // indirect
-	github.com/hhrutter/tiff v1.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/hhrutter/pkcs7 v0.2.2 // indirect
+	github.com/hhrutter/tiff v1.0.3 // indirect
+	github.com/mattn/go-runewidth v0.0.23 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
-	golang.org/x/image v0.19.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/image v0.39.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
