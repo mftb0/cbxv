@@ -1,7 +1,9 @@
 #!/bin/sh
 
 GOOS=`go env GOOS`
-GOARCH=`go env GOARCH`
+# force old mac arch because it works on both amd and arm
+# GOARCH=`go env GOARCH`
+GOARCH=amd64
 
 #
 # build
