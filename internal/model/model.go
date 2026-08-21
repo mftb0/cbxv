@@ -61,11 +61,12 @@ const (
     RTL
 )
 
-// Maximum to load into the model
-// Currently confusing because at init the units are pages
-// Later it's spreads (so frequently double the number of pages
+// Couple of constants to keep memory usage reasonable 
+// PGS is used at init to get a reasonable number of pages loaded 
+// SPRDS is used afterward when managing pgs grouped as spreads
 const (
-    MAX_LOAD = 8
+    MAX_LOAD_PGS = 16
+    MAX_LOAD_SPRDS = 8
 )
 
 type ResultCode int
@@ -229,7 +230,7 @@ func (m *Model) NewPages() {
         pages[i].FilePath = m.ImgPaths[i]
         pages[i].Span = SINGLE
         pages[i].Loaded = false
-        if i < MAX_LOAD {
+        if i < MAX_LOAD_PGS {
             pages[i].Load()
         } else {
             pages[i].LoadMeta()
@@ -508,8 +509,8 @@ func (m *Model) SpreadLoaded(spreadIndex int) bool {
 // based on the current spread index
 func (m *Model) RefreshSpreads() {
     if m.LayoutMode != LONG_STRIP {
-        start := int(math.Max(0, float64(m.SpreadIndex-(MAX_LOAD/2)+1)))
-        end := int(math.Min(float64(m.SpreadIndex+(MAX_LOAD/2)-1), float64(len(m.Spreads)-1)))
+        start := int(math.Max(0, float64(m.SpreadIndex-(MAX_LOAD_SPRDS/2)+1)))
+        end := int(math.Min(float64(m.SpreadIndex+(MAX_LOAD_SPRDS/2)-1), float64(len(m.Spreads)-1)))
 
         // iterate over all spreads
         // load/unload pgs as needed
